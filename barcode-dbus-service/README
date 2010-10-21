@@ -1,9 +1,7 @@
-== README ==
+== barcode dbus service == 
 
-koppi's barcode reader foo:
-
-* barcode-reader	print read 'barcode'\n to STDOUT.
-* barcode-dbus-service	connects the barcode readers to the DBus.
+* barcode-dbus-service	connects the system's barcode readers to the DBus and
+                        exports them as the me.koppi.BarcodeReader service.
 
 --
 Jakob Flierl <jakob.flierl@gmail.com>
