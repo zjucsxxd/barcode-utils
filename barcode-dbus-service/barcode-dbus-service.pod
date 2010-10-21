@@ -1,0 +1,39 @@
+=head1 NAME
+
+barcode-dbus-service - provides the DBus B<me.koppi.BarcodeReader> service. 
+
+=head1 SYNOPSIS
+
+barcode-dbus-service [options...]
+
+=head1 DESCRIPTION
+
+B<barcode-dbus-service> receives barcodes from the /dev/hidraw* character devices and sends them via DBus B<me.koppi.BarcodeReader> service.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--help>
+
+Prints a help message and exits.
+
+=item B<--verbose>
+
+Be more verbose about the things going on in the background.
+
+=item B<--version>
+
+Displays information about the currently installed version and exists.
+
+=back
+
+=head1 BUGS
+
+This command has absolutely no bugs, as I have written it. Also, as it has no bugs, there is no need for a bug tracker.
+
+=head1 AUTHORS
+
+B<barcode-dbus-service> was written by Jakob Flierl <jakob.flierl@gmail.com>. The source code and man pages are released under the GNU General Public License, version 3 or later.
+
+=cut

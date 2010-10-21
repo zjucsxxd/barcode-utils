@@ -1,0 +1,9 @@
+barcode-reader-glib (0.1.0) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Jakob Flierl <jakob.flierl@gmail.com>  Sun, 22 Oct 2010 21:36:47 +0200
+	
+Local variables:
+mode: debian-changelog
+End:

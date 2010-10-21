@@ -1,0 +1,8 @@
+== README ==
+
+barcode reader command line interface:
+
+* barcode-reader-glib	print read 'barcode'\n to STDOUT.
+
+--
+Jakob Flierl <jakob.flierl@gmail.com>

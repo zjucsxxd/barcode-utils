@@ -1,0 +1,9 @@
+== README ==
+
+koppi's barcode reader foo:
+
+* barcode-reader	print read 'barcode'\n to STDOUT.
+* barcode-dbus-service	connects the barcode readers to the DBus.
+
+--
+Jakob Flierl <jakob.flierl@gmail.com>
