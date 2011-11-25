@@ -7,8 +7,7 @@
 
  *  LS3408-FZ20005 - Symbol LS 3408FZ, LS 3408 Series Scanner
 
-    ![LS3408-FZ20005](https://raw.github.com/koppi/barcode-utils/master/barcode\
--scanners/LS3408-FZ20005.png "Symbol LS 3408FZ, LS 3408 Series Scanner")
+    ![LS3408-FZ20005](https://raw.github.com/koppi/barcode-utils/master/barcode\-scanners/LS3408-FZ20005.png "Symbol LS 3408FZ, LS 3408 Series Scanner")
 
     The LS 3408FZ, LS 3408 Series uses fuzzy logic technology to interpret barc\
 odes that have been damaged or soiled to give you the kind of versatility that'\
