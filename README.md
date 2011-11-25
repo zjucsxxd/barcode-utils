@@ -2,7 +2,7 @@
 
 * [barcode-reader-glib](barcode-utils/blob/master/barcode-reader-glib): command line tool to connect to the DBus me.koppi.BarcodeReader service and "print read 'barcode'\n" to STDOUT.
 * [barcode-dbus-service](barcode-utils/blob/master/barcode-dbus-service): DBus service, which connects the system's barcode readers to the DBus and exports the me.koppi.BarcodeReader service.
-* [indicator-barcode](barcode-utils/blob/master/indicator-barcode): A barcode reader utility showing in the indicator bar.
+* [indicator-barcode](barcode-utils/blob/master/indicator-barcode): A barcode reader utility showing in the GNOME indicator bar.
 
 ## Tested Barcode Scanners
 
