@@ -44,6 +44,7 @@ static void dbus_send(DBusConnection *connection,
   dbus_message_append_args(message, DBUS_TYPE_STRING, &msg, DBUS_TYPE_INVALID);
 
   dbus_connection_send (connection, message, NULL);
+  dbus_connection_flush(connection);
   dbus_message_unref (message);
 }
 
@@ -210,7 +211,7 @@ int main (void) {
       return 1;
     }
   } else {
-    printf("%s is already reserved. '$ killall barcode-service; barcode-service &' to run it manually.\n", name);
+    printf("%s is already reserved. '$ killall barcode-dbus-service; barcode-dbus-service &' to run it manually.\n", name);
     return 1;
   }
  

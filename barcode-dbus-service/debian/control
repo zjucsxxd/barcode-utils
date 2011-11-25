@@ -2,13 +2,13 @@ Source: barcode-dbus-service
 Section: admin
 Priority: optional
 Maintainer: Jakob Flierl <jakob.flierl@gmail.com>
-Build-Depends: debhelper (>= 5), libdbus-1-dev, perl
+Build-Depends: debhelper (>= 5), libudev-dev, libdbus-1-dev, perl
 Standards-Version: 3.9.1
 Vcs-Browser: http://github.com/koppi/barcode-utils
 Vcs-git: https://koppi@github.com/koppi/barcode-utils.git
 
 Package: barcode-dbus-service
-Architecture: i386
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dbus
 Description: barcode reader dbus service
  Exports the DBus service me.koppi.BarcodeReader to the system.
