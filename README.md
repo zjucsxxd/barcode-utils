@@ -38,7 +38,7 @@ The following packages are required to build barcode-utils:
  $ sudo apt-get install debhelper libudev-dev libdbus-1-dev
 ```
 
-Compile barcode-utils as follows:
+Compile and install barcode-utils as follows:
 
 ```
  $ make install
