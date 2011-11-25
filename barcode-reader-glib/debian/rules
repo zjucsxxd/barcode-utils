@@ -26,12 +26,12 @@ clean::
 
 	# Add here commands to clean up after the build process.
 	[ ! -f Makefile ] || $(MAKE) clean
-	dh_clean
+	dh_prep
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 	dh_installdirs
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/barcode-reader-glib
 	install -m 755 barcode-reader-glib debian/barcode-reader-glib/usr/bin/barcode-reader-glib

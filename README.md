@@ -14,7 +14,42 @@
     ```
 $ lsusb
 Bus 004 Device 003: ID 05e0:1300 Symbol Technologies
-    ``` 
+
+## Get the source code
+
+```
+ $ wget -O barcode-utils.zip https://github.com/koppi/barcode-utils/zipball/master
+ $ unzip barcode-utils.zip
+ $ cd barcode-utils*
+```
+
+or
+
+```
+ $ git clone https://github.com/koppi/barcode-utils.git
+ $ cd barcode-utils/
+```
+
+## Compile / Install
+
+The following packages are required to build barcode-utils:
+
+```
+ $ sudo apt-get install debhelper libudev-dev libdbus-1-dev
+```
+
+Compile barcode-utils as follows:
+
+```
+ $ make install
+```
+
+or
+
+```
+ $ make build
+ $ sudo dpkg -i barcode-dbus-service*.deb barcode-reader-glib*.deb
+```
 
 ## Authors
 
