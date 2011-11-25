@@ -4,6 +4,9 @@ barcode-dbus-service.1
 debian/barcode-dbus-service.debhelper.log
 debian/barcode-dbus-service.substvars
 
+debian/barcode-dbus-service.preinst.debhelper
+debian/barcode-dbus-service.postinst.debhelper
+
 # generic files to ignore
 *.lock
 *.DS_Store

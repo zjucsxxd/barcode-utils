@@ -9,7 +9,7 @@ Vcs-git: https://koppi@github.com/koppi/barcode-utils.git
 
 Package: barcode-dbus-service
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, dbus
+Depends: ${shlibs:Depends}, ${misc:Depends}, dbus, udev
 Description: barcode reader dbus service
  Exports the DBus service me.koppi.BarcodeReader to the system.
 

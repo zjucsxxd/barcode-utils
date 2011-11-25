@@ -1,0 +1,4 @@
+#!/bin/sh
+
+service udev reload
+udevadm trigger
