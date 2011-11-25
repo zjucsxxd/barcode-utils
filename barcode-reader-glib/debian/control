@@ -8,7 +8,7 @@ Vcs-Browser: http://github.com/koppi/barcode-utils
 Vcs-git: https://koppi@github.com/koppi/barcode-utils.git
 
 Package: barcode-reader-glib
-Architecture: i386
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dbus
 Description: barcode reader (glib version)
  Some barcode reader (glib version).
