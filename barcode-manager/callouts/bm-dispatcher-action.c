@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* BarcodeManager -- Network link manager
+/* BarcodeManager -- barcode scanner manager
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -260,7 +260,7 @@ dispatch_scripts (const char *action,
 		GError *pc_error = NULL;
 		int err;
 
-		if (!nmd_is_valid_filename (filename))
+		if (!bmd_is_valid_filename (filename))
 			continue;
 
 		file_path = g_build_filename (NMD_SCRIPT_DIR, filename, NULL);
@@ -272,7 +272,7 @@ dispatch_scripts (const char *action,
 			continue;
 		}
 
-		if (!nmd_permission_check (&s, &pc_error)) {
+		if (!bmd_permission_check (&s, &pc_error)) {
 			g_warning ("Script '%s' could not be executed: %s", file_path, pc_error->message);
 			g_error_free (pc_error);
 			g_free (file_path);
@@ -334,18 +334,18 @@ bm_dispatcher_action (Handler *h,
 	}
 
 	/* interface name */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_INTERFACE);
+	value = g_hash_table_lookup (device_props, BMD_DEVICE_PROPS_INTERFACE);
 	if (!value || !G_VALUE_HOLDS_STRING (value)) {
-		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_INTERFACE "!");
+		g_warning ("Missing or invalid required value " BMD_DEVICE_PROPS_INTERFACE "!");
 		goto out;
 	}
 	iface = (char *) g_value_get_string (value);
 
 	/* IP interface name */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_IP_INTERFACE);
+	value = g_hash_table_lookup (device_props, BMD_DEVICE_PROPS_IP_INTERFACE);
 	if (value) {
 		if (!G_VALUE_HOLDS_STRING (value)) {
-			g_warning ("Invalid required value " NMD_DEVICE_PROPS_IP_INTERFACE "!");
+			g_warning ("Invalid required value " BMD_DEVICE_PROPS_IP_INTERFACE "!");
 			goto out;
 		}
 		parent_iface = iface;
@@ -353,25 +353,25 @@ bm_dispatcher_action (Handler *h,
 	}
 
 	/* Device type */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_TYPE);
+	value = g_hash_table_lookup (device_props, BMD_DEVICE_PROPS_TYPE);
 	if (!value || !G_VALUE_HOLDS_UINT (value)) {
-		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_TYPE "!");
+		g_warning ("Missing or invalid required value " BMD_DEVICE_PROPS_TYPE "!");
 		goto out;
 	}
 	type = g_value_get_uint (value);
 
 	/* Device state */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_STATE);
+	value = g_hash_table_lookup (device_props, BMD_DEVICE_PROPS_STATE);
 	if (!value || !G_VALUE_HOLDS_UINT (value)) {
-		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_STATE "!");
+		g_warning ("Missing or invalid required value " BMD_DEVICE_PROPS_STATE "!");
 		goto out;
 	}
 	dev_state = g_value_get_uint (value);
 
 	/* device itself */
-	value = g_hash_table_lookup (device_props, NMD_DEVICE_PROPS_PATH);
+	value = g_hash_table_lookup (device_props, BMD_DEVICE_PROPS_PATH);
 	if (!value || (G_VALUE_TYPE (value) != DBUS_TYPE_G_OBJECT_PATH)) {
-		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_PATH "!");
+		g_warning ("Missing or invalid required value " BMD_DEVICE_PROPS_PATH "!");
 		goto out;
 	}
 	device = BM_DEVICE (bm_device_new (d->g_connection, (const char *) g_value_get_boxed (value)));

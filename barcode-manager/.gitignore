@@ -1,4 +1,8 @@
 # generated stuff
+
+callouts/bm-dispatcher.action
+callouts/org.freedesktop.bm_dispatcher.service
+
 marshallers/bm-marshal.c
 marshallers/bm-marshal.h
 

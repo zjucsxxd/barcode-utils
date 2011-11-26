@@ -48,6 +48,8 @@ dispatcherdir=$(sysconfdir)/BarcodeManager/dispatcher.d
 install-data-hook:
 	   $(mkinstalldirs) -m 0755 $(DESTDIR)$(dispatcherdir)
 
+BUILT_SOURCES = bm-dispatcher-glue.h
+
 CLEANFILES = $(BUILT_SOURCES) $(dbusactivation_DATA)
 
 EXTRA_DIST = \
