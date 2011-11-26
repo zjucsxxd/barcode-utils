@@ -1,0 +1,4 @@
+SUBDIRS = 
+if TARGET_DEBIAN
+SUBDIRS += Debian
+endif
