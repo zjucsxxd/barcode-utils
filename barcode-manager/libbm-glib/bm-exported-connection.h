@@ -19,27 +19,27 @@
  * (C) Copyright 2009 Red Hat, Inc.
  */
 
-#ifndef NM_EXPORTED_CONNECTION_H
-#define NM_EXPORTED_CONNECTION_H
+#ifndef BM_EXPORTED_CONNECTION_H
+#define BM_EXPORTED_CONNECTION_H
 
 #include <bm-connection.h>
 #include <dbus/dbus-glib.h>
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_EXPORTED_CONNECTION            (nm_exported_connection_get_type ())
-#define NM_EXPORTED_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_EXPORTED_CONNECTION, NMExportedConnection))
-#define NM_EXPORTED_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_EXPORTED_CONNECTION, NMExportedConnectionClass))
-#define NM_IS_EXPORTED_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_EXPORTED_CONNECTION))
-#define NM_IS_EXPORTED_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_EXPORTED_CONNECTION))
-#define NM_EXPORTED_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_EXPORTED_CONNECTION, NMExportedConnectionClass))
+#define BM_TYPE_EXPORTED_CONNECTION            (bm_exported_connection_get_type ())
+#define BM_EXPORTED_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_EXPORTED_CONNECTION, NMExportedConnection))
+#define BM_EXPORTED_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_EXPORTED_CONNECTION, NMExportedConnectionClass))
+#define BM_IS_EXPORTED_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_EXPORTED_CONNECTION))
+#define BM_IS_EXPORTED_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_EXPORTED_CONNECTION))
+#define BM_EXPORTED_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_EXPORTED_CONNECTION, NMExportedConnectionClass))
 
 typedef struct {
-	NMConnection parent;
+	BMConnection parent;
 } NMExportedConnection;
 
 typedef struct {
-	NMConnectionClass parent;
+	BMConnectionClass parent;
 
 	GHashTable * (*get_settings) (NMExportedConnection *self,
 	                              GError **error);
@@ -66,10 +66,10 @@ typedef struct {
 	void (*_reserved6) (void);
 } NMExportedConnectionClass;
 
-GType nm_exported_connection_get_type (void);
+GType bm_exported_connection_get_type (void);
 
-NMExportedConnection *nm_exported_connection_new (NMConnectionScope scope);
+NMExportedConnection *bm_exported_connection_new (BMConnectionScope scope);
 
 G_END_DECLS
 
-#endif /* NM_EXPORTED_CONNECTION_H */
+#endif /* BM_EXPORTED_CONNECTION_H */

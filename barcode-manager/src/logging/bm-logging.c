@@ -88,31 +88,31 @@ static const LogDesc domain_descs[] = {
 /************************************************************************/
 
 enum {
-    NM_LOGGING_ERROR_UNKNOWN_LEVEL = 0,
-    NM_LOGGING_ERROR_UNKNOWN_DOMAIN = 1,
+    BM_LOGGING_ERROR_UNKNOWN_LEVEL = 0,
+    BM_LOGGING_ERROR_UNKNOWN_DOMAIN = 1,
 };
 
 #define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
 
 GQuark
-nm_logging_error_quark (void)
+bm_logging_error_quark (void)
 {
     static GQuark ret = 0;
 
     if (ret == 0)
-        ret = g_quark_from_static_string ("nm_logging_error");
+        ret = g_quark_from_static_string ("bm_logging_error");
     return ret;
 }
 
 GType
-nm_logging_error_get_type (void)
+bm_logging_error_get_type (void)
 {
     static GType etype = 0;
 
     if (etype == 0) {
         static const GEnumValue values[] = {
-            ENUM_ENTRY (NM_LOGGING_ERROR_UNKNOWN_LEVEL,  "UnknownLevel"),
-            ENUM_ENTRY (NM_LOGGING_ERROR_UNKNOWN_DOMAIN, "UnknownDomain"),
+            ENUM_ENTRY (BM_LOGGING_ERROR_UNKNOWN_LEVEL,  "UnknownLevel"),
+            ENUM_ENTRY (BM_LOGGING_ERROR_UNKNOWN_DOMAIN, "UnknownDomain"),
             { 0, 0, 0 }
         };
         etype = g_enum_register_static ("NMLoggingError", values);
@@ -123,7 +123,7 @@ nm_logging_error_get_type (void)
 /************************************************************************/
 
 gboolean
-nm_logging_setup (const char *level, const char *domains, GError **error)
+bm_logging_setup (const char *level, const char *domains, GError **error)
 {
 	char **tmp, **iter;
 	guint32 new_domains = 0;
@@ -142,7 +142,7 @@ nm_logging_setup (const char *level, const char *domains, GError **error)
 		}
 
 		if (!found) {
-			g_set_error (error, NM_LOGGING_ERROR, NM_LOGGING_ERROR_UNKNOWN_LEVEL,
+			g_set_error (error, BM_LOGGING_ERROR, BM_LOGGING_ERROR_UNKNOWN_LEVEL,
 			             _("Unknown log level '%s'"), level);
 			return FALSE;
 		}
@@ -167,7 +167,7 @@ nm_logging_setup (const char *level, const char *domains, GError **error)
 			}
 
 			if (!found) {
-				g_set_error (error, NM_LOGGING_ERROR, NM_LOGGING_ERROR_UNKNOWN_DOMAIN,
+				g_set_error (error, BM_LOGGING_ERROR, BM_LOGGING_ERROR_UNKNOWN_DOMAIN,
 				             _("Unknown log domain '%s'"), *iter);
 				return FALSE;
 			}
@@ -180,7 +180,7 @@ nm_logging_setup (const char *level, const char *domains, GError **error)
 }
 
 const char *
-nm_logging_level_to_string (void)
+bm_logging_level_to_string (void)
 {
 	const LogDesc *diter;
 
@@ -193,7 +193,7 @@ nm_logging_level_to_string (void)
 }
 
 char *
-nm_logging_domains_to_string (void)
+bm_logging_domains_to_string (void)
 {
 	const LogDesc *diter;
 	GString *str;
@@ -210,13 +210,13 @@ nm_logging_domains_to_string (void)
 }
 
 gboolean
-nm_logging_level_enabled (guint32 level)
+bm_logging_level_enabled (guint32 level)
 {
 	return !!(log_level & level);
 }
 
 void
-_nm_log (const char *loc,
+_bm_log (const char *loc,
          const char *func,
          guint32 domain,
          guint32 level,
@@ -313,7 +313,7 @@ crashlogger_get_backtrace (void)
 
 
 void
-nm_logging_backtrace (void)
+bm_logging_backtrace (void)
 {
 	struct stat s;
 	gboolean fallback = TRUE;
@@ -331,7 +331,7 @@ nm_logging_backtrace (void)
 
 
 static void
-nm_log_handler (const gchar *log_domain,
+bm_log_handler (const gchar *log_domain,
                 GLogLevelFlags level,
                 const gchar *message,
                 gpointer ignored)
@@ -364,7 +364,7 @@ nm_log_handler (const gchar *log_domain,
 }
 
 void
-nm_logging_start (gboolean become_daemon)
+bm_logging_start (gboolean become_daemon)
 {
 	if (become_daemon)
 		openlog (G_LOG_DOMAIN, LOG_PID, LOG_DAEMON);
@@ -373,12 +373,12 @@ nm_logging_start (gboolean become_daemon)
 
 	g_log_set_handler (G_LOG_DOMAIN, 
 	                   G_LOG_LEVEL_MASK | G_LOG_FLAG_FATAL | G_LOG_FLAG_RECURSION,
-	                   nm_log_handler,
+	                   bm_log_handler,
 	                   NULL);
 }
 
 void
-nm_logging_shutdown (void)
+bm_logging_shutdown (void)
 {
 	closelog ();
 }

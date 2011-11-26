@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
-#ifndef NM_REMOTE_SETTINGS_H
-#define NM_REMOTE_SETTINGS_H
+#ifndef BM_REMOTE_SETTINGS_H
+#define BM_REMOTE_SETTINGS_H
 
 #include <glib.h>
 #include <dbus/dbus-glib.h>
@@ -31,16 +31,16 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_REMOTE_SETTINGS            (nm_remote_settings_get_type ())
-#define NM_REMOTE_SETTINGS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_REMOTE_SETTINGS, NMRemoteSettings))
-#define NM_REMOTE_SETTINGS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_REMOTE_SETTINGS, NMRemoteSettingsClass))
-#define NM_IS_REMOTE_SETTINGS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_REMOTE_SETTINGS))
-#define NM_IS_REMOTE_SETTINGS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_REMOTE_SETTINGS))
-#define NM_REMOTE_SETTINGS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_REMOTE_SETTINGS, NMRemoteSettingsClass))
+#define BM_TYPE_REMOTE_SETTINGS            (bm_remote_settings_get_type ())
+#define BM_REMOTE_SETTINGS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_REMOTE_SETTINGS, NMRemoteSettings))
+#define BM_REMOTE_SETTINGS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_REMOTE_SETTINGS, NMRemoteSettingsClass))
+#define BM_IS_REMOTE_SETTINGS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_REMOTE_SETTINGS))
+#define BM_IS_REMOTE_SETTINGS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_REMOTE_SETTINGS))
+#define BM_REMOTE_SETTINGS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_REMOTE_SETTINGS, NMRemoteSettingsClass))
 
-#define NM_REMOTE_SETTINGS_BUS "bus"
-#define NM_REMOTE_SETTINGS_SCOPE "scope"
-#define NM_REMOTE_SETTINGS_SERVICE_RUNNING "service-running"
+#define BM_REMOTE_SETTINGS_BUS "bus"
+#define BM_REMOTE_SETTINGS_SCOPE "scope"
+#define BM_REMOTE_SETTINGS_SERVICE_RUNNING "service-running"
 
 typedef struct {
 	GObject parent;
@@ -58,10 +58,10 @@ typedef struct {
 	void (*_reserved6) (void);
 } NMRemoteSettingsClass;
 
-GType nm_remote_settings_get_type (void);
+GType bm_remote_settings_get_type (void);
 
-NMRemoteSettings *nm_remote_settings_new (DBusGConnection *bus, NMConnectionScope scope);
+NMRemoteSettings *bm_remote_settings_new (DBusGConnection *bus, BMConnectionScope scope);
 
 G_END_DECLS
 
-#endif /* NM_REMOTE_SETTINGS_H */
+#endif /* BM_REMOTE_SETTINGS_H */

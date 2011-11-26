@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,17 +20,19 @@
  * Copyright (C) 2007 - 2008 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_PRIVATE_H
-#define NM_DEVICE_PRIVATE_H
+#ifndef BM_DEVICE_PRIVATE_H
+#define BM_DEVICE_PRIVATE_H
+
+//#include <BarcodeManager.h>
 
 #include <dbus/dbus-glib.h>
 
-DBusGConnection *nm_device_get_connection       (NMDevice *device);
-const char      *nm_device_get_path             (NMDevice *device);
-DBusGProxy      *nm_device_get_properties_proxy (NMDevice *device);
+DBusGConnection *bm_device_get_connection       (BMDevice *device);
+const char      *bm_device_get_path             (BMDevice *device);
+DBusGProxy      *bm_device_get_properties_proxy (BMDevice *device);
 
 /* static methods */
-NMDeviceType     nm_device_type_for_path (DBusGConnection *connection,
+BMDeviceType     bm_device_type_for_path (DBusGConnection *connection,
 										  const char *path);
 
-#endif /* NM_DEVICE_PRIVATE_H */
+#endif /* BM_DEVICE_PRIVATE_H */

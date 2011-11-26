@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
  * Copyright (C) 2008 Novell, Inc.
  */
 
-#ifndef NM_ACTIVE_CONNECTION_H
-#define NM_ACTIVE_CONNECTION_H
+#ifndef BM_ACTIVE_CONNECTION_H
+#define BM_ACTIVE_CONNECTION_H
 
 #include <glib.h>
 #include <glib-object.h>
@@ -32,27 +32,27 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_ACTIVE_CONNECTION            (nm_active_connection_get_type ())
-#define NM_ACTIVE_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_ACTIVE_CONNECTION, NMActiveConnection))
-#define NM_ACTIVE_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_ACTIVE_CONNECTION, NMActiveConnectionClass))
-#define NM_IS_ACTIVE_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_ACTIVE_CONNECTION))
-#define NM_IS_ACTIVE_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_ACTIVE_CONNECTION))
-#define NM_ACTIVE_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_ACTIVE_CONNECTION, NMActiveConnectionClass))
+#define BM_TYPE_ACTIVE_CONNECTION            (bm_active_connection_get_type ())
+#define BM_ACTIVE_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_ACTIVE_CONNECTION, BMActiveConnection))
+#define BM_ACTIVE_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_ACTIVE_CONNECTION, BMActiveConnectionClass))
+#define BM_IS_ACTIVE_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_ACTIVE_CONNECTION))
+#define BM_IS_ACTIVE_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_ACTIVE_CONNECTION))
+#define BM_ACTIVE_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_ACTIVE_CONNECTION, BMActiveConnectionClass))
 
-#define NM_ACTIVE_CONNECTION_SERVICE_NAME        "service-name"
-#define NM_ACTIVE_CONNECTION_CONNECTION          "connection"
-#define NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT     "specific-object"
-#define NM_ACTIVE_CONNECTION_DEVICES             "devices"
-#define NM_ACTIVE_CONNECTION_STATE               "state"
-#define NM_ACTIVE_CONNECTION_DEFAULT             "default"
-#define NM_ACTIVE_CONNECTION_DEFAULT6            "default6"
-
-typedef struct {
-	NMObject parent;
-} NMActiveConnection;
+#define BM_ACTIVE_CONNECTION_SERVICE_NAME        "service-name"
+#define BM_ACTIVE_CONNECTION_CONNECTION          "connection"
+#define BM_ACTIVE_CONNECTION_SPECIFIC_OBJECT     "specific-object"
+#define BM_ACTIVE_CONNECTION_DEVICES             "devices"
+#define BM_ACTIVE_CONNECTION_STATE               "state"
+#define BM_ACTIVE_CONNECTION_DEFAULT             "default"
+#define BM_ACTIVE_CONNECTION_DEFAULT6            "default6"
 
 typedef struct {
-	NMObjectClass parent;
+	BMObject parent;
+} BMActiveConnection;
+
+typedef struct {
+	BMObjectClass parent;
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
@@ -61,21 +61,21 @@ typedef struct {
 	void (*_reserved4) (void);
 	void (*_reserved5) (void);
 	void (*_reserved6) (void);
-} NMActiveConnectionClass;
+} BMActiveConnectionClass;
 
-GType nm_active_connection_get_type (void);
+GType bm_active_connection_get_type (void);
 
-GObject *nm_active_connection_new (DBusGConnection *connection, const char *path);
+GObject *bm_active_connection_new (DBusGConnection *connection, const char *path);
 
-const char * nm_active_connection_get_service_name        (NMActiveConnection *connection);
-NMConnectionScope nm_active_connection_get_scope          (NMActiveConnection *connection);
-const char * nm_active_connection_get_connection          (NMActiveConnection *connection);
-const char * nm_active_connection_get_specific_object     (NMActiveConnection *connection);
-const GPtrArray *nm_active_connection_get_devices         (NMActiveConnection *connection);
-NMActiveConnectionState nm_active_connection_get_state    (NMActiveConnection *connection);
-gboolean nm_active_connection_get_default                 (NMActiveConnection *connection);
-gboolean nm_active_connection_get_default6                (NMActiveConnection *connection);
+const char * bm_active_connection_get_service_name        (BMActiveConnection *connection);
+BMConnectionScope bm_active_connection_get_scope          (BMActiveConnection *connection);
+const char * bm_active_connection_get_connection          (BMActiveConnection *connection);
+const char * bm_active_connection_get_specific_object     (BMActiveConnection *connection);
+const GPtrArray *bm_active_connection_get_devices         (BMActiveConnection *connection);
+BMActiveConnectionState bm_active_connection_get_state    (BMActiveConnection *connection);
+gboolean bm_active_connection_get_default                 (BMActiveConnection *connection);
+gboolean bm_active_connection_get_default6                (BMActiveConnection *connection);
 
 G_END_DECLS
 
-#endif /* NM_ACTIVE_CONNECTION_H */
+#endif /* BM_ACTIVE_CONNECTION_H */

@@ -202,7 +202,7 @@ dnl Distribution version string
 dnl
 AC_ARG_WITH(dist-version, AS_HELP_STRING([--with-dist-version=<NM-distribution-version>], [Define the NM's distribution version string]), ac_distver=$withval, ac_distver="")
 if ! test x"$ac_distver" = x""; then
-  AC_DEFINE_UNQUOTED(NM_DIST_VERSION, "$ac_distver", [Define the distribution version string])
+  AC_DEFINE_UNQUOTED(BM_DIST_VERSION, "$ac_distver", [Define the distribution version string])
 fi
 
 dnl

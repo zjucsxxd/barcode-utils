@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
 #include "bm-dbus-utils.h"
 
 char *
-_nm_dbus_get_string_property (DBusGProxy *proxy,
+_bm_dbus_get_string_property (DBusGProxy *proxy,
 							 const char *interface,
 							 const char *prop_name)
 {
@@ -49,7 +49,7 @@ _nm_dbus_get_string_property (DBusGProxy *proxy,
 }
 
 char *
-_nm_dbus_get_object_path_property (DBusGProxy *proxy,
+_bm_dbus_get_object_path_property (DBusGProxy *proxy,
 								  const char *interface,
 								  const char *prop_name)
 {
@@ -75,7 +75,7 @@ _nm_dbus_get_object_path_property (DBusGProxy *proxy,
 }
 
 gint32
-_nm_dbus_get_int_property (DBusGProxy *proxy,
+_bm_dbus_get_int_property (DBusGProxy *proxy,
 						  const char *interface,
 						  const char *prop_name)
 {
@@ -101,7 +101,7 @@ _nm_dbus_get_int_property (DBusGProxy *proxy,
 }
 
 guint32
-_nm_dbus_get_uint_property (DBusGProxy *proxy,
+_bm_dbus_get_uint_property (DBusGProxy *proxy,
 						   const char *interface,
 						   const char *prop_name)
 {
@@ -127,7 +127,7 @@ _nm_dbus_get_uint_property (DBusGProxy *proxy,
 }
 
 gboolean
-_nm_dbus_get_property (DBusGProxy *proxy,
+_bm_dbus_get_property (DBusGProxy *proxy,
 					  const char *interface,
 					  const char *prop_name,
 					  GValue *value)
@@ -161,7 +161,7 @@ _nm_dbus_get_property (DBusGProxy *proxy,
 }
 
 void
-_nm_dbus_set_property (DBusGProxy *proxy,
+_bm_dbus_set_property (DBusGProxy *proxy,
 					  const char *interface,
 					  const char *prop_name,
 					  GValue *value)
@@ -186,7 +186,7 @@ _nm_dbus_set_property (DBusGProxy *proxy,
 }
 
 char *
-_nm_dbus_introspect (DBusGConnection *connection,
+_bm_dbus_introspect (DBusGConnection *connection,
 					const char *interface,
 					const char *path)
 {

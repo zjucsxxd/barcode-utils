@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,16 +20,16 @@
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
-#ifndef __NM_REMOTE_CONNECTION_PRIVATE_H__
-#define __NM_REMOTE_CONNECTION_PRIVATE_H__
+#ifndef __BM_REMOTE_CONNECTION_PRIVATE_H__
+#define __BM_REMOTE_CONNECTION_PRIVATE_H__
 
-#define NM_REMOTE_CONNECTION_INIT_RESULT "init-result"
+#define BM_REMOTE_CONNECTION_INIT_RESULT "init-result"
 
 typedef enum {
-	NM_REMOTE_CONNECTION_INIT_RESULT_UNKNOWN = 0,
-	NM_REMOTE_CONNECTION_INIT_RESULT_SUCCESS,
-	NM_REMOTE_CONNECTION_INIT_RESULT_ERROR
+	BM_REMOTE_CONNECTION_INIT_RESULT_UNKNOWN = 0,
+	BM_REMOTE_CONNECTION_INIT_RESULT_SUCCESS,
+	BM_REMOTE_CONNECTION_INIT_RESULT_ERROR
 } NMRemoteConnectionInitResult;
 
-#endif  /* __NM_REMOTE_CONNECTION_PRIVATE__ */
+#endif  /* __BM_REMOTE_CONNECTION_PRIVATE__ */
 

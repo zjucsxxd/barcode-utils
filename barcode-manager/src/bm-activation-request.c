@@ -40,11 +40,11 @@
 
 static void secrets_provider_interface_init (NMSecretsProviderInterface *sp_interface_class);
 
-G_DEFINE_TYPE_EXTENDED (NMActRequest, nm_act_request, G_TYPE_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_SECRETS_PROVIDER_INTERFACE,
+G_DEFINE_TYPE_EXTENDED (NMActRequest, bm_act_request, G_TYPE_OBJECT, 0,
+                        G_IMPLEMENT_INTERFACE (BM_TYPE_SECRETS_PROVIDER_INTERFACE,
                                                secrets_provider_interface_init))
 
-#define NM_ACT_REQUEST_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_ACT_REQUEST, NMActRequestPrivate))
+#define BM_ACT_REQUEST_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_ACT_REQUEST, NMActRequestPrivate))
 
 enum {
 	CONNECTION_SECRETS_UPDATED,
@@ -64,14 +64,14 @@ typedef struct {
 typedef struct {
 	gboolean disposed;
 
-	NMConnection *connection;
+	BMConnection *connection;
 	guint32 secrets_call_id;
 
 	char *specific_object;
-	NMDevice *device;
+	BMDevice *device;
 	gboolean user_requested;
 
-	NMActiveConnectionState state;
+	BMActiveConnectionState state;
 	gboolean is_default;
 	gboolean is_default6;
 	gboolean shared;
@@ -98,53 +98,53 @@ enum {
 
 
 static void
-device_state_changed (NMDevice *device,
-                      NMDeviceState new_state,
-                      NMDeviceState old_state,
-                      NMDeviceStateReason reason,
+device_state_changed (BMDevice *device,
+                      BMDeviceState new_state,
+                      BMDeviceState old_state,
+                      BMDeviceStateReason reason,
                       gpointer user_data)
 {
-	NMActRequest *self = NM_ACT_REQUEST (user_data);
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (self);
-	NMActiveConnectionState new_ac_state;
+	NMActRequest *self = BM_ACT_REQUEST (user_data);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (self);
+	BMActiveConnectionState new_ac_state;
 	gboolean new_default = FALSE, new_default6 = FALSE;
 
-	/* Set NMActiveConnection state based on the device's state */
+	/* Set BMActiveConnection state based on the device's state */
 	switch (new_state) {
-	case NM_DEVICE_STATE_PREPARE:
-	case NM_DEVICE_STATE_CONFIG:
-	case NM_DEVICE_STATE_NEED_AUTH:
-	case NM_DEVICE_STATE_IP_CONFIG:
-		new_ac_state = NM_ACTIVE_CONNECTION_STATE_ACTIVATING;
+	case BM_DEVICE_STATE_PREPARE:
+	case BM_DEVICE_STATE_CONFIG:
+	case BM_DEVICE_STATE_NEED_AUTH:
+	case BM_DEVICE_STATE_IP_CONFIG:
+		new_ac_state = BM_ACTIVE_CONNECTION_STATE_ACTIVATING;
 		break;
-	case NM_DEVICE_STATE_ACTIVATED:
-		new_ac_state = NM_ACTIVE_CONNECTION_STATE_ACTIVATED;
+	case BM_DEVICE_STATE_ACTIVATED:
+		new_ac_state = BM_ACTIVE_CONNECTION_STATE_ACTIVATED;
 		new_default = priv->is_default;
 		new_default6 = priv->is_default6;
 		break;
 	default:
-		new_ac_state = NM_ACTIVE_CONNECTION_STATE_UNKNOWN;
+		new_ac_state = BM_ACTIVE_CONNECTION_STATE_UNKNOWN;
 		break;
 	}
 
 	if (new_ac_state != priv->state) {
 		priv->state = new_ac_state;
-		g_object_notify (G_OBJECT (self), NM_ACTIVE_CONNECTION_STATE);
+		g_object_notify (G_OBJECT (self), BM_ACTIVE_CONNECTION_STATE);
 	}
 
 	if (new_default != priv->is_default) {
 		priv->is_default = new_default;
-		g_object_notify (G_OBJECT (self), NM_ACTIVE_CONNECTION_DEFAULT);
+		g_object_notify (G_OBJECT (self), BM_ACTIVE_CONNECTION_DEFAULT);
 	}
 
 	if (new_default6 != priv->is_default6) {
 		priv->is_default6 = new_default6;
-		g_object_notify (G_OBJECT (self), NM_ACTIVE_CONNECTION_DEFAULT6);
+		g_object_notify (G_OBJECT (self), BM_ACTIVE_CONNECTION_DEFAULT6);
 	}
 }
 
 NMActRequest *
-nm_act_request_new (NMConnection *connection,
+bm_act_request_new (BMConnection *connection,
                     const char *specific_object,
                     gboolean user_requested,
                     gboolean assumed,
@@ -153,41 +153,41 @@ nm_act_request_new (NMConnection *connection,
 	GObject *object;
 	NMActRequestPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-	g_return_val_if_fail (NM_DEVICE (device), NULL);
+	g_return_val_if_fail (BM_IS_CONNECTION (connection), NULL);
+	g_return_val_if_fail (BM_DEVICE (device), NULL);
 
-	object = g_object_new (NM_TYPE_ACT_REQUEST, NULL);
+	object = g_object_new (BM_TYPE_ACT_REQUEST, NULL);
 	if (!object)
 		return NULL;
 
-	priv = NM_ACT_REQUEST_GET_PRIVATE (object);
+	priv = BM_ACT_REQUEST_GET_PRIVATE (object);
 
 	priv->connection = g_object_ref (connection);
 	if (specific_object)
 		priv->specific_object = g_strdup (specific_object);
 
-	priv->device = NM_DEVICE (device);
+	priv->device = BM_DEVICE (device);
 	g_signal_connect (device, "state-changed",
 	                  G_CALLBACK (device_state_changed),
-	                  NM_ACT_REQUEST (object));
+	                  BM_ACT_REQUEST (object));
 
 	priv->user_requested = user_requested;
 	priv->assumed = assumed;
 
-	return NM_ACT_REQUEST (object);
+	return BM_ACT_REQUEST (object);
 }
 
 static void
-nm_act_request_init (NMActRequest *req)
+bm_act_request_init (NMActRequest *req)
 {
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (req);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (req);
 	NMDBusManager *dbus_mgr;
 
-	priv->ac_path = nm_active_connection_get_next_object_path ();
-	priv->state = NM_ACTIVE_CONNECTION_STATE_UNKNOWN;
+	priv->ac_path = bm_active_connection_get_next_object_path ();
+	priv->state = BM_ACTIVE_CONNECTION_STATE_UNKNOWN;
 
-	dbus_mgr = nm_dbus_manager_get ();
-	dbus_g_connection_register_g_object (nm_dbus_manager_get_connection (dbus_mgr),
+	dbus_mgr = bm_dbus_manager_get ();
+	dbus_g_connection_register_g_object (bm_dbus_manager_get_connection (dbus_mgr),
 	                                     priv->ac_path,
 	                                     G_OBJECT (req));
 	g_object_unref (dbus_mgr);
@@ -196,10 +196,10 @@ nm_act_request_init (NMActRequest *req)
 static void
 dispose (GObject *object)
 {
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (object);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (object);
 
 	if (priv->disposed) {
-		G_OBJECT_CLASS (nm_act_request_parent_class)->dispose (object);
+		G_OBJECT_CLASS (bm_act_request_parent_class)->dispose (object);
 		return;
 	}
 	priv->disposed = TRUE;
@@ -208,20 +208,20 @@ dispose (GObject *object)
 
 	g_signal_handlers_disconnect_by_func (G_OBJECT (priv->device),
 	                                      G_CALLBACK (device_state_changed),
-	                                      NM_ACT_REQUEST (object));
+	                                      BM_ACT_REQUEST (object));
 
 	/* Clear any share rules */
-	nm_act_request_set_shared (NM_ACT_REQUEST (object), FALSE);
+	bm_act_request_set_shared (BM_ACT_REQUEST (object), FALSE);
 
 	g_object_unref (priv->connection);
 
-	G_OBJECT_CLASS (nm_act_request_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_act_request_parent_class)->dispose (object);
 }
 
 static void
 clear_share_rules (NMActRequest *req)
 {
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (req);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (req);
 	GSList *iter;
 
 	for (iter = priv->share_rules; iter; iter = g_slist_next (iter)) {
@@ -239,29 +239,29 @@ clear_share_rules (NMActRequest *req)
 static void
 finalize (GObject *object)
 {
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (object);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (object);
 
 	g_free (priv->specific_object);
 	g_free (priv->ac_path);
 
-	clear_share_rules (NM_ACT_REQUEST (object));
+	clear_share_rules (BM_ACT_REQUEST (object));
 
-	G_OBJECT_CLASS (nm_act_request_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_act_request_parent_class)->finalize (object);
 }
 
 static void
 get_property (GObject *object, guint prop_id,
 			  GValue *value, GParamSpec *pspec)
 {
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (object);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (object);
 	GPtrArray *devices;
 
 	switch (prop_id) {
 	case PROP_SERVICE_NAME:
-		nm_active_connection_scope_to_value (priv->connection, value);
+		bm_active_connection_scope_to_value (priv->connection, value);
 		break;
 	case PROP_CONNECTION:
-		g_value_set_boxed (value, nm_connection_get_path (priv->connection));
+		g_value_set_boxed (value, bm_connection_get_path (priv->connection));
 		break;
 	case PROP_SPECIFIC_OBJECT:
 		if (priv->specific_object)
@@ -271,7 +271,7 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_DEVICES:
 		devices = g_ptr_array_sized_new (1);
-		g_ptr_array_add (devices, g_strdup (nm_device_get_path (priv->device)));
+		g_ptr_array_add (devices, g_strdup (bm_device_get_path (priv->device)));
 		g_value_take_boxed (value, devices);
 		break;
 	case PROP_STATE:
@@ -293,7 +293,7 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_act_request_class_init (NMActRequestClass *req_class)
+bm_act_request_class_init (NMActRequestClass *req_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (req_class);
 
@@ -305,7 +305,7 @@ nm_act_request_class_init (NMActRequestClass *req_class)
 	object_class->finalize = finalize;
 
 	/* properties */
-    nm_active_connection_install_properties (object_class,
+    bm_active_connection_install_properties (object_class,
                                              PROP_SERVICE_NAME,
                                              PROP_CONNECTION,
                                              PROP_SPECIFIC_OBJECT,
@@ -322,7 +322,7 @@ nm_act_request_class_init (NMActRequestClass *req_class)
 					  G_SIGNAL_RUN_FIRST,
 					  G_STRUCT_OFFSET (NMActRequestClass, secrets_updated),
 					  NULL, NULL,
-					  _nm_marshal_VOID__OBJECT_POINTER_UINT,
+					  _bm_marshal_VOID__OBJECT_POINTER_UINT,
 					  G_TYPE_NONE, 3,
 					  G_TYPE_OBJECT, G_TYPE_POINTER, G_TYPE_UINT);
 
@@ -332,16 +332,16 @@ nm_act_request_class_init (NMActRequestClass *req_class)
 					  G_SIGNAL_RUN_FIRST,
 					  G_STRUCT_OFFSET (NMActRequestClass, secrets_failed),
 					  NULL, NULL,
-					  _nm_marshal_VOID__OBJECT_STRING_UINT,
+					  _bm_marshal_VOID__OBJECT_STRING_UINT,
 					  G_TYPE_NONE, 3,
 					  G_TYPE_OBJECT, G_TYPE_STRING, G_TYPE_UINT);
 
 	signals[PROPERTIES_CHANGED] = 
-		nm_properties_changed_signal_new (object_class,
+		bm_properties_changed_signal_new (object_class,
 		                                  G_STRUCT_OFFSET (NMActRequestClass, properties_changed));
 
 	dbus_g_object_type_install_info (G_TYPE_FROM_CLASS (req_class),
-	                                 &dbus_glib_nm_active_connection_object_info);
+	                                 &dbus_glib_bm_active_connection_object_info);
 }
 
 static gboolean
@@ -349,34 +349,34 @@ secrets_update_setting (NMSecretsProviderInterface *interface,
                         const char *setting_name,
                         GHashTable *new)
 {
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (interface);
-	NMSetting *setting = NULL;
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (interface);
+	BMSetting *setting = NULL;
 	GError *error = NULL;
 	GType type;
 
 	g_return_val_if_fail (priv->connection != NULL, FALSE);
 
-	/* Check whether a complete & valid NMSetting object was returned.  If
+	/* Check whether a complete & valid BMSetting object was returned.  If
 	 * yes, replace the setting object in the connection.  If not, just try
 	 * updating the secrets.
 	 */
-	type = nm_connection_lookup_setting_type (setting_name);
+	type = bm_connection_lookup_setting_type (setting_name);
 	if (type == 0)
 		return FALSE;
 
-	setting = nm_setting_new_from_hash (type, new);
+	setting = bm_setting_new_from_hash (type, new);
 	if (setting) {
-		NMSetting *s_8021x = NULL;
+		BMSetting *s_8021x = NULL;
 		GSList *all_settings = NULL;
 
 		/* The wireless-security setting might need the 802.1x setting in
 		 * the all_settings argument of the verify function. Ugh.
 		 */
-		s_8021x = nm_connection_get_setting (priv->connection, NM_TYPE_SETTING_802_1X);
+		s_8021x = bm_connection_get_setting (priv->connection, BM_TYPE_SETTING_802_1X);
 		if (s_8021x)
 			all_settings = g_slist_append (all_settings, s_8021x);
 
-		if (!nm_setting_verify (setting, all_settings, NULL)) {
+		if (!bm_setting_verify (setting, all_settings, NULL)) {
 			/* Just try updating secrets */
 			g_object_unref (setting);
 			setting = NULL;
@@ -386,10 +386,10 @@ secrets_update_setting (NMSecretsProviderInterface *interface,
 	}
 
 	if (setting)
-		nm_connection_add_setting (priv->connection, setting);
+		bm_connection_add_setting (priv->connection, setting);
 	else {
-		if (!nm_connection_update_secrets (priv->connection, setting_name, new, &error)) {
-			nm_log_warn (LOGD_DEVICE, "Failed to update connection secrets: %d %s",
+		if (!bm_connection_update_secrets (priv->connection, setting_name, new, &error)) {
+			bm_log_warn (LOGD_DEVICE, "Failed to update connection secrets: %d %s",
 			             error ? error->code : -1,
 			             error && error->message ? error->message : "(none)");
 			g_clear_error (&error);
@@ -406,8 +406,8 @@ secrets_result (NMSecretsProviderInterface *interface,
 	            const GSList *updated,
 	            GError *error)
 {
-	NMActRequest *self = NM_ACT_REQUEST (interface);
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (self);
+	NMActRequest *self = BM_ACT_REQUEST (interface);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (self);
 
 	g_return_if_fail (priv->connection != NULL);
 
@@ -429,7 +429,7 @@ secrets_provider_interface_init (NMSecretsProviderInterface *sp_interface_class)
 }
 
 gboolean
-nm_act_request_get_secrets (NMActRequest *self,
+bm_act_request_get_secrets (NMActRequest *self,
                             const char *setting_name,
                             gboolean request_new,
                             RequestSecretsCaller caller,
@@ -437,10 +437,10 @@ nm_act_request_get_secrets (NMActRequest *self,
                             const char *hint2)
 {
 	g_return_val_if_fail (self, FALSE);
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (self), FALSE);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (self), FALSE);
 
-	return nm_secrets_provider_interface_get_secrets (NM_SECRETS_PROVIDER_INTERFACE (self),
-	                                                  nm_act_request_get_connection (self),
+	return bm_secrets_provider_interface_get_secrets (BM_SECRETS_PROVIDER_INTERFACE (self),
+	                                                  bm_act_request_get_connection (self),
 	                                                  setting_name,
 	                                                  request_new,
 	                                                  caller,
@@ -448,32 +448,32 @@ nm_act_request_get_secrets (NMActRequest *self,
 	                                                  hint2);
 }
 
-NMConnection *
-nm_act_request_get_connection (NMActRequest *req)
+BMConnection *
+bm_act_request_get_connection (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), NULL);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), NULL);
 
-	return NM_ACT_REQUEST_GET_PRIVATE (req)->connection;
+	return BM_ACT_REQUEST_GET_PRIVATE (req)->connection;
 }
 
 const char *
-nm_act_request_get_specific_object (NMActRequest *req)
+bm_act_request_get_specific_object (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), NULL);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), NULL);
 
-	return NM_ACT_REQUEST_GET_PRIVATE (req)->specific_object;
+	return BM_ACT_REQUEST_GET_PRIVATE (req)->specific_object;
 }
 
 void
-nm_act_request_set_specific_object (NMActRequest *req,
+bm_act_request_set_specific_object (NMActRequest *req,
                                     const char *specific_object)
 {
 	NMActRequestPrivate *priv;
 
-	g_return_if_fail (NM_IS_ACT_REQUEST (req));
+	g_return_if_fail (BM_IS_ACT_REQUEST (req));
 	g_return_if_fail (specific_object != NULL);
 
-	priv = NM_ACT_REQUEST_GET_PRIVATE (req);
+	priv = BM_ACT_REQUEST_GET_PRIVATE (req);
 
 	if (priv->specific_object)
 		g_free (priv->specific_object);
@@ -481,65 +481,65 @@ nm_act_request_set_specific_object (NMActRequest *req,
 }
 
 gboolean
-nm_act_request_get_user_requested (NMActRequest *req)
+bm_act_request_get_user_requested (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), FALSE);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), FALSE);
 
-	return NM_ACT_REQUEST_GET_PRIVATE (req)->user_requested;
+	return BM_ACT_REQUEST_GET_PRIVATE (req)->user_requested;
 }
 
 const char *
-nm_act_request_get_active_connection_path (NMActRequest *req)
+bm_act_request_get_active_connection_path (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), NULL);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), NULL);
 
-	return NM_ACT_REQUEST_GET_PRIVATE (req)->ac_path;
+	return BM_ACT_REQUEST_GET_PRIVATE (req)->ac_path;
 }
 
 void
-nm_act_request_set_default (NMActRequest *req, gboolean is_default)
+bm_act_request_set_default (NMActRequest *req, gboolean is_default)
 {
 	NMActRequestPrivate *priv;
 
-	g_return_if_fail (NM_IS_ACT_REQUEST (req));
+	g_return_if_fail (BM_IS_ACT_REQUEST (req));
 
-	priv = NM_ACT_REQUEST_GET_PRIVATE (req);
+	priv = BM_ACT_REQUEST_GET_PRIVATE (req);
 	if (priv->is_default == is_default)
 		return;
 
 	priv->is_default = is_default;
-	g_object_notify (G_OBJECT (req), NM_ACTIVE_CONNECTION_DEFAULT);
+	g_object_notify (G_OBJECT (req), BM_ACTIVE_CONNECTION_DEFAULT);
 }
 
 gboolean
-nm_act_request_get_default (NMActRequest *req)
+bm_act_request_get_default (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), FALSE);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), FALSE);
 
-	return NM_ACT_REQUEST_GET_PRIVATE (req)->is_default;
+	return BM_ACT_REQUEST_GET_PRIVATE (req)->is_default;
 }
 
 void
-nm_act_request_set_default6 (NMActRequest *req, gboolean is_default6)
+bm_act_request_set_default6 (NMActRequest *req, gboolean is_default6)
 {
 	NMActRequestPrivate *priv;
 
-	g_return_if_fail (NM_IS_ACT_REQUEST (req));
+	g_return_if_fail (BM_IS_ACT_REQUEST (req));
 
-	priv = NM_ACT_REQUEST_GET_PRIVATE (req);
+	priv = BM_ACT_REQUEST_GET_PRIVATE (req);
 	if (priv->is_default6 == is_default6)
 		return;
 
 	priv->is_default6 = is_default6;
-	g_object_notify (G_OBJECT (req), NM_ACTIVE_CONNECTION_DEFAULT6);
+	g_object_notify (G_OBJECT (req), BM_ACTIVE_CONNECTION_DEFAULT6);
 }
 
 gboolean
-nm_act_request_get_default6 (NMActRequest *req)
+bm_act_request_get_default6 (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), FALSE);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), FALSE);
 
-	return NM_ACT_REQUEST_GET_PRIVATE (req)->is_default6;
+	return BM_ACT_REQUEST_GET_PRIVATE (req)->is_default6;
 }
 
 static void
@@ -551,14 +551,14 @@ share_child_setup (gpointer user_data G_GNUC_UNUSED)
 }
 
 void
-nm_act_request_set_shared (NMActRequest *req, gboolean shared)
+bm_act_request_set_shared (NMActRequest *req, gboolean shared)
 {
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (req);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (req);
 	GSList *list, *iter;
 
-	g_return_if_fail (NM_IS_ACT_REQUEST (req));
+	g_return_if_fail (BM_IS_ACT_REQUEST (req));
 
-	NM_ACT_REQUEST_GET_PRIVATE (req)->shared = shared;
+	BM_ACT_REQUEST_GET_PRIVATE (req)->shared = shared;
 
 	/* Tear the rules down in reverse order when sharing is stopped */
 	list = g_slist_copy (priv->share_rules);
@@ -585,15 +585,15 @@ nm_act_request_set_shared (NMActRequest *req, gboolean shared)
 			int status;
 			GError *error = NULL;
 
-			nm_log_info (LOGD_SHARING, "Executing: %s", cmd);
+			bm_log_info (LOGD_SHARING, "Executing: %s", cmd);
 			if (!g_spawn_sync ("/", argv, envp, G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_STDERR_TO_DEV_NULL,
 			                   share_child_setup, NULL, NULL, NULL, &status, &error)) {
-				nm_log_warn (LOGD_SHARING, "Error executing command: (%d) %s",
+				bm_log_warn (LOGD_SHARING, "Error executing command: (%d) %s",
 				             error ? error->code : -1,
 				             (error && error->message) ? error->message : "(unknown)");
 				g_clear_error (&error);
 			} else if (WEXITSTATUS (status)) {
-				nm_log_warn (LOGD_SHARING, "** Command returned exit status %d.",
+				bm_log_warn (LOGD_SHARING, "** Command returned exit status %d.",
 				             WEXITSTATUS (status));
 			}
 		}
@@ -610,22 +610,22 @@ nm_act_request_set_shared (NMActRequest *req, gboolean shared)
 }
 
 gboolean
-nm_act_request_get_shared (NMActRequest *req)
+bm_act_request_get_shared (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), FALSE);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), FALSE);
 
-	return NM_ACT_REQUEST_GET_PRIVATE (req)->shared;
+	return BM_ACT_REQUEST_GET_PRIVATE (req)->shared;
 }
 
 void
-nm_act_request_add_share_rule (NMActRequest *req,
+bm_act_request_add_share_rule (NMActRequest *req,
                                const char *table,
                                const char *table_rule)
 {
-	NMActRequestPrivate *priv = NM_ACT_REQUEST_GET_PRIVATE (req);
+	NMActRequestPrivate *priv = BM_ACT_REQUEST_GET_PRIVATE (req);
 	ShareRule *rule;
 
-	g_return_if_fail (NM_IS_ACT_REQUEST (req));
+	g_return_if_fail (BM_IS_ACT_REQUEST (req));
 	g_return_if_fail (table != NULL);
 	g_return_if_fail (table_rule != NULL);
 	
@@ -636,18 +636,18 @@ nm_act_request_add_share_rule (NMActRequest *req,
 }
 
 GObject *
-nm_act_request_get_device (NMActRequest *req)
+bm_act_request_get_device (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), FALSE);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), FALSE);
 
-	return G_OBJECT (NM_ACT_REQUEST_GET_PRIVATE (req)->device);
+	return G_OBJECT (BM_ACT_REQUEST_GET_PRIVATE (req)->device);
 }
 
 gboolean
-nm_act_request_get_assumed (NMActRequest *req)
+bm_act_request_get_assumed (NMActRequest *req)
 {
-	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), FALSE);
+	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), FALSE);
 
-	return NM_ACT_REQUEST_GET_PRIVATE (req)->assumed;
+	return BM_ACT_REQUEST_GET_PRIVATE (req)->assumed;
 }
 

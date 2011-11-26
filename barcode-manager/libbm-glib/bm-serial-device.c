@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,9 +25,9 @@
 #include "bm-object-private.h"
 #include "bm-marshal.h"
 
-G_DEFINE_ABSTRACT_TYPE (NMSerialDevice, nm_serial_device, NM_TYPE_DEVICE)
+G_DEFINE_ABSTRACT_TYPE (NMSerialDevice, bm_serial_device, BM_TYPE_DEVICE)
 
-#define NM_SERIAL_DEVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SERIAL_DEVICE, NMSerialDevicePrivate))
+#define BM_SERIAL_DEVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_SERIAL_DEVICE, NMSerialDevicePrivate))
 
 typedef struct {
 	DBusGProxy *proxy;
@@ -47,7 +47,7 @@ enum {
 static guint signals[LAST_SIGNAL] = { 0 };
 
 /**
- * nm_serial_device_get_bytes_received:
+ * bm_serial_device_get_bytes_received:
  * @self: a #NMSerialDevice
  *
  * Gets the amount of bytes received by the serial device.
@@ -56,15 +56,15 @@ static guint signals[LAST_SIGNAL] = { 0 };
  * Returns: bytes received
  **/
 guint32
-nm_serial_device_get_bytes_received (NMSerialDevice *self)
+bm_serial_device_get_bytes_received (NMSerialDevice *self)
 {
-	g_return_val_if_fail (NM_IS_SERIAL_DEVICE (self), 0);
+	g_return_val_if_fail (BM_IS_SERIAL_DEVICE (self), 0);
 
-	return NM_SERIAL_DEVICE_GET_PRIVATE (self)->in_bytes;
+	return BM_SERIAL_DEVICE_GET_PRIVATE (self)->in_bytes;
 }
 
 /**
- * nm_serial_device_get_bytes_sent:
+ * bm_serial_device_get_bytes_sent:
  * @self: a #NMSerialDevice
  *
  * Gets the amount of bytes sent by the serial device.
@@ -73,11 +73,11 @@ nm_serial_device_get_bytes_received (NMSerialDevice *self)
  * Returns: bytes sent
  **/
 guint32
-nm_serial_device_get_bytes_sent (NMSerialDevice *self)
+bm_serial_device_get_bytes_sent (NMSerialDevice *self)
 {
-	g_return_val_if_fail (NM_IS_SERIAL_DEVICE (self), 0);
+	g_return_val_if_fail (BM_IS_SERIAL_DEVICE (self), 0);
 
-	return NM_SERIAL_DEVICE_GET_PRIVATE (self)->out_bytes;
+	return BM_SERIAL_DEVICE_GET_PRIVATE (self)->out_bytes;
 }
 
 static void
@@ -86,8 +86,8 @@ ppp_stats (DBusGProxy *proxy,
 		   guint32 out_bytes,
 		   gpointer user_data)
 {
-	NMSerialDevice *self = NM_SERIAL_DEVICE (user_data);
-	NMSerialDevicePrivate *priv = NM_SERIAL_DEVICE_GET_PRIVATE (self);
+	NMSerialDevice *self = BM_SERIAL_DEVICE (user_data);
+	NMSerialDevicePrivate *priv = BM_SERIAL_DEVICE_GET_PRIVATE (self);
 
 	priv->in_bytes = in_bytes;
 	priv->out_bytes = out_bytes;
@@ -96,15 +96,15 @@ ppp_stats (DBusGProxy *proxy,
 }
 
 static void
-device_state_changed (NMDevice *device, GParamSpec *pspec, gpointer user_data)
+device_state_changed (BMDevice *device, GParamSpec *pspec, gpointer user_data)
 {
 	NMSerialDevicePrivate *priv;
 
-	switch (nm_device_get_state (device)) {
-	case NM_DEVICE_STATE_UNMANAGED:
-	case NM_DEVICE_STATE_UNAVAILABLE:
-	case NM_DEVICE_STATE_DISCONNECTED:
-		priv = NM_SERIAL_DEVICE_GET_PRIVATE (device);
+	switch (bm_device_get_state (device)) {
+	case BM_DEVICE_STATE_UNMANAGED:
+	case BM_DEVICE_STATE_UNAVAILABLE:
+	case BM_DEVICE_STATE_DISCONNECTED:
+		priv = BM_SERIAL_DEVICE_GET_PRIVATE (device);
 		priv->in_bytes = priv->out_bytes = 0;
 		break;
 	default:
@@ -113,7 +113,7 @@ device_state_changed (NMDevice *device, GParamSpec *pspec, gpointer user_data)
 }
 
 static void
-nm_serial_device_init (NMSerialDevice *device)
+bm_serial_device_init (NMSerialDevice *device)
 {
 }
 
@@ -125,20 +125,20 @@ constructor (GType type,
 	GObject *object;
 	NMSerialDevicePrivate *priv;
 
-	object = G_OBJECT_CLASS (nm_serial_device_parent_class)->constructor (type,
+	object = G_OBJECT_CLASS (bm_serial_device_parent_class)->constructor (type,
 																		  n_construct_params,
 																		  construct_params);
 	if (!object)
 		return NULL;
 
-	priv = NM_SERIAL_DEVICE_GET_PRIVATE (object);
+	priv = BM_SERIAL_DEVICE_GET_PRIVATE (object);
 
-	priv->proxy = dbus_g_proxy_new_for_name (nm_object_get_connection (NM_OBJECT (object)),
-											 NM_DBUS_SERVICE,
-											 nm_object_get_path (NM_OBJECT (object)),
-											 NM_DBUS_INTERFACE_SERIAL_DEVICE);
+	priv->proxy = dbus_g_proxy_new_for_name (bm_object_get_connection (BM_OBJECT (object)),
+											 BM_DBUS_SERVICE,
+											 bm_object_get_path (BM_OBJECT (object)),
+											 BM_DBUS_INTERFACE_SERIAL_DEVICE);
 
-	dbus_g_object_register_marshaller (_nm_marshal_VOID__UINT_UINT,
+	dbus_g_object_register_marshaller (_bm_marshal_VOID__UINT_UINT,
 	                                   G_TYPE_NONE,
 	                                   G_TYPE_UINT, G_TYPE_UINT,
 	                                   G_TYPE_INVALID);
@@ -149,7 +149,7 @@ constructor (GType type,
 								 object,
 								 NULL);
 
-	/* Catch NMDevice::state changes to reset the counters */
+	/* Catch BMDevice::state changes to reset the counters */
 	g_signal_connect (object, "notify::state",
 					  G_CALLBACK (device_state_changed),
 					  object);
@@ -160,10 +160,10 @@ constructor (GType type,
 static void
 dispose (GObject *object)
 {
-	NMSerialDevicePrivate *priv = NM_SERIAL_DEVICE_GET_PRIVATE (object);
+	NMSerialDevicePrivate *priv = BM_SERIAL_DEVICE_GET_PRIVATE (object);
 
 	if (priv->disposed) {
-		G_OBJECT_CLASS (nm_serial_device_parent_class)->dispose (object);
+		G_OBJECT_CLASS (bm_serial_device_parent_class)->dispose (object);
 		return;
 	}
 
@@ -171,11 +171,11 @@ dispose (GObject *object)
 
 	g_object_unref (priv->proxy);
 
-	G_OBJECT_CLASS (nm_serial_device_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_serial_device_parent_class)->dispose (object);
 }
 
 static void
-nm_serial_device_class_init (NMSerialDeviceClass *device_class)
+bm_serial_device_class_init (NMSerialDeviceClass *device_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (device_class);
 
@@ -201,7 +201,7 @@ nm_serial_device_class_init (NMSerialDeviceClass *device_class)
 					  G_SIGNAL_RUN_FIRST,
 					  G_STRUCT_OFFSET (NMSerialDeviceClass, ppp_stats),
 					  NULL, NULL,
-					  _nm_marshal_VOID__UINT_UINT,
+					  _bm_marshal_VOID__UINT_UINT,
 					  G_TYPE_NONE, 2,
 					  G_TYPE_UINT, G_TYPE_UINT);
 }

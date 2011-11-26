@@ -19,8 +19,8 @@
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
 
-#ifndef NM_DEVICE_H
-#define NM_DEVICE_H
+#ifndef BM_DEVICE_H
+#define BM_DEVICE_H
 
 #include <glib-object.h>
 #include <dbus/dbus.h>
@@ -36,155 +36,155 @@
 
 typedef enum NMActStageReturn
 {
-	NM_ACT_STAGE_RETURN_FAILURE = 0,
-	NM_ACT_STAGE_RETURN_SUCCESS,
-	NM_ACT_STAGE_RETURN_POSTPONE,
-	NM_ACT_STAGE_RETURN_STOP         /* This activation chain is done */
+	BM_ACT_STAGE_RETURN_FAILURE = 0,
+	BM_ACT_STAGE_RETURN_SUCCESS,
+	BM_ACT_STAGE_RETURN_POSTPONE,
+	BM_ACT_STAGE_RETURN_STOP         /* This activation chain is done */
 } NMActStageReturn;
 
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_DEVICE			(nm_device_get_type ())
-#define NM_DEVICE(obj)			(G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE, NMDevice))
-#define NM_DEVICE_CLASS(klass)	(G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_DEVICE, NMDeviceClass))
-#define NM_IS_DEVICE(obj)		(G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE))
-#define NM_IS_DEVICE_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE))
-#define NM_DEVICE_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE, NMDeviceClass))
+#define BM_TYPE_DEVICE			(bm_device_get_type ())
+#define BM_DEVICE(obj)			(G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_DEVICE, BMDevice))
+#define BM_DEVICE_CLASS(klass)	(G_TYPE_CHECK_CLASS_CAST ((klass),  BM_TYPE_DEVICE, BMDeviceClass))
+#define BM_IS_DEVICE(obj)		(G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_DEVICE))
+#define BM_IS_DEVICE_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass),  BM_TYPE_DEVICE))
+#define BM_DEVICE_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj),  BM_TYPE_DEVICE, BMDeviceClass))
 
 typedef struct {
 	GObject parent;
-} NMDevice;
+} BMDevice;
 
 typedef struct {
 	GObjectClass parent;
 
 	/* Hardware state, ie IFF_UP */
-	gboolean        (*hw_is_up)      (NMDevice *self);
-	gboolean        (*hw_bring_up)   (NMDevice *self, gboolean *no_firmware);
-	void            (*hw_take_down)  (NMDevice *self);
+	gboolean        (*hw_is_up)      (BMDevice *self);
+	gboolean        (*hw_bring_up)   (BMDevice *self, gboolean *no_firmware);
+	void            (*hw_take_down)  (BMDevice *self);
 
 	/* Additional stuff required to operate the device, like a 
 	 * connection to the supplicant, Bluez, etc
 	 */
-	gboolean        (*is_up)         (NMDevice *self);
-	gboolean        (*bring_up)      (NMDevice *self);
-	void            (*take_down)     (NMDevice *self);
+	gboolean        (*is_up)         (BMDevice *self);
+	gboolean        (*bring_up)      (BMDevice *self);
+	void            (*take_down)     (BMDevice *self);
 
-	void        (* update_hw_address) (NMDevice *self);
-	void        (* update_permanent_hw_address) (NMDevice *self);
-	void        (* update_initial_hw_address) (NMDevice *self);
+	void        (* update_hw_address) (BMDevice *self);
+	void        (* update_permanent_hw_address) (BMDevice *self);
+	void        (* update_initial_hw_address) (BMDevice *self);
 
-	guint32		(* get_type_capabilities)	(NMDevice *self);
-	guint32		(* get_generic_capabilities)	(NMDevice *self);
+	guint32		(* get_type_capabilities)	(BMDevice *self);
+	guint32		(* get_generic_capabilities)	(BMDevice *self);
 
-	gboolean	(* is_available) (NMDevice *self);
+	gboolean	(* is_available) (BMDevice *self);
 
-	NMConnection * (* get_best_auto_connection) (NMDevice *self,
+	BMConnection * (* get_best_auto_connection) (BMDevice *self,
 	                                             GSList *connections,
 	                                             char **specific_object);
 
-	void        (* connection_secrets_updated) (NMDevice *self,
-	                                            NMConnection *connection,
+	void        (* connection_secrets_updated) (BMDevice *self,
+	                                            BMConnection *connection,
 	                                            GSList *updated_settings,
 	                                            RequestSecretsCaller caller);
 
-	gboolean    (* check_connection_compatible) (NMDevice *self,
-	                                             NMConnection *connection,
+	gboolean    (* check_connection_compatible) (BMDevice *self,
+	                                             BMConnection *connection,
 	                                             GError **error);
 
-	NMActStageReturn	(* act_stage1_prepare)	(NMDevice *self,
-	                                             NMDeviceStateReason *reason);
-	NMActStageReturn	(* act_stage2_config)	(NMDevice *self,
-	                                             NMDeviceStateReason *reason);
-	NMActStageReturn	(* act_stage3_ip4_config_start) (NMDevice *self,
-														 NMDeviceStateReason *reason);
-	NMActStageReturn	(* act_stage3_ip6_config_start) (NMDevice *self,
-														 NMDeviceStateReason *reason);
-	NMActStageReturn	(* act_stage4_get_ip4_config)	(NMDevice *self,
+	NMActStageReturn	(* act_stage1_prepare)	(BMDevice *self,
+	                                             BMDeviceStateReason *reason);
+	NMActStageReturn	(* act_stage2_config)	(BMDevice *self,
+	                                             BMDeviceStateReason *reason);
+	NMActStageReturn	(* act_stage3_ip4_config_start) (BMDevice *self,
+														 BMDeviceStateReason *reason);
+	NMActStageReturn	(* act_stage3_ip6_config_start) (BMDevice *self,
+														 BMDeviceStateReason *reason);
+	NMActStageReturn	(* act_stage4_get_ip4_config)	(BMDevice *self,
 														 NMIP4Config **config,
-	                                                     NMDeviceStateReason *reason);
-	NMActStageReturn	(* act_stage4_get_ip6_config)	(NMDevice *self,
+	                                                     BMDeviceStateReason *reason);
+	NMActStageReturn	(* act_stage4_get_ip6_config)	(BMDevice *self,
 														 NMIP6Config **config,
-	                                                     NMDeviceStateReason *reason);
-	NMActStageReturn	(* act_stage4_ip4_config_timeout)	(NMDevice *self,
+	                                                     BMDeviceStateReason *reason);
+	NMActStageReturn	(* act_stage4_ip4_config_timeout)	(BMDevice *self,
 	                                                         NMIP4Config **config,
-	                                                         NMDeviceStateReason *reason);
-	NMActStageReturn	(* act_stage4_ip6_config_timeout)	(NMDevice *self,
+	                                                         BMDeviceStateReason *reason);
+	NMActStageReturn	(* act_stage4_ip6_config_timeout)	(BMDevice *self,
 	                                                         NMIP6Config **config,
-	                                                         NMDeviceStateReason *reason);
-	void			(* deactivate)			(NMDevice *self);
-	void			(* deactivate_quickly)	(NMDevice *self);
+	                                                         BMDeviceStateReason *reason);
+	void			(* deactivate)			(BMDevice *self);
+	void			(* deactivate_quickly)	(BMDevice *self);
 
-	gboolean		(* can_interrupt_activation)		(NMDevice *self);
+	gboolean		(* can_interrupt_activation)		(BMDevice *self);
 
-	gboolean        (* spec_match_list)     (NMDevice *self, const GSList *specs);
+	gboolean        (* spec_match_list)     (BMDevice *self, const GSList *specs);
 
-	NMConnection *  (* connection_match_config) (NMDevice *self, const GSList *connections);
-} NMDeviceClass;
+	BMConnection *  (* connection_match_config) (BMDevice *self, const GSList *connections);
+} BMDeviceClass;
 
 
-GType nm_device_get_type (void);
+GType bm_device_get_type (void);
 
-const char *    nm_device_get_path (NMDevice *dev);
-void            nm_device_set_path (NMDevice *dev, const char *path);
+const char *    bm_device_get_path (BMDevice *dev);
+void            bm_device_set_path (BMDevice *dev, const char *path);
 
-const char *	nm_device_get_udi		(NMDevice *dev);
-const char *	nm_device_get_iface		(NMDevice *dev);
-int             nm_device_get_ifindex	(NMDevice *dev);
-const char *	nm_device_get_ip_iface	(NMDevice *dev);
-int             nm_device_get_ip_ifindex(NMDevice *dev);
-const char *	nm_device_get_driver	(NMDevice *dev);
-const char *	nm_device_get_type_desc (NMDevice *dev);
+const char *	bm_device_get_udi		(BMDevice *dev);
+const char *	bm_device_get_iface		(BMDevice *dev);
+int             bm_device_get_ifindex	(BMDevice *dev);
+const char *	bm_device_get_ip_iface	(BMDevice *dev);
+int             bm_device_get_ip_ifindex(BMDevice *dev);
+const char *	bm_device_get_driver	(BMDevice *dev);
+const char *	bm_device_get_type_desc (BMDevice *dev);
 
-NMDeviceType	nm_device_get_device_type	(NMDevice *dev);
-guint32		nm_device_get_capabilities	(NMDevice *dev);
-guint32		nm_device_get_type_capabilities	(NMDevice *dev);
+BMDeviceType	bm_device_get_device_type	(BMDevice *dev);
+guint32		bm_device_get_capabilities	(BMDevice *dev);
+guint32		bm_device_get_type_capabilities	(BMDevice *dev);
 
-int			nm_device_get_priority (NMDevice *dev);
+int			bm_device_get_priority (BMDevice *dev);
 
-guint32			nm_device_get_ip4_address	(NMDevice *dev);
-void				nm_device_update_ip4_address	(NMDevice *dev);
+guint32			bm_device_get_ip4_address	(BMDevice *dev);
+void				bm_device_update_ip4_address	(BMDevice *dev);
 
-NMDHCP4Config * nm_device_get_dhcp4_config (NMDevice *dev);
-NMDHCP6Config * nm_device_get_dhcp6_config (NMDevice *dev);
+NMDHCP4Config * bm_device_get_dhcp4_config (BMDevice *dev);
+NMDHCP6Config * bm_device_get_dhcp6_config (BMDevice *dev);
 
-NMIP4Config *	nm_device_get_ip4_config	(NMDevice *dev);
-NMIP6Config *	nm_device_get_ip6_config	(NMDevice *dev);
+NMIP4Config *	bm_device_get_ip4_config	(BMDevice *dev);
+NMIP6Config *	bm_device_get_ip6_config	(BMDevice *dev);
 
-void *		nm_device_get_system_config_data	(NMDevice *dev);
+void *		bm_device_get_system_config_data	(BMDevice *dev);
 
-NMActRequest *	nm_device_get_act_request	(NMDevice *dev);
+NMActRequest *	bm_device_get_act_request	(BMDevice *dev);
 
-gboolean		nm_device_is_available (NMDevice *dev);
+gboolean		bm_device_is_available (BMDevice *dev);
 
-NMConnection * nm_device_get_best_auto_connection (NMDevice *dev,
+BMConnection * bm_device_get_best_auto_connection (BMDevice *dev,
                                                    GSList *connections,
                                                    char **specific_object);
 
-void			nm_device_activate_schedule_stage1_device_prepare		(NMDevice *device);
-void			nm_device_activate_schedule_stage2_device_config		(NMDevice *device);
-void			nm_device_activate_schedule_stage4_ip4_config_get		(NMDevice *device);
-void			nm_device_activate_schedule_stage4_ip4_config_timeout	(NMDevice *device);
-void			nm_device_activate_schedule_stage4_ip6_config_get		(NMDevice *device);
-void			nm_device_activate_schedule_stage4_ip6_config_timeout	(NMDevice *device);
-gboolean		nm_device_deactivate_quickly	(NMDevice *dev);
-gboolean		nm_device_is_activating		(NMDevice *dev);
-gboolean		nm_device_can_interrupt_activation		(NMDevice *self);
-gboolean		nm_device_autoconnect_allowed	(NMDevice *self);
+void			bm_device_activate_schedule_stage1_device_prepare		(BMDevice *device);
+void			bm_device_activate_schedule_stage2_device_config		(BMDevice *device);
+void			bm_device_activate_schedule_stage4_ip4_config_get		(BMDevice *device);
+void			bm_device_activate_schedule_stage4_ip4_config_timeout	(BMDevice *device);
+void			bm_device_activate_schedule_stage4_ip6_config_get		(BMDevice *device);
+void			bm_device_activate_schedule_stage4_ip6_config_timeout	(BMDevice *device);
+gboolean		bm_device_deactivate_quickly	(BMDevice *dev);
+gboolean		bm_device_is_activating		(BMDevice *dev);
+gboolean		bm_device_can_interrupt_activation		(BMDevice *self);
+gboolean		bm_device_autoconnect_allowed	(BMDevice *self);
 
-NMDeviceState nm_device_get_state (NMDevice *device);
+BMDeviceState bm_device_get_state (BMDevice *device);
 
-gboolean nm_device_get_managed (NMDevice *device);
-void nm_device_set_managed (NMDevice *device,
+gboolean bm_device_get_managed (BMDevice *device);
+void bm_device_set_managed (BMDevice *device,
                             gboolean managed,
-                            NMDeviceStateReason reason);
+                            BMDeviceStateReason reason);
 
-void nm_device_set_dhcp_timeout (NMDevice *device, guint32 timeout);
-void nm_device_set_dhcp_anycast_address (NMDevice *device, guint8 *addr);
+void bm_device_set_dhcp_timeout (BMDevice *device, guint32 timeout);
+void bm_device_set_dhcp_anycast_address (BMDevice *device, guint8 *addr);
 
-void nm_device_clear_autoconnect_inhibit (NMDevice *device);
+void bm_device_clear_autoconnect_inhibit (BMDevice *device);
 
 G_END_DECLS
 
-#endif	/* NM_DEVICE_H */
+#endif	/* BM_DEVICE_H */

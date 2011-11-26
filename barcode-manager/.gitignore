@@ -1,5 +1,10 @@
 # generated stuff
 
+libbm-glib/libbm-glib-test
+
+*.lo
+*.la
+
 libmarshallers.la
 libmarshallers_la-bm-marshal-main.lo
 

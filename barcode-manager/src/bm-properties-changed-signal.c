@@ -26,7 +26,7 @@
 #include "bm-properties-changed-signal.h"
 #include "bm-dbus-glib-types.h"
 
-#define NM_DBUS_PROPERTY_CHANGED "NM_DBUS_PROPERTY_CHANGED"
+#define BM_DBUS_PROPERTY_CHANGED "BM_DBUS_PROPERTY_CHANGED"
 
 typedef struct {
 	GHashTable *hash;
@@ -98,7 +98,7 @@ static gboolean
 properties_changed (gpointer data)
 {
 	GObject *object = G_OBJECT (data);
-	PropertiesChangedInfo *info = (PropertiesChangedInfo *) g_object_get_data (object, NM_DBUS_PROPERTY_CHANGED);
+	PropertiesChangedInfo *info = (PropertiesChangedInfo *) g_object_get_data (object, BM_DBUS_PROPERTY_CHANGED);
 
 	g_assert (info);
 
@@ -106,7 +106,7 @@ properties_changed (gpointer data)
 	{
 		char buf[2048] = { 0, };
 		g_hash_table_foreach (info->hash, add_to_string, &buf);
-		nm_log_dbg (LOGD_CORE, "%s -> %s", G_OBJECT_TYPE_NAME (object), buf);
+		bm_log_dbg (LOGD_CORE, "%s -> %s", G_OBJECT_TYPE_NAME (object), buf);
 	}
 #endif
 
@@ -120,7 +120,7 @@ static void
 idle_id_reset (gpointer data)
 {
 	GObject *object = G_OBJECT (data);
-	PropertiesChangedInfo *info = (PropertiesChangedInfo *) g_object_get_data (object, NM_DBUS_PROPERTY_CHANGED);
+	PropertiesChangedInfo *info = (PropertiesChangedInfo *) g_object_get_data (object, BM_DBUS_PROPERTY_CHANGED);
 
 	/* info is unset when the object is being destroyed */
 	if (info)
@@ -161,13 +161,13 @@ notify (GObject *object, GParamSpec *pspec)
 	GValue *value;
 
 	/* Ignore properties that shouldn't be exported */
-	if (pspec->flags & NM_PROPERTY_PARAM_NO_EXPORT)
+	if (pspec->flags & BM_PROPERTY_PARAM_NO_EXPORT)
 		return;
 
-	info = (PropertiesChangedInfo *) g_object_get_data (object, NM_DBUS_PROPERTY_CHANGED);
+	info = (PropertiesChangedInfo *) g_object_get_data (object, BM_DBUS_PROPERTY_CHANGED);
 	if (!info) {
 		info = properties_changed_info_new ();
-		g_object_set_data_full (object, NM_DBUS_PROPERTY_CHANGED, info, properties_changed_info_destroy);
+		g_object_set_data_full (object, BM_DBUS_PROPERTY_CHANGED, info, properties_changed_info_destroy);
 		info->signal_id = g_signal_lookup ("properties-changed", G_OBJECT_TYPE (object));
 		g_assert (info->signal_id);
 	}
@@ -182,7 +182,7 @@ notify (GObject *object, GParamSpec *pspec)
 }
 
 guint
-nm_properties_changed_signal_new (GObjectClass *object_class,
+bm_properties_changed_signal_new (GObjectClass *object_class,
 						    guint class_offset)
 {
 	guint id;

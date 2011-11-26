@@ -23,8 +23,8 @@
  * (C) Copyright 2008 Novell, Inc.
  */
 
-#ifndef __NM_SYSCONFIG_SETTINGS_H__
-#define __NM_SYSCONFIG_SETTINGS_H__
+#ifndef __BM_SYSCONFIG_SETTINGS_H__
+#define __BM_SYSCONFIG_SETTINGS_H__
 
 #include <bm-connection.h>
 #include <bm-settings-service.h>
@@ -33,41 +33,41 @@
 #include "bm-system-config-interface.h"
 #include "bm-device.h"
 
-#define NM_TYPE_SYSCONFIG_SETTINGS            (nm_sysconfig_settings_get_type ())
-#define NM_SYSCONFIG_SETTINGS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettings))
-#define NM_SYSCONFIG_SETTINGS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettingsClass))
-#define NM_IS_SYSCONFIG_SETTINGS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SYSCONFIG_SETTINGS))
-#define NM_IS_SYSCONFIG_SETTINGS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_SYSCONFIG_SETTINGS))
-#define NM_SYSCONFIG_SETTINGS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettingsClass))
+#define BM_TYPE_SYSCONFIG_SETTINGS            (bm_sysconfig_settings_get_type ())
+#define BM_SYSCONFIG_SETTINGS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettings))
+#define BM_SYSCONFIG_SETTINGS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  BM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettingsClass))
+#define BM_IS_SYSCONFIG_SETTINGS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SYSCONFIG_SETTINGS))
+#define BM_IS_SYSCONFIG_SETTINGS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  BM_TYPE_SYSCONFIG_SETTINGS))
+#define BM_SYSCONFIG_SETTINGS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  BM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettingsClass))
 
-#define NM_SYSCONFIG_SETTINGS_UNMANAGED_SPECS "unmanaged-specs"
-#define NM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE LOCALSTATEDIR"/lib/BarcodeManager/timestamps"
-#define NM_SYSCONFIG_SETTINGS_TIMESTAMP_TAG   "timestamp-tag"
+#define BM_SYSCONFIG_SETTINGS_UNMANAGED_SPECS "unmanaged-specs"
+#define BM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE LOCALSTATEDIR"/lib/BarcodeManager/timestamps"
+#define BM_SYSCONFIG_SETTINGS_TIMESTAMP_TAG   "timestamp-tag"
 
 typedef struct {
-	NMSettingsService parent_instance;
+	BMSettingsService parent_instance;
 } NMSysconfigSettings;
 
 typedef struct {
-	NMSettingsServiceClass parent_class;
+	BMSettingsServiceClass parent_class;
 
 	/* Signals */
 	void (*properties_changed) (NMSysconfigSettings *self, GHashTable *properties);
 } NMSysconfigSettingsClass;
 
-GType nm_sysconfig_settings_get_type (void);
+GType bm_sysconfig_settings_get_type (void);
 
-NMSysconfigSettings *nm_sysconfig_settings_new (const char *config_file,
+NMSysconfigSettings *bm_sysconfig_settings_new (const char *config_file,
                                                 const char *plugins,
                                                 DBusGConnection *bus,
                                                 GError **error);
 
-const GSList *nm_sysconfig_settings_get_unmanaged_specs (NMSysconfigSettings *self);
+const GSList *bm_sysconfig_settings_get_unmanaged_specs (NMSysconfigSettings *self);
 
-char *nm_sysconfig_settings_get_hostname (NMSysconfigSettings *self);
+char *bm_sysconfig_settings_get_hostname (NMSysconfigSettings *self);
 
-void nm_sysconfig_settings_device_added (NMSysconfigSettings *self, NMDevice *device);
+void bm_sysconfig_settings_device_added (NMSysconfigSettings *self, BMDevice *device);
 
-void nm_sysconfig_settings_device_removed (NMSysconfigSettings *self, NMDevice *device);
+void bm_sysconfig_settings_device_removed (NMSysconfigSettings *self, BMDevice *device);
 
-#endif  /* __NM_SYSCONFIG_SETTINGS_H__ */
+#endif  /* __BM_SYSCONFIG_SETTINGS_H__ */

@@ -19,8 +19,8 @@
  * Copyright (C) 2008 Novell, Inc.
  */
 
-#ifndef NM_SYSTEM_CONFIG_INTERFACE_H
-#define NM_SYSTEM_CONFIG_INTERFACE_H
+#ifndef BM_SYSTEM_CONFIG_INTERFACE_H
+#define BM_SYSTEM_CONFIG_INTERFACE_H
 
 #include <glib.h>
 #include <glib-object.h>
@@ -39,26 +39,26 @@ G_BEGIN_DECLS
 /* Plugin's factory function that returns a GObject that implements
  * NMSystemConfigInterface.
  */
-GObject * nm_system_config_factory (void);
+GObject * bm_system_config_factory (void);
 
-#define NM_TYPE_SYSTEM_CONFIG_INTERFACE      (nm_system_config_interface_get_type ())
-#define NM_SYSTEM_CONFIG_INTERFACE(obj)      (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SYSTEM_CONFIG_INTERFACE, NMSystemConfigInterface))
-#define NM_IS_SYSTEM_CONFIG_INTERFACE(obj)   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SYSTEM_CONFIG_INTERFACE))
-#define NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), NM_TYPE_SYSTEM_CONFIG_INTERFACE, NMSystemConfigInterface))
+#define BM_TYPE_SYSTEM_CONFIG_INTERFACE      (bm_system_config_interface_get_type ())
+#define BM_SYSTEM_CONFIG_INTERFACE(obj)      (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SYSTEM_CONFIG_INTERFACE, NMSystemConfigInterface))
+#define BM_IS_SYSTEM_CONFIG_INTERFACE(obj)   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SYSTEM_CONFIG_INTERFACE))
+#define BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), BM_TYPE_SYSTEM_CONFIG_INTERFACE, NMSystemConfigInterface))
 
 
-#define NM_SYSTEM_CONFIG_INTERFACE_NAME "name"
-#define NM_SYSTEM_CONFIG_INTERFACE_INFO "info"
-#define NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES "capabilities"
-#define NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME "hostname"
+#define BM_SYSTEM_CONFIG_INTERFACE_NAME "name"
+#define BM_SYSTEM_CONFIG_INTERFACE_INFO "info"
+#define BM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES "capabilities"
+#define BM_SYSTEM_CONFIG_INTERFACE_HOSTNAME "hostname"
 
-#define NM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED "unmanaged-specs-changed"
-#define NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED "connection-added"
+#define BM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED "unmanaged-specs-changed"
+#define BM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED "connection-added"
 
 typedef enum {
-	NM_SYSTEM_CONFIG_INTERFACE_CAP_NONE = 0x00000000,
-	NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS = 0x00000001,
-	NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME = 0x00000002
+	BM_SYSTEM_CONFIG_INTERFACE_CAP_NONE = 0x00000000,
+	BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS = 0x00000001,
+	BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME = 0x00000002
 
 	/* When adding more capabilities, be sure to update the "Capabilities"
 	 * property max value in bm-system-config-interface.c.
@@ -66,12 +66,12 @@ typedef enum {
 } NMSystemConfigInterfaceCapabilities;
 
 typedef enum {
-	NM_SYSTEM_CONFIG_INTERFACE_PROP_FIRST = 0x1000,
+	BM_SYSTEM_CONFIG_INTERFACE_PROP_FIRST = 0x1000,
 
-	NM_SYSTEM_CONFIG_INTERFACE_PROP_NAME = NM_SYSTEM_CONFIG_INTERFACE_PROP_FIRST,
-	NM_SYSTEM_CONFIG_INTERFACE_PROP_INFO,
-	NM_SYSTEM_CONFIG_INTERFACE_PROP_CAPABILITIES,
-	NM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME,
+	BM_SYSTEM_CONFIG_INTERFACE_PROP_NAME = BM_SYSTEM_CONFIG_INTERFACE_PROP_FIRST,
+	BM_SYSTEM_CONFIG_INTERFACE_PROP_INFO,
+	BM_SYSTEM_CONFIG_INTERFACE_PROP_CAPABILITIES,
+	BM_SYSTEM_CONFIG_INTERFACE_PROP_HOSTNAME,
 } NMSystemConfigInterfaceProp;
 
 
@@ -83,7 +83,7 @@ struct _NMSystemConfigInterface {
 	/* Called when the plugin is loaded to initialize it */
 	void     (*init) (NMSystemConfigInterface *config);
 
-	/* Returns a GSList of objects that implement NMSettingsConnectionInterface
+	/* Returns a GSList of objects that implement BMSettingsConnectionInterface
 	 * that represent connections the plugin knows about.  The returned list
 	 * is freed by the system settings service.
 	 */
@@ -113,32 +113,32 @@ struct _NMSystemConfigInterface {
 	 * Add a new connection.
 	 */
 	gboolean (*add_connection) (NMSystemConfigInterface *config,
-	                            NMConnection *connection,
+	                            BMConnection *connection,
 	                            GError **error);
 
 	/* Signals */
 
 	/* Emitted when a new connection has been found by the plugin */
 	void (*connection_added)   (NMSystemConfigInterface *config,
-	                            NMSettingsConnectionInterface *connection);
+	                            BMSettingsConnectionInterface *connection);
 
 	/* Emitted when the list of unmanaged device specifications changes */
 	void (*unmanaged_specs_changed) (NMSystemConfigInterface *config);
 };
 
-GType nm_system_config_interface_get_type (void);
+GType bm_system_config_interface_get_type (void);
 
-void nm_system_config_interface_init (NMSystemConfigInterface *config,
+void bm_system_config_interface_init (NMSystemConfigInterface *config,
                                       gpointer unused);
 
-GSList *nm_system_config_interface_get_connections (NMSystemConfigInterface *config);
+GSList *bm_system_config_interface_get_connections (NMSystemConfigInterface *config);
 
-GSList *nm_system_config_interface_get_unmanaged_specs (NMSystemConfigInterface *config);
+GSList *bm_system_config_interface_get_unmanaged_specs (NMSystemConfigInterface *config);
 
-gboolean nm_system_config_interface_add_connection (NMSystemConfigInterface *config,
-                                                    NMConnection *connection,
+gboolean bm_system_config_interface_add_connection (NMSystemConfigInterface *config,
+                                                    BMConnection *connection,
                                                     GError **error);
 
 G_END_DECLS
 
-#endif	/* NM_SYSTEM_CONFIG_INTERFACE_H */
+#endif	/* BM_SYSTEM_CONFIG_INTERFACE_H */

@@ -33,22 +33,22 @@
 #include "bm-setting-ip6-config.h"
 #include "bm-connection.h"
 
-gboolean nm_ethernet_address_is_valid (const struct ether_addr *test_addr);
+gboolean bm_ethernet_address_is_valid (const struct ether_addr *test_addr);
 
-int nm_spawn_process (const char *args);
+int bm_spawn_process (const char *args);
 
-char *nm_ether_ntop (const struct ether_addr *mac);
+char *bm_ether_ntop (const struct ether_addr *mac);
 
-void nm_utils_merge_ip4_config (NMIP4Config *ip4_config, NMSettingIP4Config *setting);
-void nm_utils_merge_ip6_config (NMIP6Config *ip6_config, NMSettingIP6Config *setting);
+void bm_utils_merge_ip4_config (NMIP4Config *ip4_config, BMSettingIP4Config *setting);
+void bm_utils_merge_ip6_config (NMIP6Config *ip6_config, BMSettingIP6Config *setting);
 
-void nm_utils_call_dispatcher (const char *action,
-                               NMConnection *connection,
-                               NMDevice *device,
+void bm_utils_call_dispatcher (const char *action,
+                               BMConnection *connection,
+                               BMDevice *device,
                                const char *vpn_iface);
 
-gboolean nm_match_spec_hwaddr (const GSList *specs, const char *hwaddr);
-gboolean nm_match_spec_s390_subchannels (const GSList *specs, const char *subchannels);
+gboolean bm_match_spec_hwaddr (const GSList *specs, const char *hwaddr);
+gboolean bm_match_spec_s390_subchannels (const GSList *specs, const char *subchannels);
 
 
 GHashTable *value_hash_create          (void);
@@ -72,9 +72,9 @@ void        value_hash_add_bool        (GHashTable *hash,
 					                    const char *key,
 					                    gboolean val);
 
-gboolean nm_utils_do_sysctl (const char *path, const char *value);
+gboolean bm_utils_do_sysctl (const char *path, const char *value);
 
-gboolean nm_utils_get_proc_sys_net_value (const char *path,
+gboolean bm_utils_get_proc_sys_net_value (const char *path,
                                           const char *iface,
                                           guint32 *out_value);
 

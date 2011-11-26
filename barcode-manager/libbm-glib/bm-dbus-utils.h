@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,38 +20,38 @@
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#ifndef NM_UTILS_H
-#define NM_UTILS_H
+#ifndef BM_UTILS_H
+#define BM_UTILS_H
 
 #include <dbus/dbus-glib.h>
 
-char *_nm_dbus_get_string_property (DBusGProxy *proxy,
+char *_bm_dbus_get_string_property (DBusGProxy *proxy,
 								   const char *interface,
 								   const char *prop_name);
 
-char *_nm_dbus_get_object_path_property (DBusGProxy *proxy,
+char *_bm_dbus_get_object_path_property (DBusGProxy *proxy,
 										const char *interface,
 										const char *prop_name);
 
-gint32 _nm_dbus_get_int_property (DBusGProxy *proxy,
+gint32 _bm_dbus_get_int_property (DBusGProxy *proxy,
 								 const char *interface,
 								 const char *prop_name);
 
-guint32 _nm_dbus_get_uint_property (DBusGProxy *proxy,
+guint32 _bm_dbus_get_uint_property (DBusGProxy *proxy,
 								   const char *interface,
 								   const char *prop_name);
 
-gboolean  _nm_dbus_get_property (DBusGProxy *proxy,
+gboolean  _bm_dbus_get_property (DBusGProxy *proxy,
 								const char *interface,
 								const char *prop_name,
 								GValue *value);
-void      _nm_dbus_set_property (DBusGProxy *proxy,
+void      _bm_dbus_set_property (DBusGProxy *proxy,
 								const char *interface,
 								const char *prop_name,
 								GValue *value);
 
-char     *_nm_dbus_introspect   (DBusGConnection *connection,
+char     *_bm_dbus_introspect   (DBusGConnection *connection,
 								const char *interface,
 								const char *path);
 
-#endif /* NM_UTILS_H */
+#endif /* BM_UTILS_H */

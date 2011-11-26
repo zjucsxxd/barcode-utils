@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,35 +20,35 @@
  * Copyright (C) 2008 Red Hat, Inc.
  */
 
-#ifndef NM_TYPES_H
-#define NM_TYPES_H
+#ifndef BM_TYPES_H
+#define BM_TYPES_H
 
 #include <glib.h>
 #include <glib-object.h>
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SSID  (nm_ssid_get_type ())
-GType     nm_ssid_get_type (void) G_GNUC_CONST;
+#define BM_TYPE_SSID  (bm_ssid_get_type ())
+GType     bm_ssid_get_type (void) G_GNUC_CONST;
 
-#define NM_TYPE_UINT_ARRAY  (nm_uint_array_get_type ())
-GType     nm_uint_array_get_type (void) G_GNUC_CONST;
+#define BM_TYPE_UINT_ARRAY  (bm_uint_array_get_type ())
+GType     bm_uint_array_get_type (void) G_GNUC_CONST;
 
-#define NM_TYPE_STRING_ARRAY  (nm_string_array_get_type ())
-GType     nm_string_array_get_type (void) G_GNUC_CONST;
+#define BM_TYPE_STRING_ARRAY  (bm_string_array_get_type ())
+GType     bm_string_array_get_type (void) G_GNUC_CONST;
 
-#define NM_TYPE_OBJECT_ARRAY  (nm_object_array_get_type ())
-GType     nm_object_array_get_type (void) G_GNUC_CONST;
+#define BM_TYPE_OBJECT_ARRAY  (bm_object_array_get_type ())
+GType     bm_object_array_get_type (void) G_GNUC_CONST;
 
-#define NM_TYPE_IP6_ADDRESS_OBJECT_ARRAY  (nm_ip6_address_object_array_get_type ())
-GType     nm_ip6_address_object_array_get_type (void) G_GNUC_CONST;
+#define BM_TYPE_IP6_ADDRESS_OBJECT_ARRAY  (bm_ip6_address_object_array_get_type ())
+GType     bm_ip6_address_object_array_get_type (void) G_GNUC_CONST;
 
-#define NM_TYPE_IP6_ADDRESS_ARRAY  (nm_ip6_address_array_get_type ())
-GType     nm_ip6_address_array_get_type (void) G_GNUC_CONST;
+#define BM_TYPE_IP6_ADDRESS_ARRAY  (bm_ip6_address_array_get_type ())
+GType     bm_ip6_address_array_get_type (void) G_GNUC_CONST;
 
-#define NM_TYPE_IP6_ROUTE_OBJECT_ARRAY  (nm_ip6_route_object_array_get_type ())
-GType     nm_ip6_route_object_array_get_type (void) G_GNUC_CONST;
+#define BM_TYPE_IP6_ROUTE_OBJECT_ARRAY  (bm_ip6_route_object_array_get_type ())
+GType     bm_ip6_route_object_array_get_type (void) G_GNUC_CONST;
 
 G_END_DECLS
 
-#endif /* NM_TYPES_H */
+#endif /* BM_TYPES_H */

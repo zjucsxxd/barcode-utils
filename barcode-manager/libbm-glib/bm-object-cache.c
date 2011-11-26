@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,35 +35,35 @@ _init_cache (void)
 }
 
 void
-_nm_object_cache_remove_by_path (const char *path)
+_bm_object_cache_remove_by_path (const char *path)
 {
 	_init_cache ();
 	g_hash_table_remove (cache, path);
 }
 
 void
-_nm_object_cache_remove_by_object (NMObject *object)
+_bm_object_cache_remove_by_object (BMObject *object)
 {
 	_init_cache ();
-	g_hash_table_remove (cache, nm_object_get_path (object));
+	g_hash_table_remove (cache, bm_object_get_path (object));
 }
 
 void
-_nm_object_cache_add (NMObject *object)
+_bm_object_cache_add (BMObject *object)
 {
 	char *path;
 
 	_init_cache ();
-	path = g_strdup (nm_object_get_path (object));
+	path = g_strdup (bm_object_get_path (object));
 	g_hash_table_insert (cache, path, object);
 	g_object_set_data_full (G_OBJECT (object), "bm-object-cache-tag",
-	                        path, (GDestroyNotify) _nm_object_cache_remove_by_path);
+	                        path, (GDestroyNotify) _bm_object_cache_remove_by_path);
 }
 
-NMObject *
-_nm_object_cache_get (const char *path)
+BMObject *
+_bm_object_cache_get (const char *path)
 {
-	NMObject *object;
+	BMObject *object;
 
 	_init_cache ();
 	object = g_hash_table_lookup (cache, path);

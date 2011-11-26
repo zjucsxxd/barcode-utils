@@ -31,7 +31,7 @@ int main (int argc, char ** argv)
 {
 	GPid		gdb_pid;
 	int		out;
-	char		nm_pid[16];
+	char		bm_pid[16];
 	char		line[256];
 	int		gdb_stat;
 	int		bytes_read;
@@ -43,8 +43,8 @@ int main (int argc, char ** argv)
                           SBINDIR "/BarcodeManager",
                           NULL, NULL };
 
-	snprintf (nm_pid, sizeof (nm_pid), "%d", getppid ());
-	args[5] = &nm_pid[0];
+	snprintf (bm_pid, sizeof (bm_pid), "%d", getppid ());
+	args[5] = &bm_pid[0];
 	if (!g_spawn_async_with_pipes (NULL, args, NULL, G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL,
 				       &gdb_pid, NULL, &out, NULL, NULL))
 	{

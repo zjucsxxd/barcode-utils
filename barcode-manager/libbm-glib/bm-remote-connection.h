@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
  * Copyright (C) 2007 - 2009 Red Hat, Inc.
  */
 
-#ifndef __NM_REMOTE_CONNECTION_H__
-#define __NM_REMOTE_CONNECTION_H__
+#ifndef __BM_REMOTE_CONNECTION_H__
+#define __BM_REMOTE_CONNECTION_H__
 
 #include <glib-object.h>
 #include <dbus/dbus-glib.h>
@@ -31,19 +31,19 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_REMOTE_CONNECTION            (nm_remote_connection_get_type ())
-#define NM_REMOTE_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_REMOTE_CONNECTION, NMRemoteConnection))
-#define NM_REMOTE_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_REMOTE_CONNECTION, NMRemoteConnectionClass))
-#define NM_IS_REMOTE_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_REMOTE_CONNECTION))
-#define NM_IS_REMOTE_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_REMOTE_CONNECTION))
-#define NM_REMOTE_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_REMOTE_CONNECTION, NMRemoteConnectionClass))
+#define BM_TYPE_REMOTE_CONNECTION            (bm_remote_connection_get_type ())
+#define BM_REMOTE_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_REMOTE_CONNECTION, NMRemoteConnection))
+#define BM_REMOTE_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_REMOTE_CONNECTION, NMRemoteConnectionClass))
+#define BM_IS_REMOTE_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_REMOTE_CONNECTION))
+#define BM_IS_REMOTE_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_REMOTE_CONNECTION))
+#define BM_REMOTE_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_REMOTE_CONNECTION, NMRemoteConnectionClass))
 
 typedef struct {
-	NMConnection parent;
+	BMConnection parent;
 } NMRemoteConnection;
 
 typedef struct {
-	NMConnectionClass parent_class;
+	BMConnectionClass parent_class;
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
@@ -54,12 +54,12 @@ typedef struct {
 	void (*_reserved6) (void);
 } NMRemoteConnectionClass;
 
-GType nm_remote_connection_get_type (void);
+GType bm_remote_connection_get_type (void);
 
-NMRemoteConnection *nm_remote_connection_new (DBusGConnection *bus,
-                                              NMConnectionScope scope,
+NMRemoteConnection *bm_remote_connection_new (DBusGConnection *bus,
+                                              BMConnectionScope scope,
                                               const char *path);
 G_END_DECLS
 
-#endif  /* __NM_REMOTE_CONNECTION__ */
+#endif  /* __BM_REMOTE_CONNECTION__ */
 

@@ -51,14 +51,14 @@
 #include "bm-logging.h"
 #include "bm-policy-hosts.h"
 
-#if !defined(NM_DIST_VERSION)
-# define NM_DIST_VERSION VERSION
+#if !defined(BM_DIST_VERSION)
+# define BM_DIST_VERSION VERSION
 #endif
 
-#define NM_DEFAULT_PID_FILE          LOCALSTATEDIR"/run/BarcodeManager.pid"
-#define NM_DEFAULT_SYSTEM_CONF_FILE  SYSCONFDIR"/BarcodeManager/BarcodeManager.conf"
-#define NM_OLD_SYSTEM_CONF_FILE      SYSCONFDIR"/BarcodeManager/bm-system-settings.conf"
-#define NM_DEFAULT_SYSTEM_STATE_FILE LOCALSTATEDIR"/lib/BarcodeManager/BarcodeManager.state"
+#define BM_DEFAULT_PID_FILE          LOCALSTATEDIR"/run/BarcodeManager.pid"
+#define BM_DEFAULT_SYSTEM_CONF_FILE  SYSCONFDIR"/BarcodeManager/BarcodeManager.conf"
+#define BM_OLD_SYSTEM_CONF_FILE      SYSCONFDIR"/BarcodeManager/bm-system-settings.conf"
+#define BM_DEFAULT_SYSTEM_STATE_FILE LOCALSTATEDIR"/lib/BarcodeManager/BarcodeManager.state"
 
 /*
  * Globals
@@ -76,13 +76,13 @@ typedef struct {
 static gboolean
 detach_monitor (gpointer data)
 {
-	nm_log_warn (LOGD_HW, "detaching netlink event monitor");
-	nm_netlink_monitor_detach (NM_NETLINK_MONITOR (data));
+	bm_log_warn (LOGD_HW, "detaching netlink event monitor");
+	bm_netlink_monitor_detach (BM_NETLINK_MONITOR (data));
 	return FALSE;
 }
 
 static void
-nm_error_monitoring_device_link_state (NMNetlinkMonitor *monitor,
+bm_error_monitoring_device_link_state (NMNetlinkMonitor *monitor,
 									   GError *error,
 									   gpointer user_data)
 {
@@ -95,7 +95,7 @@ nm_error_monitoring_device_link_state (NMNetlinkMonitor *monitor,
 	    || (info->code != error->code)
 	    || (info->time && now > info->time + 10)) {
 		/* FIXME: Try to handle the error instead of just printing it. */
-		nm_log_warn (LOGD_HW, "error monitoring device for netlink events: %s\n", error->message);
+		bm_log_warn (LOGD_HW, "error monitoring device for netlink events: %s\n", error->message);
 
 		info->time = now;
 		info->domain = error->domain;
@@ -108,34 +108,34 @@ nm_error_monitoring_device_link_state (NMNetlinkMonitor *monitor,
 		/* Broken drivers will sometimes cause a flood of netlink errors.
 		 * rh #459205, novell #443429, lp #284507
 		 */
-		nm_log_warn (LOGD_HW, "excessive netlink errors ocurred, disabling netlink monitor.");
-		nm_log_warn (LOGD_HW, "link change events will not be processed.");
+		bm_log_warn (LOGD_HW, "excessive netlink errors ocurred, disabling netlink monitor.");
+		bm_log_warn (LOGD_HW, "link change events will not be processed.");
 		g_idle_add_full (G_PRIORITY_HIGH, detach_monitor, monitor, NULL);
 	}
 }
 
 static gboolean
-nm_monitor_setup (GError **error)
+bm_monitor_setup (GError **error)
 {
 	NMNetlinkMonitor *monitor;
 	MonitorInfo *info;
 
-	monitor = nm_netlink_monitor_get ();
-	if (!nm_netlink_monitor_open_connection (monitor, error)) {
+	monitor = bm_netlink_monitor_get ();
+	if (!bm_netlink_monitor_open_connection (monitor, error)) {
 		g_object_unref (monitor);
 		return FALSE;
 	}
 
 	info = g_new0 (MonitorInfo, 1);
 	g_signal_connect_data (G_OBJECT (monitor), "error",
-						   G_CALLBACK (nm_error_monitoring_device_link_state),
+						   G_CALLBACK (bm_error_monitoring_device_link_state),
 						   info,
 						   (GClosureNotify) g_free,
 						   0);
-	nm_netlink_monitor_attach (monitor);
+	bm_netlink_monitor_attach (monitor);
 
 	/* Request initial status of cards */
-	nm_netlink_monitor_request_status (monitor, NULL);
+	bm_netlink_monitor_request_status (monitor, NULL);
 
 	return TRUE;
 }
@@ -143,7 +143,7 @@ nm_monitor_setup (GError **error)
 static gboolean quit_early = FALSE;
 
 static void
-nm_signal_handler (int signo)
+bm_signal_handler (int signo)
 {
 	static int in_fatal = 0;
 
@@ -158,8 +158,8 @@ nm_signal_handler (int signo)
 		case SIGBUS:
 		case SIGILL:
 		case SIGABRT:
-			nm_log_warn (LOGD_CORE, "caught signal %d. Generating backtrace...", signo);
-			nm_logging_backtrace ();
+			bm_log_warn (LOGD_CORE, "caught signal %d. Generating backtrace...", signo);
+			bm_logging_backtrace ();
 			exit (1);
 			break;
 
@@ -168,8 +168,8 @@ nm_signal_handler (int signo)
 			/* let the fatal signals interrupt us */
 			--in_fatal;
 
-			nm_log_warn (LOGD_CORE, "caught signal %d, shutting down abnormally. Generating backtrace...", signo);
-			nm_logging_backtrace ();
+			bm_log_warn (LOGD_CORE, "caught signal %d, shutting down abnormally. Generating backtrace...", signo);
+			bm_logging_backtrace ();
 			g_main_loop_quit (main_loop);
 			break;
 
@@ -178,7 +178,7 @@ nm_signal_handler (int signo)
 			/* let the fatal signals interrupt us */
 			--in_fatal;
 
-			nm_log_info (LOGD_CORE, "caught signal %d, shutting down normally.", signo);
+			bm_log_info (LOGD_CORE, "caught signal %d, shutting down normally.", signo);
 			quit_early = TRUE;
 			g_main_loop_quit (main_loop);
 			break;
@@ -198,7 +198,7 @@ nm_signal_handler (int signo)
 			break;
 
 		default:
-			signal (signo, nm_signal_handler);
+			signal (signo, bm_signal_handler);
 			break;
 	}
 }
@@ -210,7 +210,7 @@ setup_signals (void)
 	sigset_t mask;
 
 	sigemptyset (&mask);
-	action.sa_handler = nm_signal_handler;
+	action.sa_handler = bm_signal_handler;
 	action.sa_mask = mask;
 	action.sa_flags = 0;
 	sigaction (SIGTERM,  &action, NULL);
@@ -259,7 +259,7 @@ check_pidfile (const char *pidfile)
 	gsize len = 0;
 	glong pid;
 	char *proc_cmdline = NULL;
-	gboolean nm_running = FALSE;
+	gboolean bm_running = FALSE;
 	const char *process_name;
 
 	if (!g_file_get_contents (pidfile, &contents, &len, NULL))
@@ -287,14 +287,14 @@ check_pidfile (const char *pidfile)
 		/* Check that the process exists */
 		if (kill (pid, 0) == 0) {
 			fprintf (stderr, "BarcodeManager is already running (pid %ld)\n", pid);
-			nm_running = TRUE;
+			bm_running = TRUE;
 		}
 	}
 
 done:
 	g_free (proc_cmdline);
 	g_free (contents);
-	return nm_running;
+	return bm_running;
 }
 
 static gboolean
@@ -510,8 +510,8 @@ main (int argc, char *argv[])
 	 */
 	setenv ("GIO_USE_VFS", "local", 1);
 
-	pidfile = pidfile ? pidfile : g_strdup (NM_DEFAULT_PID_FILE);
-	state_file = state_file ? state_file : g_strdup (NM_DEFAULT_SYSTEM_STATE_FILE);
+	pidfile = pidfile ? pidfile : g_strdup (BM_DEFAULT_PID_FILE);
+	state_file = state_file ? state_file : g_strdup (BM_DEFAULT_SYSTEM_STATE_FILE);
 
 	/* check pid file */
 	if (check_pidfile (pidfile))
@@ -537,8 +537,8 @@ main (int argc, char *argv[])
 		 */
 
 		/* Try deprecated bm-system-settings.conf first */
-		if (g_file_test (NM_OLD_SYSTEM_CONF_FILE, G_FILE_TEST_EXISTS)) {
-			config = g_strdup (NM_OLD_SYSTEM_CONF_FILE);
+		if (g_file_test (BM_OLD_SYSTEM_CONF_FILE, G_FILE_TEST_EXISTS)) {
+			config = g_strdup (BM_OLD_SYSTEM_CONF_FILE);
 			parsed = parse_config_file (config, &conf_plugins, &dhcp, &dns, &cfg_log_level, &cfg_log_domains, &error);
 			if (!parsed) {
 				fprintf (stderr, "Default config file %s invalid: (%d) %s\n",
@@ -552,8 +552,8 @@ main (int argc, char *argv[])
 		}
 
 		/* Try the preferred BarcodeManager.conf last */
-		if (!parsed && g_file_test (NM_DEFAULT_SYSTEM_CONF_FILE, G_FILE_TEST_EXISTS)) {
-			config = g_strdup (NM_DEFAULT_SYSTEM_CONF_FILE);
+		if (!parsed && g_file_test (BM_DEFAULT_SYSTEM_CONF_FILE, G_FILE_TEST_EXISTS)) {
+			config = g_strdup (BM_DEFAULT_SYSTEM_CONF_FILE);
 			parsed = parse_config_file (config, &conf_plugins, &dhcp, &dns, &cfg_log_level, &cfg_log_domains, &error);
 			if (!parsed) {
 				fprintf (stderr, "Default config file %s invalid: (%d) %s\n",
@@ -567,7 +567,7 @@ main (int argc, char *argv[])
 		}
 	}
 	/* Logging setup */
-	if (!nm_logging_setup (log_level ? log_level : cfg_log_level,
+	if (!bm_logging_setup (log_level ? log_level : cfg_log_level,
 	                       log_domains ? log_domains : cfg_log_domains,
 	                       &error)) {
 		fprintf (stderr,
@@ -641,39 +641,39 @@ main (int argc, char *argv[])
 
 	setup_signals ();
 
-	nm_logging_start (become_daemon);
+	bm_logging_start (become_daemon);
 
-	nm_log_info (LOGD_CORE, "BarcodeManager (version " NM_DIST_VERSION ") is starting...");
+	bm_log_info (LOGD_CORE, "BarcodeManager (version " BM_DIST_VERSION ") is starting...");
 	success = FALSE;
 
 	if (config)
-		nm_log_info (LOGD_CORE, "Read config file %s", config);
+		bm_log_info (LOGD_CORE, "Read config file %s", config);
 
 	main_loop = g_main_loop_new (NULL, FALSE);
 
 	/* Create watch functions that monitor cards for link status. */
-	if (!nm_monitor_setup (&error)) {
-		nm_log_err (LOGD_CORE, "failed to start monitoring devices: %s.",
+	if (!bm_monitor_setup (&error)) {
+		bm_log_err (LOGD_CORE, "failed to start monitoring devices: %s.",
 		            error && error->message ? error->message : "(unknown)");
 		goto done;
 	}
 
 	/* Initialize our DBus service & connection */
-	dbus_mgr = nm_dbus_manager_get ();
+	dbus_mgr = bm_dbus_manager_get ();
 
-	vpn_manager = nm_vpn_manager_get ();
+	vpn_manager = bm_vpn_manager_get ();
 	if (!vpn_manager) {
-		nm_log_err (LOGD_CORE, "failed to start the VPN manager.");
+		bm_log_err (LOGD_CORE, "failed to start the VPN manager.");
 		goto done;
 	}
 
-	dns_mgr = nm_dns_manager_get ((const char **) dns);
+	dns_mgr = bm_dns_manager_get ((const char **) dns);
 	if (!dns_mgr) {
-		nm_log_err (LOGD_CORE, "failed to start the DNS manager.");
+		bm_log_err (LOGD_CORE, "failed to start the DNS manager.");
 		goto done;
 	}
 
-	manager = nm_manager_get (config,
+	manager = bm_manager_get (config,
 	                          plugins,
 	                          state_file,
 	                          net_enabled,
@@ -681,46 +681,46 @@ main (int argc, char *argv[])
 	                          wwan_enabled,
 	                          &error);
 	if (manager == NULL) {
-		nm_log_err (LOGD_CORE, "failed to initialize the network manager: %s",
+		bm_log_err (LOGD_CORE, "failed to initialize the network manager: %s",
 		          error && error->message ? error->message : "(unknown)");
 		goto done;
 	}
 
-	policy = nm_policy_new (manager, vpn_manager);
+	policy = bm_policy_new (manager, vpn_manager);
 	if (policy == NULL) {
-		nm_log_err (LOGD_CORE, "failed to initialize the policy.");
+		bm_log_err (LOGD_CORE, "failed to initialize the policy.");
 		goto done;
 	}
 
 	/* Initialize the supplicant manager */
-	sup_mgr = nm_supplicant_manager_get ();
+	sup_mgr = bm_supplicant_manager_get ();
 	if (!sup_mgr) {
-		nm_log_err (LOGD_CORE, "failed to initialize the supplicant manager.");
+		bm_log_err (LOGD_CORE, "failed to initialize the supplicant manager.");
 		goto done;
 	}
 
 	/* Initialize DHCP manager */
-	dhcp_mgr = nm_dhcp_manager_new (dhcp, &error);
+	dhcp_mgr = bm_dhcp_manager_new (dhcp, &error);
 	if (!dhcp_mgr) {
-		nm_log_err (LOGD_CORE, "failed to start the DHCP manager: %s.", error->message);
+		bm_log_err (LOGD_CORE, "failed to start the DHCP manager: %s.", error->message);
 		goto done;
 	}
 
-	nm_dhcp_manager_set_hostname_provider (dhcp_mgr, NM_HOSTNAME_PROVIDER (manager));
+	bm_dhcp_manager_set_hostname_provider (dhcp_mgr, BM_HOSTNAME_PROVIDER (manager));
 
 	/* Start our DBus service */
-	if (!nm_dbus_manager_start_service (dbus_mgr)) {
-		nm_log_err (LOGD_CORE, "failed to start the dbus service.");
+	if (!bm_dbus_manager_start_service (dbus_mgr)) {
+		bm_log_err (LOGD_CORE, "failed to start the dbus service.");
 		goto done;
 	}
 
 	/* Clean leftover "# Added by BarcodeManager" entries from /etc/hosts */
-	nm_policy_hosts_clean_etc_hosts ();
+	bm_policy_hosts_clean_etc_hosts ();
 
-	nm_manager_start (manager);
+	bm_manager_start (manager);
 
 	/* Bring up the loopback interface. */
-	nm_system_enable_loopback ();
+	bm_system_enable_loopback ();
 
 	success = TRUE;
 
@@ -732,7 +732,7 @@ main (int argc, char *argv[])
 
 done:
 	if (policy)
-		nm_policy_destroy (policy);
+		bm_policy_destroy (policy);
 
 	if (manager)
 		g_object_unref (manager);
@@ -752,7 +752,7 @@ done:
 	if (dbus_mgr)
 		g_object_unref (dbus_mgr);
 
-	nm_logging_shutdown ();
+	bm_logging_shutdown ();
 
 	if (pidfile && wrote_pidfile)
 		unlink (pidfile);
@@ -769,6 +769,6 @@ done:
 	g_free (cfg_log_level);
 	g_free (cfg_log_domains);
 
-	nm_log_info (LOGD_CORE, "exiting (%s)", success ? "success" : "error");
+	bm_log_info (LOGD_CORE, "exiting (%s)", success ? "success" : "error");
 	exit (success ? 0 : 1);
 }

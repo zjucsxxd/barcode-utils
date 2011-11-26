@@ -18,25 +18,25 @@
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
-#ifndef NM_BLUEZ_DEVICE_H
-#define NM_BLUEZ_DEVICE_H
+#ifndef BM_BLUEZ_DEVICE_H
+#define BM_BLUEZ_DEVICE_H
 
 #include <glib.h>
 #include <glib-object.h>
 
-#define NM_TYPE_BLUEZ_DEVICE            (nm_bluez_device_get_type ())
-#define NM_BLUEZ_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_BLUEZ_DEVICE, NMBluezDevice))
-#define NM_BLUEZ_DEVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_BLUEZ_DEVICE, NMBluezDeviceClass))
-#define NM_IS_BLUEZ_DEVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_BLUEZ_DEVICE))
-#define NM_IS_BLUEZ_DEVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_BLUEZ_DEVICE))
-#define NM_BLUEZ_DEVICE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_BLUEZ_DEVICE, NMBluezDeviceClass))
+#define BM_TYPE_BLUEZ_DEVICE            (bm_bluez_device_get_type ())
+#define BM_BLUEZ_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_BLUEZ_DEVICE, NMBluezDevice))
+#define BM_BLUEZ_DEVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_BLUEZ_DEVICE, NMBluezDeviceClass))
+#define BM_IS_BLUEZ_DEVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_BLUEZ_DEVICE))
+#define BM_IS_BLUEZ_DEVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_BLUEZ_DEVICE))
+#define BM_BLUEZ_DEVICE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_BLUEZ_DEVICE, NMBluezDeviceClass))
 
-#define NM_BLUEZ_DEVICE_PATH         "path"
-#define NM_BLUEZ_DEVICE_ADDRESS      "address"
-#define NM_BLUEZ_DEVICE_NAME         "name"
-#define NM_BLUEZ_DEVICE_CAPABILITIES "capabilities"
-#define NM_BLUEZ_DEVICE_RSSI         "rssi"
-#define NM_BLUEZ_DEVICE_USABLE       "usable"
+#define BM_BLUEZ_DEVICE_PATH         "path"
+#define BM_BLUEZ_DEVICE_ADDRESS      "address"
+#define BM_BLUEZ_DEVICE_NAME         "name"
+#define BM_BLUEZ_DEVICE_CAPABILITIES "capabilities"
+#define BM_BLUEZ_DEVICE_RSSI         "rssi"
+#define BM_BLUEZ_DEVICE_USABLE       "usable"
 
 typedef struct {
 	GObject parent;
@@ -51,25 +51,25 @@ typedef struct {
 	void (*invalid)     (NMBluezDevice *self);
 } NMBluezDeviceClass;
 
-GType nm_bluez_device_get_type (void);
+GType bm_bluez_device_get_type (void);
 
-NMBluezDevice *nm_bluez_device_new (const char *path);
+NMBluezDevice *bm_bluez_device_new (const char *path);
 
-const char *nm_bluez_device_get_path (NMBluezDevice *self);
+const char *bm_bluez_device_get_path (NMBluezDevice *self);
 
-gboolean nm_bluez_device_get_initialized (NMBluezDevice *self);
+gboolean bm_bluez_device_get_initialized (NMBluezDevice *self);
 
-gboolean nm_bluez_device_get_usable (NMBluezDevice *self);
+gboolean bm_bluez_device_get_usable (NMBluezDevice *self);
 
-const char *nm_bluez_device_get_address (NMBluezDevice *self);
+const char *bm_bluez_device_get_address (NMBluezDevice *self);
 
-const char *nm_bluez_device_get_name (NMBluezDevice *self);
+const char *bm_bluez_device_get_name (NMBluezDevice *self);
 
-guint32 nm_bluez_device_get_class (NMBluezDevice *self);
+guint32 bm_bluez_device_get_class (NMBluezDevice *self);
 
-guint32 nm_bluez_device_get_capabilities (NMBluezDevice *self);
+guint32 bm_bluez_device_get_capabilities (NMBluezDevice *self);
 
-gint nm_bluez_device_get_rssi (NMBluezDevice *self);
+gint bm_bluez_device_get_rssi (NMBluezDevice *self);
 
-#endif /* NM_BLUEZ_DEVICE_H */
+#endif /* BM_BLUEZ_DEVICE_H */
 

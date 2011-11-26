@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,56 +21,47 @@
  * Copyright (C) 2007 - 2010 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_H
-#define NM_DEVICE_H
+#ifndef BM_DEVICE_H
+#define BM_DEVICE_H
 
 #include <glib.h>
 #include <glib-object.h>
 #include <dbus/dbus-glib.h>
 #include "bm-object.h"
 #include "BarcodeManager.h"
-#include "bm-ip4-config.h"
-#include "bm-dhcp4-config.h"
-#include "bm-ip6-config.h"
-#include "bm-dhcp6-config.h"
 #include "bm-connection.h"
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_DEVICE            (nm_device_get_type ())
-#define NM_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE, NMDevice))
-#define NM_DEVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_DEVICE, NMDeviceClass))
-#define NM_IS_DEVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE))
-#define NM_IS_DEVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_DEVICE))
-#define NM_DEVICE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_DEVICE, NMDeviceClass))
+#define BM_TYPE_DEVICE            (bm_device_get_type ())
+#define BM_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_DEVICE, BMDevice))
+#define BM_DEVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_DEVICE, BMDeviceClass))
+#define BM_IS_DEVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_DEVICE))
+#define BM_IS_DEVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_DEVICE))
+#define BM_DEVICE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_DEVICE, BMDeviceClass))
 
-#define NM_DEVICE_UDI "udi"
-#define NM_DEVICE_INTERFACE "interface"
-#define NM_DEVICE_IP_INTERFACE "ip-interface"
-#define NM_DEVICE_DRIVER "driver"
-#define NM_DEVICE_CAPABILITIES "capabilities"
-#define NM_DEVICE_MANAGED "managed"
-#define NM_DEVICE_FIRMWARE_MISSING "firmware-missing"
-#define NM_DEVICE_IP4_CONFIG "ip4-config"
-#define NM_DEVICE_DHCP4_CONFIG "dhcp4-config"
-#define NM_DEVICE_IP6_CONFIG "ip6-config"
-#define NM_DEVICE_DHCP6_CONFIG "dhcp6-config"
-#define NM_DEVICE_STATE "state"
-#define NM_DEVICE_VENDOR "vendor"
-#define NM_DEVICE_PRODUCT "product"
+#define BM_DEVICE_UDI "udi"
+#define BM_DEVICE_INTERFACE "interface"
+#define BM_DEVICE_DRIVER "driver"
+#define BM_DEVICE_CAPABILITIES "capabilities"
+#define BM_DEVICE_MANAGED "managed"
+#define BM_DEVICE_FIRMWARE_MISSING "firmware-missing"
+#define BM_DEVICE_STATE "state"
+#define BM_DEVICE_VENDOR "vendor"
+#define BM_DEVICE_PRODUCT "product"
 
 typedef struct {
-	NMObject parent;
-} NMDevice;
+	BMObject parent;
+} BMDevice;
 
 typedef struct {
-	NMObjectClass parent;
+	BMObjectClass parent;
 
 	/* Signals */
-	void (*state_changed) (NMDevice *device,
-	                       NMDeviceState new_state,
-	                       NMDeviceState old_state,
-	                       NMDeviceStateReason reason);
+	void (*state_changed) (BMDevice *device,
+	                       BMDeviceState new_state,
+	                       BMDeviceState old_state,
+	                       BMDeviceStateReason reason);
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
@@ -79,33 +70,28 @@ typedef struct {
 	void (*_reserved4) (void);
 	void (*_reserved5) (void);
 	void (*_reserved6) (void);
-} NMDeviceClass;
+} BMDeviceClass;
 
-GType nm_device_get_type (void);
+GType bm_device_get_type (void);
 
-GObject * nm_device_new (DBusGConnection *connection, const char *path);
+GObject * bm_device_new (DBusGConnection *connection, const char *path);
 
-const char *  nm_device_get_iface            (NMDevice *device);
-const char *  nm_device_get_ip_iface         (NMDevice *device);
-const char *  nm_device_get_udi              (NMDevice *device);
-const char *  nm_device_get_driver           (NMDevice *device);
-guint32       nm_device_get_capabilities     (NMDevice *device);
-gboolean      nm_device_get_managed          (NMDevice *device);
-gboolean      nm_device_get_firmware_missing (NMDevice *device);
-NMIP4Config * nm_device_get_ip4_config       (NMDevice *device);
-NMDHCP4Config * nm_device_get_dhcp4_config   (NMDevice *device);
-NMIP6Config * nm_device_get_ip6_config       (NMDevice *device);
-NMDHCP6Config * nm_device_get_dhcp6_config   (NMDevice *device);
-NMDeviceState nm_device_get_state            (NMDevice *device);
-const char *  nm_device_get_product          (NMDevice *device);
-const char *  nm_device_get_vendor           (NMDevice *device);
+const char *  bm_device_get_iface            (BMDevice *device);
+const char *  bm_device_get_udi              (BMDevice *device);
+const char *  bm_device_get_driver           (BMDevice *device);
+guint32       bm_device_get_capabilities     (BMDevice *device);
+gboolean      bm_device_get_managed          (BMDevice *device);
+gboolean      bm_device_get_firmware_missing (BMDevice *device);
+BMDeviceState bm_device_get_state            (BMDevice *device);
+const char *  bm_device_get_product          (BMDevice *device);
+const char *  bm_device_get_vendor           (BMDevice *device);
 
-typedef void (*NMDeviceDeactivateFn) (NMDevice *device, GError *error, gpointer user_data);
+typedef void (*BMDeviceDeactivateFn) (BMDevice *device, GError *error, gpointer user_data);
 
-void          nm_device_disconnect         (NMDevice *device,
-                                            NMDeviceDeactivateFn callback,
+void          bm_device_disconnect         (BMDevice *device,
+                                            BMDeviceDeactivateFn callback,
                                             gpointer user_data);
 
 G_END_DECLS
 
-#endif /* NM_DEVICE_H */
+#endif /* BM_DEVICE_H */

@@ -19,8 +19,8 @@
  * (C) Copyright 2009 Red Hat, Inc.
  */
 
-#ifndef NM_SETTINGS_SERVICE_H
-#define NM_SETTINGS_SERVICE_H
+#ifndef BM_SETTINGS_SERVICE_H
+#define BM_SETTINGS_SERVICE_H
 
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
@@ -29,19 +29,19 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SETTINGS_SERVICE            (nm_settings_service_get_type ())
-#define NM_SETTINGS_SERVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTINGS_SERVICE, NMSettingsService))
-#define NM_SETTINGS_SERVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_SETTINGS_SERVICE, NMSettingsServiceClass))
-#define NM_IS_SETTINGS_SERVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SETTINGS_SERVICE))
-#define NM_IS_SETTINGS_SERVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_SETTINGS_SERVICE))
-#define NM_SETTINGS_SERVICE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SETTINGS_SERVICE, NMSettingsServiceClass))
+#define BM_TYPE_SETTINGS_SERVICE            (bm_settings_service_get_type ())
+#define BM_SETTINGS_SERVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SETTINGS_SERVICE, BMSettingsService))
+#define BM_SETTINGS_SERVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_SETTINGS_SERVICE, BMSettingsServiceClass))
+#define BM_IS_SETTINGS_SERVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SETTINGS_SERVICE))
+#define BM_IS_SETTINGS_SERVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_SETTINGS_SERVICE))
+#define BM_SETTINGS_SERVICE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_SETTINGS_SERVICE, BMSettingsServiceClass))
 
-#define NM_SETTINGS_SERVICE_BUS "bus"
-#define NM_SETTINGS_SERVICE_SCOPE "scope"
+#define BM_SETTINGS_SERVICE_BUS "bus"
+#define BM_SETTINGS_SERVICE_SCOPE "scope"
 
 typedef struct {
 	GObject parent;
-} NMSettingsService;
+} BMSettingsService;
 
 typedef struct {
 	GObjectClass parent;
@@ -50,12 +50,12 @@ typedef struct {
 	 * by the settings service.  The list (but not the NMExportedConnection
 	 * objects) will be freed by caller.
 	 */
-	GSList * (*list_connections) (NMSettingsService *self);
+	GSList * (*list_connections) (BMSettingsService *self);
 
-	void (*add_connection) (NMSettingsService *self,
-	                        NMConnection *connection,
+	void (*add_connection) (BMSettingsService *self,
+	                        BMConnection *connection,
 	                        DBusGMethodInvocation *context, /* Only present for D-Bus calls */
-	                        NMSettingsAddConnectionFunc callback,
+	                        BMSettingsAddConnectionFunc callback,
 	                        gpointer user_data);
 
 	/* Padding for future expansion */
@@ -65,18 +65,18 @@ typedef struct {
 	void (*_reserved4) (void);
 	void (*_reserved5) (void);
 	void (*_reserved6) (void);
-} NMSettingsServiceClass;
+} BMSettingsServiceClass;
 
-GType nm_settings_service_get_type (void);
+GType bm_settings_service_get_type (void);
 
-NMExportedConnection *nm_settings_service_get_connection_by_path (NMSettingsService *self,
+NMExportedConnection *bm_settings_service_get_connection_by_path (BMSettingsService *self,
                                                                   const char *path);
 
-void nm_settings_service_export (NMSettingsService *self);
+void bm_settings_service_export (BMSettingsService *self);
 
-void nm_settings_service_export_connection (NMSettingsService *self,
-                                            NMSettingsConnectionInterface *exported);
+void bm_settings_service_export_connection (BMSettingsService *self,
+                                            BMSettingsConnectionInterface *exported);
 
 G_END_DECLS
 
-#endif /* NM_SETTINGS_SERVICE_H */
+#endif /* BM_SETTINGS_SERVICE_H */

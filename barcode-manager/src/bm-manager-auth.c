@@ -70,7 +70,7 @@ default_call_func (NMAuthChain *chain,
                    gpointer user_data)
 {
 	if (!error)
-		nm_auth_chain_set_data (chain, permission, GUINT_TO_POINTER (result), NULL);
+		bm_auth_chain_set_data (chain, permission, GUINT_TO_POINTER (result), NULL);
 }
 
 static NMAuthChain *
@@ -104,7 +104,7 @@ _auth_chain_new (PolkitAuthority *authority,
 	if (!self->owner) {
 		/* Need an owner */
 		g_warn_if_fail (self->owner);
-		nm_auth_chain_unref (self);
+		bm_auth_chain_unref (self);
 		self = NULL;
 	}
 
@@ -112,7 +112,7 @@ _auth_chain_new (PolkitAuthority *authority,
 }
 
 NMAuthChain *
-nm_auth_chain_new (PolkitAuthority *authority,
+bm_auth_chain_new (PolkitAuthority *authority,
                    DBusGMethodInvocation *context,
                    DBusGProxy *proxy,
                    NMAuthChainResultFunc done_func,
@@ -122,7 +122,7 @@ nm_auth_chain_new (PolkitAuthority *authority,
 }
 
 NMAuthChain *
-nm_auth_chain_new_raw_message (PolkitAuthority *authority,
+bm_auth_chain_new_raw_message (PolkitAuthority *authority,
                                DBusMessage *message,
                                NMAuthChainResultFunc done_func,
                                gpointer user_data)
@@ -131,7 +131,7 @@ nm_auth_chain_new_raw_message (PolkitAuthority *authority,
 }
 
 gpointer
-nm_auth_chain_get_data (NMAuthChain *self, const char *tag)
+bm_auth_chain_get_data (NMAuthChain *self, const char *tag)
 {
 	ChainData *tmp;
 
@@ -143,7 +143,7 @@ nm_auth_chain_get_data (NMAuthChain *self, const char *tag)
 }
 
 void
-nm_auth_chain_set_data (NMAuthChain *self,
+bm_auth_chain_set_data (NMAuthChain *self,
                         const char *tag,
                         gpointer data,
                         GDestroyNotify data_destroy)
@@ -165,7 +165,7 @@ nm_auth_chain_set_data (NMAuthChain *self,
 }
 
 static void
-nm_auth_chain_check_done (NMAuthChain *self)
+bm_auth_chain_check_done (NMAuthChain *self)
 {
 	g_return_if_fail (self != NULL);
 
@@ -173,7 +173,7 @@ nm_auth_chain_check_done (NMAuthChain *self)
 		/* Ensure we say alive across the callback */
 		self->refcount++;
 		self->done_func (self, self->error, self->context, self->user_data);
-		nm_auth_chain_unref (self);
+		bm_auth_chain_unref (self);
 	}
 }
 
@@ -205,7 +205,7 @@ pk_call_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	NMAuthChain *chain;
 	PolkitAuthorizationResult *pk_result;
 	GError *error = NULL;
-	guint call_result = NM_AUTH_CALL_RESULT_UNKNOWN;
+	guint call_result = BM_AUTH_CALL_RESULT_UNKNOWN;
 
 	/* If the call is already disposed do nothing */
 	if (call->disposed) {
@@ -223,23 +223,23 @@ pk_call_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 		if (!chain->error)
 			chain->error = g_error_copy (error);
 
-		nm_log_warn (LOGD_CORE, "error requesting auth for %s: (%d) %s",
+		bm_log_warn (LOGD_CORE, "error requesting auth for %s: (%d) %s",
 		             call->permission,
 		             error ? error->code : -1,
 		             error && error->message ? error->message : "(unknown)");
 	} else {
 		if (polkit_authorization_result_get_is_authorized (pk_result)) {
 			/* Caller has the permission */
-			call_result = NM_AUTH_CALL_RESULT_YES;
+			call_result = BM_AUTH_CALL_RESULT_YES;
 		} else if (polkit_authorization_result_get_is_challenge (pk_result)) {
 			/* Caller could authenticate to get the permission */
-			call_result = NM_AUTH_CALL_RESULT_AUTH;
+			call_result = BM_AUTH_CALL_RESULT_AUTH;
 		} else
-			call_result = NM_AUTH_CALL_RESULT_NO;
+			call_result = BM_AUTH_CALL_RESULT_NO;
 	}
 
 	chain->call_func (chain, call->permission, error, call_result, chain->user_data);
-	nm_auth_chain_check_done (chain);
+	bm_auth_chain_check_done (chain);
 
 	g_clear_error (&error);
 	polkit_call_free (call);
@@ -248,7 +248,7 @@ pk_call_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 }
 
 gboolean
-nm_auth_chain_add_call (NMAuthChain *self,
+bm_auth_chain_add_call (NMAuthChain *self,
                         const char *permission,
                         gboolean allow_interaction)
 {
@@ -287,7 +287,7 @@ nm_auth_chain_add_call (NMAuthChain *self,
 }
 
 void
-nm_auth_chain_unref (NMAuthChain *self)
+bm_auth_chain_unref (NMAuthChain *self)
 {
 	GSList *iter;
 
@@ -314,7 +314,7 @@ nm_auth_chain_unref (NMAuthChain *self)
 /************ utils **************/
 
 gboolean
-nm_auth_get_caller_uid (DBusGMethodInvocation *context,
+bm_auth_get_caller_uid (DBusGMethodInvocation *context,
                         NMDBusManager *dbus_mgr,
                         gulong *out_uid,
                         const char **out_error_desc)
@@ -337,7 +337,7 @@ nm_auth_get_caller_uid (DBusGMethodInvocation *context,
 		goto out;
 	}
 
-	connection = nm_dbus_manager_get_dbus_connection (dbus_mgr);
+	connection = bm_dbus_manager_get_dbus_connection (dbus_mgr);
 	if (!connection) {
 		if (out_error_desc)
 			*out_error_desc = "Could not get the D-Bus system bus";
@@ -361,7 +361,7 @@ out:
 }
 
 gboolean
-nm_auth_uid_authorized (gulong uid,
+bm_auth_uid_authorized (gulong uid,
                         NMDBusManager *dbus_mgr,
                         DBusGProxy *user_proxy,
                         const char **out_error_desc)
@@ -391,13 +391,13 @@ nm_auth_uid_authorized (gulong uid,
 		return FALSE;
 	}
 
-	connection = nm_dbus_manager_get_dbus_connection (dbus_mgr);
+	connection = bm_dbus_manager_get_dbus_connection (dbus_mgr);
 	if (!connection) {
 		*out_error_desc = "Could not get the D-Bus system bus";
 		return FALSE;
 	}
 
-	service_owner = nm_dbus_manager_get_name_owner (dbus_mgr, service_name, NULL);
+	service_owner = bm_dbus_manager_get_name_owner (dbus_mgr, service_name, NULL);
 	if (!service_owner) {
 		*out_error_desc = "Could not determine D-Bus owner of the user settings service";
 		return FALSE;

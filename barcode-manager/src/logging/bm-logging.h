@@ -19,8 +19,8 @@
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
 
-#ifndef NM_LOGGING_H
-#define NM_LOGGING_H
+#ifndef BM_LOGGING_H
+#define BM_LOGGING_H
 
 #include <glib.h>
 #include <glib-object.h>
@@ -63,53 +63,53 @@ enum {
 	LOGL_DEBUG = 0x00000008
 };
 
-#define NM_LOGGING_ERROR (nm_logging_error_quark ())
-#define NM_TYPE_LOGGING_ERROR (nm_logging_error_get_type ())
-GQuark nm_logging_error_quark    (void);
-GType  nm_logging_error_get_type (void);
+#define BM_LOGGING_ERROR (bm_logging_error_quark ())
+#define BM_TYPE_LOGGING_ERROR (bm_logging_error_get_type ())
+GQuark bm_logging_error_quark    (void);
+GType  bm_logging_error_get_type (void);
 
 
-#define nm_log_err(domain, ...) \
-	_nm_log (G_STRLOC, G_STRFUNC, domain, LOGL_ERR, ## __VA_ARGS__ )
+#define bm_log_err(domain, ...) \
+	_bm_log (G_STRLOC, G_STRFUNC, domain, LOGL_ERR, ## __VA_ARGS__ )
 
-#define nm_log_warn(domain, ...) \
-	_nm_log (G_STRLOC, G_STRFUNC, domain, LOGL_WARN, ## __VA_ARGS__ )
+#define bm_log_warn(domain, ...) \
+	_bm_log (G_STRLOC, G_STRFUNC, domain, LOGL_WARN, ## __VA_ARGS__ )
 
-#define nm_log_info(domain, ...) \
-	_nm_log (G_STRLOC, G_STRFUNC, domain, LOGL_INFO, ## __VA_ARGS__ )
+#define bm_log_info(domain, ...) \
+	_bm_log (G_STRLOC, G_STRFUNC, domain, LOGL_INFO, ## __VA_ARGS__ )
 
-#define nm_log_dbg(domain, ...) \
-	_nm_log (G_STRLOC, G_STRFUNC, domain, LOGL_DEBUG, ## __VA_ARGS__ )
+#define bm_log_dbg(domain, ...) \
+	_bm_log (G_STRLOC, G_STRFUNC, domain, LOGL_DEBUG, ## __VA_ARGS__ )
 
-#define nm_log(domain, level, ...) \
-	_nm_log (G_STRLOC, G_STRFUNC, domain, level, ## __VA_ARGS__ )
+#define bm_log(domain, level, ...) \
+	_bm_log (G_STRLOC, G_STRFUNC, domain, level, ## __VA_ARGS__ )
 
-void _nm_log (const char *loc,
+void _bm_log (const char *loc,
               const char *func,
               guint32 domain,
               guint32 level,
               const char *fmt,
               ...) __attribute__((__format__ (__printf__, 5, 6)));
 
-const char *nm_logging_level_to_string (void);
-char *nm_logging_domains_to_string (void);
-gboolean nm_logging_level_enabled (guint32 level);
+const char *bm_logging_level_to_string (void);
+char *bm_logging_domains_to_string (void);
+gboolean bm_logging_level_enabled (guint32 level);
 
 /* Undefine the bm-utils.h logging stuff to ensure errors */
-#undef nm_print_backtrace
-#undef nm_get_timestamp
-#undef nm_info
-#undef nm_info_str
-#undef nm_debug
-#undef nm_debug_str
-#undef nm_warning
-#undef nm_warning_str
-#undef nm_error
-#undef nm_error_str
+#undef bm_print_backtrace
+#undef bm_get_timestamp
+#undef bm_info
+#undef bm_info_str
+#undef bm_debug
+#undef bm_debug_str
+#undef bm_warning
+#undef bm_warning_str
+#undef bm_error
+#undef bm_error_str
 
-gboolean nm_logging_setup     (const char *level, const char *domains, GError **error);
-void     nm_logging_start     (gboolean become_daemon);
-void     nm_logging_backtrace (void);
-void     nm_logging_shutdown  (void);
+gboolean bm_logging_setup     (const char *level, const char *domains, GError **error);
+void     bm_logging_start     (gboolean become_daemon);
+void     bm_logging_backtrace (void);
+void     bm_logging_shutdown  (void);
 
-#endif /* NM_LOGGING_H */
+#endif /* BM_LOGGING_H */

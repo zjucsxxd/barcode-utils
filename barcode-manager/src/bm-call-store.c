@@ -23,7 +23,7 @@
 #include "bm-logging.h"
 
 NMCallStore *
-nm_call_store_new (void)
+bm_call_store_new (void)
 {
 	return g_hash_table_new_full (NULL, NULL, NULL,
 								  (GDestroyNotify) g_hash_table_destroy);
@@ -36,7 +36,7 @@ object_destroyed_cb (gpointer data, GObject *object)
 }
 
 void
-nm_call_store_add (NMCallStore *store,
+bm_call_store_add (NMCallStore *store,
 				   GObject *object,
 				   gpointer *call_id)
 {
@@ -57,7 +57,7 @@ nm_call_store_add (NMCallStore *store,
 }
 
 void
-nm_call_store_remove (NMCallStore *store,
+bm_call_store_remove (NMCallStore *store,
 					  GObject *object,
 					  gpointer call_id)
 {
@@ -69,12 +69,12 @@ nm_call_store_remove (NMCallStore *store,
 
 	call_ids_hash = g_hash_table_lookup (store, object);
 	if (!call_ids_hash) {
-		nm_log_warn (LOGD_CORE, "Trying to remove a non-existant call id.");
+		bm_log_warn (LOGD_CORE, "Trying to remove a non-existant call id.");
 		return;
 	}
 
 	if (!g_hash_table_remove (call_ids_hash, call_id))
-		nm_log_warn (LOGD_CORE, "Trying to remove a non-existant call id.");
+		bm_log_warn (LOGD_CORE, "Trying to remove a non-existant call id.");
 
 	if (g_hash_table_size (call_ids_hash) == 0) {
 		g_hash_table_remove (store, object);
@@ -142,7 +142,7 @@ duplicate_hash (gpointer key, gpointer value, gpointer user_data)
 }
 
 int
-nm_call_store_foreach (NMCallStore *store,
+bm_call_store_foreach (NMCallStore *store,
 					   GObject *object,
 					   NMCallStoreFunc callback,
 					   gpointer user_data)
@@ -163,7 +163,7 @@ nm_call_store_foreach (NMCallStore *store,
 
 		call_ids_hash = g_hash_table_lookup (store, object);
 		if (!call_ids_hash) {
-			nm_log_warn (LOGD_CORE, "Object not in store");
+			bm_log_warn (LOGD_CORE, "Object not in store");
 			return -1;
 		}
 
@@ -192,7 +192,7 @@ remove_weakref (gpointer key, gpointer value, gpointer user_data)
 }
 
 void
-nm_call_store_clear (NMCallStore *store)
+bm_call_store_clear (NMCallStore *store)
 {
 	g_return_if_fail (store);
 
@@ -201,7 +201,7 @@ nm_call_store_clear (NMCallStore *store)
 }
 
 void
-nm_call_store_destroy (NMCallStore *store)
+bm_call_store_destroy (NMCallStore *store)
 {
 	g_return_if_fail (store);
 

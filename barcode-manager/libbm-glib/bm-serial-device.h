@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,26 +20,26 @@
  * Copyright (C) 2008 Novell, Inc.
  */
 
-#ifndef NM_SERIAL_DEVICE_H
-#define NM_SERIAL_DEVICE_H
+#ifndef BM_SERIAL_DEVICE_H
+#define BM_SERIAL_DEVICE_H
 
 #include "bm-device.h"
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SERIAL_DEVICE            (nm_serial_device_get_type ())
-#define NM_SERIAL_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SERIAL_DEVICE, NMSerialDevice))
-#define NM_SERIAL_DEVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_SERIAL_DEVICE, NMSerialDeviceClass))
-#define NM_IS_SERIAL_DEVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SERIAL_DEVICE))
-#define NM_IS_SERIAL_DEVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_SERIAL_DEVICE))
-#define NM_SERIAL_DEVICE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SERIAL_DEVICE, NMSerialDeviceClass))
+#define BM_TYPE_SERIAL_DEVICE            (bm_serial_device_get_type ())
+#define BM_SERIAL_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SERIAL_DEVICE, NMSerialDevice))
+#define BM_SERIAL_DEVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_SERIAL_DEVICE, NMSerialDeviceClass))
+#define BM_IS_SERIAL_DEVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SERIAL_DEVICE))
+#define BM_IS_SERIAL_DEVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_SERIAL_DEVICE))
+#define BM_SERIAL_DEVICE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_SERIAL_DEVICE, NMSerialDeviceClass))
 
 typedef struct {
-	NMDevice parent;
+	BMDevice parent;
 } NMSerialDevice;
 
 typedef struct {
-	NMDeviceClass parent;
+	BMDeviceClass parent;
 
 	/* Signals */
 	void (*ppp_stats) (NMSerialDevice *self, guint32 in_bytes, guint32 out_bytes);
@@ -53,11 +53,11 @@ typedef struct {
 	void (*_reserved6) (void);
 } NMSerialDeviceClass;
 
-GType nm_serial_device_get_type (void);
+GType bm_serial_device_get_type (void);
 
-guint32 nm_serial_device_get_bytes_received (NMSerialDevice *self);
-guint32 nm_serial_device_get_bytes_sent     (NMSerialDevice *self);
+guint32 bm_serial_device_get_bytes_received (NMSerialDevice *self);
+guint32 bm_serial_device_get_bytes_sent     (NMSerialDevice *self);
 
 G_END_DECLS
 
-#endif /* NM_SERIAL_DEVICE_H */
+#endif /* BM_SERIAL_DEVICE_H */

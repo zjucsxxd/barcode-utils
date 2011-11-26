@@ -97,7 +97,7 @@ output to stdout) these can quickly help pinpoint the source of connection
 issues.  Also see the \-\-log\-level and \-\-log\-domains to enable debug logging inside
 BarcodeManager itself.
 .TP
-.I "NM_PPP_DEBUG"
+.I "BM_PPP_DEBUG"
 When set to anything, causes BarcodeManager to turn on PPP debugging in pppd,
 which logs all PPP and PPTP frames and client/server exchanges.
 .SH SEE ALSO

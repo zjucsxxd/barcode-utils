@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access barcode scanner status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2008 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #include <string.h>
@@ -30,9 +29,9 @@
 #include "bm-dbus-glib-types.h"
 
 
-G_DEFINE_ABSTRACT_TYPE (NMObject, nm_object, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE (BMObject, bm_object, G_TYPE_OBJECT)
 
-#define NM_OBJECT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_OBJECT, NMObjectPrivate))
+#define BM_OBJECT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_OBJECT, BMObjectPrivate))
 
 typedef struct {
 	PropChangedMarshalFunc func;
@@ -44,12 +43,12 @@ typedef struct {
 	char *path;
 	DBusGProxy *properties_proxy;
 	GSList *pcs;
-	NMObject *parent;
+	BMObject *parent;
 
 	GSList *notify_props;
 	guint32 notify_id;
 	gboolean disposed;
-} NMObjectPrivate;
+} BMObjectPrivate;
 
 enum {
 	PROP_0,
@@ -60,7 +59,7 @@ enum {
 };
 
 static void
-nm_object_init (NMObject *object)
+bm_object_init (BMObject *object)
 {
 }
 
@@ -70,17 +69,17 @@ constructor (GType type,
 			 GObjectConstructParam *construct_params)
 {
 	GObject *object;
-	NMObjectPrivate *priv;
+	BMObjectPrivate *priv;
 
-	object = G_OBJECT_CLASS (nm_object_parent_class)->constructor (type,
+	object = G_OBJECT_CLASS (bm_object_parent_class)->constructor (type,
 																   n_construct_params,
 																   construct_params);
 	if (!object)
 		return NULL;
 
-	_nm_object_cache_add (NM_OBJECT (object));
+	_bm_object_cache_add (BM_OBJECT (object));
 
-	priv = NM_OBJECT_GET_PRIVATE (object);
+	priv = BM_OBJECT_GET_PRIVATE (object);
 
 	if (priv->connection == NULL || priv->path == NULL) {
 		g_warning ("%s: bus connection and path required.", __func__);
@@ -89,7 +88,7 @@ constructor (GType type,
 	}
 
 	priv->properties_proxy = dbus_g_proxy_new_for_name (priv->connection,
-														NM_DBUS_SERVICE,
+														BM_DBUS_SERVICE,
 														priv->path,
 														"org.freedesktop.DBus.Properties");
 
@@ -99,10 +98,10 @@ constructor (GType type,
 static void
 dispose (GObject *object)
 {
-	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (object);
+	BMObjectPrivate *priv = BM_OBJECT_GET_PRIVATE (object);
 
 	if (priv->disposed) {
-		G_OBJECT_CLASS (nm_object_parent_class)->dispose (object);
+		G_OBJECT_CLASS (bm_object_parent_class)->dispose (object);
 		return;
 	}
 
@@ -119,26 +118,26 @@ dispose (GObject *object)
 	g_object_unref (priv->properties_proxy);
 	dbus_g_connection_unref (priv->connection);
 
-	G_OBJECT_CLASS (nm_object_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_object_parent_class)->dispose (object);
 }
 
 static void
 finalize (GObject *object)
 {
-	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (object);
+	BMObjectPrivate *priv = BM_OBJECT_GET_PRIVATE (object);
 
 	g_slist_foreach (priv->pcs, (GFunc) g_hash_table_destroy, NULL);
 	g_slist_free (priv->pcs);
 	g_free (priv->path);
 
-	G_OBJECT_CLASS (nm_object_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_object_parent_class)->finalize (object);
 }
 
 static void
 set_property (GObject *object, guint prop_id,
 			  const GValue *value, GParamSpec *pspec)
 {
-	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (object);
+	BMObjectPrivate *priv = BM_OBJECT_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_CONNECTION:
@@ -159,7 +158,7 @@ static void
 get_property (GObject *object, guint prop_id,
 			  GValue *value, GParamSpec *pspec)
 {
-	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (object);
+	BMObjectPrivate *priv = BM_OBJECT_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_CONNECTION:
@@ -175,11 +174,11 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_object_class_init (NMObjectClass *nm_object_class)
+bm_object_class_init (BMObjectClass *bm_object_class)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (nm_object_class);
+	GObjectClass *object_class = G_OBJECT_CLASS (bm_object_class);
 
-	g_type_class_add_private (nm_object_class, sizeof (NMObjectPrivate));
+	g_type_class_add_private (bm_object_class, sizeof (BMObjectPrivate));
 
 	/* virtual methods */
 	object_class->constructor = constructor;
@@ -191,26 +190,26 @@ nm_object_class_init (NMObjectClass *nm_object_class)
 	/* porperties */
 
 	/**
-	 * NMObject:connection:
+	 * BMObject:connection:
 	 *
 	 * The #DBusGConnection of the object.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CONNECTION,
-		 g_param_spec_boxed (NM_OBJECT_DBUS_CONNECTION,
+		 g_param_spec_boxed (BM_OBJECT_DBUS_CONNECTION,
 							 "Connection",
 							 "Connection",
 							 DBUS_TYPE_G_CONNECTION,
 							 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
 	/**
-	 * NMObject:path:
+	 * BMObject:path:
 	 *
 	 * The DBus object path.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PATH,
-		 g_param_spec_string (NM_OBJECT_DBUS_PATH,
+		 g_param_spec_string (BM_OBJECT_DBUS_PATH,
 							  "Object Path",
 							  "DBus Object Path",
 							  NULL,
@@ -218,48 +217,48 @@ nm_object_class_init (NMObjectClass *nm_object_class)
 }
 
 /**
- * nm_object_get_connection:
- * @object: a #NMObject
+ * bm_object_get_connection:
+ * @object: a #BMObject
  *
- * Gets the #NMObject's DBusGConnection.
+ * Gets the #BMObject's DBusGConnection.
  *
  * Returns: the connection
  **/
 DBusGConnection *
-nm_object_get_connection (NMObject *object)
+bm_object_get_connection (BMObject *object)
 {
-	g_return_val_if_fail (NM_IS_OBJECT (object), NULL);
+	g_return_val_if_fail (BM_IS_OBJECT (object), NULL);
 
-	return NM_OBJECT_GET_PRIVATE (object)->connection;
+	return BM_OBJECT_GET_PRIVATE (object)->connection;
 }
 
 /**
- * nm_object_get_path:
- * @object: a #NMObject
+ * bm_object_get_path:
+ * @object: a #BMObject
  *
- * Gets the DBus path of the #NMObject.
+ * Gets the DBus path of the #BMObject.
  *
  * Returns: the object's path. This is the internal string used by the
  * device, and must not be modified.
  **/
 const char *
-nm_object_get_path (NMObject *object)
+bm_object_get_path (BMObject *object)
 {
-	g_return_val_if_fail (NM_IS_OBJECT (object), NULL);
+	g_return_val_if_fail (BM_IS_OBJECT (object), NULL);
 
-	return NM_OBJECT_GET_PRIVATE (object)->path;
+	return BM_OBJECT_GET_PRIVATE (object)->path;
 }
 
 static gboolean
 deferred_notify_cb (gpointer data)
 {
-	NMObject *object = NM_OBJECT (data);
-	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (object);
+	BMObject *object = BM_OBJECT (data);
+	BMObjectPrivate *priv = BM_OBJECT_GET_PRIVATE (object);
 	GSList *props, *iter;
 
 	priv->notify_id = 0;
 
-	/* Clear priv->notify_props early so that an NMObject subclass that
+	/* Clear priv->notify_props early so that an BMObject subclass that
 	 * listens to property changes can queue up other property changes
 	 * during the g_object_notify() call separately from the property
 	 * list we're iterating.
@@ -276,16 +275,16 @@ deferred_notify_cb (gpointer data)
 }
 
 void
-_nm_object_queue_notify (NMObject *object, const char *property)
+_bm_object_queue_notify (BMObject *object, const char *property)
 {
-	NMObjectPrivate *priv;
+	BMObjectPrivate *priv;
 	gboolean found = FALSE;
 	GSList *iter;
 
-	g_return_if_fail (NM_IS_OBJECT (object));
+	g_return_if_fail (BM_IS_OBJECT (object));
 	g_return_if_fail (property != NULL);
 
-	priv = NM_OBJECT_GET_PRIVATE (object);
+	priv = BM_OBJECT_GET_PRIVATE (object);
 	if (!priv->notify_id)
 		priv->notify_id = g_idle_add_full (G_PRIORITY_LOW, deferred_notify_cb, object, NULL);
 
@@ -325,8 +324,8 @@ wincaps_to_dash (const char *caps)
 static void
 handle_property_changed (gpointer key, gpointer data, gpointer user_data)
 {
-	NMObject *self = NM_OBJECT (user_data);
-	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (self);
+	BMObject *self = BM_OBJECT (user_data);
+	BMObjectPrivate *priv = BM_OBJECT_GET_PRIVATE (self);
 	char *prop_name;
 	PropChangedInfo *pci;
 	GParamSpec *pspec;
@@ -378,15 +377,15 @@ properties_changed_proxy (DBusGProxy *proxy,
 }
 
 void
-_nm_object_handle_properties_changed (NMObject *object,
+_bm_object_handle_properties_changed (BMObject *object,
                                      DBusGProxy *proxy,
                                      const NMPropertiesChangedInfo *info)
 {
-	NMObjectPrivate *priv = NM_OBJECT_GET_PRIVATE (object);
+	BMObjectPrivate *priv = BM_OBJECT_GET_PRIVATE (object);
 	NMPropertiesChangedInfo *tmp;
 	GHashTable *instance;
 
-	g_return_if_fail (NM_IS_OBJECT (object));
+	g_return_if_fail (BM_IS_OBJECT (object));
 	g_return_if_fail (proxy != NULL);
 	g_return_if_fail (info != NULL);
 
@@ -430,7 +429,7 @@ _nm_object_handle_properties_changed (NMObject *object,
 		}
 
 gboolean
-_nm_object_demarshal_generic (NMObject *object,
+_bm_object_demarshal_generic (BMObject *object,
                              GParamSpec *pspec,
                              GValue *value,
                              gpointer field)
@@ -469,7 +468,7 @@ _nm_object_demarshal_generic (NMObject *object,
 
 done:
 	if (success) {
-		_nm_object_queue_notify (object, pspec->name);
+		_bm_object_queue_notify (object, pspec->name);
 	} else {
 		g_warning ("%s: %s/%s (type %s) couldn't be set with type %s.",
 		           __func__, G_OBJECT_TYPE_NAME (object), pspec->name,
@@ -479,19 +478,19 @@ done:
 }
 
 gboolean
-_nm_object_get_property (NMObject *object,
+_bm_object_get_property (BMObject *object,
 						const char *interface,
 						const char *prop_name,
 						GValue *value)
 {
 	GError *err = NULL;
 
-	g_return_val_if_fail (NM_IS_OBJECT (object), FALSE);
+	g_return_val_if_fail (BM_IS_OBJECT (object), FALSE);
 	g_return_val_if_fail (interface != NULL, FALSE);
 	g_return_val_if_fail (prop_name != NULL, FALSE);
 	g_return_val_if_fail (value != NULL, FALSE);
 
-	if (!dbus_g_proxy_call_with_timeout (NM_OBJECT_GET_PRIVATE (object)->properties_proxy,
+	if (!dbus_g_proxy_call_with_timeout (BM_OBJECT_GET_PRIVATE (object)->properties_proxy,
 							"Get", 15000, &err,
 							G_TYPE_STRING, interface,
 							G_TYPE_STRING, prop_name,
@@ -505,7 +504,7 @@ _nm_object_get_property (NMObject *object,
 			g_warning ("%s: Error getting '%s' for %s: (%d) %s\n",
 			           __func__,
 			           prop_name,
-			           nm_object_get_path (object),
+			           bm_object_get_path (object),
 			           err->code,
 			           err->message);
 		}
@@ -517,17 +516,17 @@ _nm_object_get_property (NMObject *object,
 }
 
 void
-_nm_object_set_property (NMObject *object,
+_bm_object_set_property (BMObject *object,
 						const char *interface,
 						const char *prop_name,
 						GValue *value)
 {
-	g_return_if_fail (NM_IS_OBJECT (object));
+	g_return_if_fail (BM_IS_OBJECT (object));
 	g_return_if_fail (interface != NULL);
 	g_return_if_fail (prop_name != NULL);
 	g_return_if_fail (G_IS_VALUE (value));
 
-	if (!dbus_g_proxy_call_with_timeout (NM_OBJECT_GET_PRIVATE (object)->properties_proxy,
+	if (!dbus_g_proxy_call_with_timeout (BM_OBJECT_GET_PRIVATE (object)->properties_proxy,
 	                                     "Set", 2000, NULL,
 	                                     G_TYPE_STRING, interface,
 	                                     G_TYPE_STRING, prop_name,
@@ -541,14 +540,14 @@ _nm_object_set_property (NMObject *object,
 }
 
 char *
-_nm_object_get_string_property (NMObject *object,
+_bm_object_get_string_property (BMObject *object,
 							   const char *interface,
 							   const char *prop_name)
 {
 	char *str = NULL;
 	GValue value = {0,};
 
-	if (_nm_object_get_property (object, interface, prop_name, &value)) {
+	if (_bm_object_get_property (object, interface, prop_name, &value)) {
 		if (G_VALUE_HOLDS_STRING (&value))
 			str = g_strdup (g_value_get_string (&value));
 		else if (G_VALUE_HOLDS (&value, DBUS_TYPE_G_OBJECT_PATH))
@@ -560,14 +559,14 @@ _nm_object_get_string_property (NMObject *object,
 }
 
 char *
-_nm_object_get_object_path_property (NMObject *object,
+_bm_object_get_object_path_property (BMObject *object,
 									const char *interface,
 									const char *prop_name)
 {
 	char *path = NULL;
 	GValue value = {0,};
 
-	if (_nm_object_get_property (object, interface, prop_name, &value)) {
+	if (_bm_object_get_property (object, interface, prop_name, &value)) {
 		path = g_strdup (g_value_get_boxed (&value));
 		g_value_unset (&value);
 	}
@@ -576,14 +575,14 @@ _nm_object_get_object_path_property (NMObject *object,
 }
 
 gint32
-_nm_object_get_int_property (NMObject *object,
+_bm_object_get_int_property (BMObject *object,
 							const char *interface,
 							const char *prop_name)
 {
 	gint32 i = 0;
 	GValue value = {0,};
 
-	if (_nm_object_get_property (object, interface, prop_name, &value)) {
+	if (_bm_object_get_property (object, interface, prop_name, &value)) {
 		i = g_value_get_int (&value);
 		g_value_unset (&value);
 	}
@@ -592,14 +591,14 @@ _nm_object_get_int_property (NMObject *object,
 }
 
 guint32
-_nm_object_get_uint_property (NMObject *object,
+_bm_object_get_uint_property (BMObject *object,
 							 const char *interface,
 							 const char *prop_name)
 {
 	guint32 i = 0;
 	GValue value = {0,};
 
-	if (_nm_object_get_property (object, interface, prop_name, &value)) {
+	if (_bm_object_get_property (object, interface, prop_name, &value)) {
 		i = g_value_get_uint (&value);
 		g_value_unset (&value);
 	}
@@ -608,14 +607,14 @@ _nm_object_get_uint_property (NMObject *object,
 }
 
 gboolean
-_nm_object_get_boolean_property (NMObject *object,
+_bm_object_get_boolean_property (BMObject *object,
 								const char *interface,
 								const char *prop_name)
 {
 	gboolean b = FALSE;  // FIXME: somehow convey failure if needed
 	GValue value = {0,};
 
-	if (_nm_object_get_property (object, interface, prop_name, &value)) {
+	if (_bm_object_get_property (object, interface, prop_name, &value)) {
 		b = g_value_get_boolean (&value);
 		g_value_unset (&value);
 	}
@@ -624,14 +623,14 @@ _nm_object_get_boolean_property (NMObject *object,
 }
 
 gint8
-_nm_object_get_byte_property (NMObject *object,
+_bm_object_get_byte_property (BMObject *object,
 							 const char *interface,
 							 const char *prop_name)
 {
 	gint8 b = G_MAXINT8;
 	GValue value = {0,};
 
-	if (_nm_object_get_property (object, interface, prop_name, &value)) {
+	if (_bm_object_get_property (object, interface, prop_name, &value)) {
 		b = g_value_get_uchar (&value);
 		g_value_unset (&value);
 	}
@@ -640,14 +639,14 @@ _nm_object_get_byte_property (NMObject *object,
 }
 
 gdouble
-_nm_object_get_double_property (NMObject *object,
+_bm_object_get_double_property (BMObject *object,
 							   const char *interface,
 							   const char *prop_name)
 {
 	gdouble d = G_MAXDOUBLE;
 	GValue value = {0,};
 
-	if (_nm_object_get_property (object, interface, prop_name, &value)) {
+	if (_bm_object_get_property (object, interface, prop_name, &value)) {
 		d = g_value_get_double (&value);
 		g_value_unset (&value);
 	}
@@ -656,14 +655,14 @@ _nm_object_get_double_property (NMObject *object,
 }
 
 GByteArray *
-_nm_object_get_byte_array_property (NMObject *object,
+_bm_object_get_byte_array_property (BMObject *object,
 								   const char *interface,
 								   const char *prop_name)
 {
 	GByteArray * array = NULL;
 	GValue value = {0,};
 
-	if (_nm_object_get_property (object, interface, prop_name, &value)) {
+	if (_bm_object_get_property (object, interface, prop_name, &value)) {
 		GArray * tmp = g_value_get_boxed (&value);
 		int i;
 		unsigned char byte;

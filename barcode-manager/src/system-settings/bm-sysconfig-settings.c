@@ -66,17 +66,17 @@
 #define EXPORT(sym) void * __export_##sym = &sym;
 
 #include "bm-inotify-helper.h"
-EXPORT(nm_inotify_helper_get_type)
-EXPORT(nm_inotify_helper_get)
-EXPORT(nm_inotify_helper_add_watch)
-EXPORT(nm_inotify_helper_remove_watch)
+EXPORT(bm_inotify_helper_get_type)
+EXPORT(bm_inotify_helper_get)
+EXPORT(bm_inotify_helper_add_watch)
+EXPORT(bm_inotify_helper_remove_watch)
 
-EXPORT(nm_sysconfig_connection_get_type)
-EXPORT(nm_sysconfig_connection_update)
+EXPORT(bm_sysconfig_connection_get_type)
+EXPORT(bm_sysconfig_connection_update)
 /* END LINKER CRACKROCK */
 
 static void claim_connection (NMSysconfigSettings *self,
-                              NMSettingsConnectionInterface *connection,
+                              BMSettingsConnectionInterface *connection,
                               gboolean do_export);
 
 static void impl_settings_save_hostname (NMSysconfigSettings *self,
@@ -104,13 +104,13 @@ typedef struct {
 	GSList *unmanaged_specs;
 } NMSysconfigSettingsPrivate;
 
-static void settings_system_interface_init (NMSettingsSystemInterface *klass);
+static void settings_system_interface_init (BMSettingsSystemInterface *klass);
 
-G_DEFINE_TYPE_WITH_CODE (NMSysconfigSettings, nm_sysconfig_settings, NM_TYPE_SETTINGS_SERVICE,
-                         G_IMPLEMENT_INTERFACE (NM_TYPE_SETTINGS_SYSTEM_INTERFACE,
+G_DEFINE_TYPE_WITH_CODE (NMSysconfigSettings, bm_sysconfig_settings, BM_TYPE_SETTINGS_SERVICE,
+                         G_IMPLEMENT_INTERFACE (BM_TYPE_SETTINGS_SYSTEM_INTERFACE,
                                                 settings_system_interface_init))
 
-#define NM_SYSCONFIG_SETTINGS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettingsPrivate))
+#define BM_SYSCONFIG_SETTINGS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettingsPrivate))
 
 enum {
 	PROPERTIES_CHANGED,
@@ -130,25 +130,25 @@ enum {
 static void
 load_connections (NMSysconfigSettings *self)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GSList *iter;
 
 	if (priv->connections_loaded)
 		return;
 
 	for (iter = priv->plugins; iter; iter = g_slist_next (iter)) {
-		NMSystemConfigInterface *plugin = NM_SYSTEM_CONFIG_INTERFACE (iter->data);
+		NMSystemConfigInterface *plugin = BM_SYSTEM_CONFIG_INTERFACE (iter->data);
 		GSList *plugin_connections;
 		GSList *elt;
 
-		plugin_connections = nm_system_config_interface_get_connections (plugin);
+		plugin_connections = bm_system_config_interface_get_connections (plugin);
 
 		// FIXME: ensure connections from plugins loaded with a lower priority
 		// get rejected when they conflict with connections from a higher
 		// priority plugin.
 
 		for (elt = plugin_connections; elt; elt = g_slist_next (elt))
-			claim_connection (self, NM_SETTINGS_CONNECTION_INTERFACE (elt->data), TRUE);
+			claim_connection (self, BM_SETTINGS_CONNECTION_INTERFACE (elt->data), TRUE);
 
 		g_slist_free (plugin_connections);
 	}
@@ -160,25 +160,25 @@ load_connections (NMSysconfigSettings *self)
 }
 
 static GSList *
-list_connections (NMSettingsService *settings)
+list_connections (BMSettingsService *settings)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (settings);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (settings);
 	GHashTableIter iter;
 	gpointer key;
 	GSList *list = NULL;
 
-	load_connections (NM_SYSCONFIG_SETTINGS (settings));
+	load_connections (BM_SYSCONFIG_SETTINGS (settings));
 
 	g_hash_table_iter_init (&iter, priv->connections);
 	while (g_hash_table_iter_next (&iter, &key, NULL))
-		list = g_slist_prepend (list, NM_EXPORTED_CONNECTION (key));
+		list = g_slist_prepend (list, BM_EXPORTED_CONNECTION (key));
 	return g_slist_reverse (list);
 }
 
 static void
 clear_unmanaged_specs (NMSysconfigSettings *self)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
 	g_slist_foreach (priv->unmanaged_specs, (GFunc) g_free, NULL);
 	g_slist_free (priv->unmanaged_specs);
@@ -231,9 +231,9 @@ notify (GObject *object, GParamSpec *pspec)
 }
 
 const GSList *
-nm_sysconfig_settings_get_unmanaged_specs (NMSysconfigSettings *self)
+bm_sysconfig_settings_get_unmanaged_specs (NMSysconfigSettings *self)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
 	load_connections (self);
 	return priv->unmanaged_specs;
@@ -242,18 +242,18 @@ nm_sysconfig_settings_get_unmanaged_specs (NMSysconfigSettings *self)
 static NMSystemConfigInterface *
 get_plugin (NMSysconfigSettings *self, guint32 capability)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GSList *iter;
 
 	g_return_val_if_fail (self != NULL, NULL);
 
 	/* Do any of the plugins support setting the hostname? */
 	for (iter = priv->plugins; iter; iter = iter->next) {
-		NMSystemConfigInterfaceCapabilities caps = NM_SYSTEM_CONFIG_INTERFACE_CAP_NONE;
+		NMSystemConfigInterfaceCapabilities caps = BM_SYSTEM_CONFIG_INTERFACE_CAP_NONE;
 
-		g_object_get (G_OBJECT (iter->data), NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES, &caps, NULL);
+		g_object_get (G_OBJECT (iter->data), BM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES, &caps, NULL);
 		if (caps & capability)
-			return NM_SYSTEM_CONFIG_INTERFACE (iter->data);
+			return BM_SYSTEM_CONFIG_INTERFACE (iter->data);
 	}
 
 	return NULL;
@@ -261,9 +261,9 @@ get_plugin (NMSysconfigSettings *self, guint32 capability)
 
 /* Returns an allocated string which the caller owns and must eventually free */
 char *
-nm_sysconfig_settings_get_hostname (NMSysconfigSettings *self)
+bm_sysconfig_settings_get_hostname (NMSysconfigSettings *self)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GSList *iter;
 	char *hostname = NULL;
 
@@ -271,11 +271,11 @@ nm_sysconfig_settings_get_hostname (NMSysconfigSettings *self)
 	 * that provides one.
 	 */
 	for (iter = priv->plugins; iter; iter = iter->next) {
-		NMSystemConfigInterfaceCapabilities caps = NM_SYSTEM_CONFIG_INTERFACE_CAP_NONE;
+		NMSystemConfigInterfaceCapabilities caps = BM_SYSTEM_CONFIG_INTERFACE_CAP_NONE;
 
-		g_object_get (G_OBJECT (iter->data), NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES, &caps, NULL);
-		if (caps & NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME) {
-			g_object_get (G_OBJECT (iter->data), NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME, &hostname, NULL);
+		g_object_get (G_OBJECT (iter->data), BM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES, &caps, NULL);
+		if (caps & BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME) {
+			g_object_get (G_OBJECT (iter->data), BM_SYSTEM_CONFIG_INTERFACE_HOSTNAME, &hostname, NULL);
 			if (hostname && strlen (hostname))
 				return hostname;
 			g_free (hostname);
@@ -287,16 +287,16 @@ nm_sysconfig_settings_get_hostname (NMSysconfigSettings *self)
 
 static void
 plugin_connection_added (NMSystemConfigInterface *config,
-                         NMSettingsConnectionInterface *connection,
+                         BMSettingsConnectionInterface *connection,
                          gpointer user_data)
 {
-	claim_connection (NM_SYSCONFIG_SETTINGS (user_data), connection, TRUE);
+	claim_connection (BM_SYSCONFIG_SETTINGS (user_data), connection, TRUE);
 }
 
 static gboolean
 find_unmanaged_device (NMSysconfigSettings *self, const char *needle)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GSList *iter;
 
 	for (iter = priv->unmanaged_specs; iter; iter = g_slist_next (iter)) {
@@ -310,8 +310,8 @@ static void
 unmanaged_specs_changed (NMSystemConfigInterface *config,
                          gpointer user_data)
 {
-	NMSysconfigSettings *self = NM_SYSCONFIG_SETTINGS (user_data);
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettings *self = BM_SYSCONFIG_SETTINGS (user_data);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GSList *iter;
 
 	clear_unmanaged_specs (self);
@@ -320,7 +320,7 @@ unmanaged_specs_changed (NMSystemConfigInterface *config,
 	for (iter = priv->plugins; iter; iter = g_slist_next (iter)) {
 		GSList *specs, *specs_iter;
 
-		specs = nm_system_config_interface_get_unmanaged_specs (NM_SYSTEM_CONFIG_INTERFACE (iter->data));
+		specs = bm_system_config_interface_get_unmanaged_specs (BM_SYSTEM_CONFIG_INTERFACE (iter->data));
 		for (specs_iter = specs; specs_iter; specs_iter = specs_iter->next) {
 			if (!find_unmanaged_device (self, (const char *) specs_iter->data)) {
 				priv->unmanaged_specs = g_slist_prepend (priv->unmanaged_specs, specs_iter->data);
@@ -331,7 +331,7 @@ unmanaged_specs_changed (NMSystemConfigInterface *config,
 		g_slist_free (specs);
 	}
 
-	g_object_notify (G_OBJECT (self), NM_SYSCONFIG_SETTINGS_UNMANAGED_SPECS);
+	g_object_notify (G_OBJECT (self), BM_SYSCONFIG_SETTINGS_UNMANAGED_SPECS);
 }
 
 static void
@@ -339,7 +339,7 @@ hostname_changed (NMSystemConfigInterface *config,
                   GParamSpec *pspec,
                   gpointer user_data)
 {
-	g_object_notify (G_OBJECT (user_data), NM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME);
+	g_object_notify (G_OBJECT (user_data), BM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME);
 }
 
 static void
@@ -349,28 +349,28 @@ add_plugin (NMSysconfigSettings *self, NMSystemConfigInterface *plugin)
 	char *pname = NULL;
 	char *pinfo = NULL;
 
-	g_return_if_fail (NM_IS_SYSCONFIG_SETTINGS (self));
-	g_return_if_fail (NM_IS_SYSTEM_CONFIG_INTERFACE (plugin));
+	g_return_if_fail (BM_IS_SYSCONFIG_SETTINGS (self));
+	g_return_if_fail (BM_IS_SYSTEM_CONFIG_INTERFACE (plugin));
 
-	priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
 	priv->plugins = g_slist_append (priv->plugins, g_object_ref (plugin));
 
-	g_signal_connect (plugin, NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED,
+	g_signal_connect (plugin, BM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED,
 	                  G_CALLBACK (plugin_connection_added), self);
 	g_signal_connect (plugin, "notify::hostname", G_CALLBACK (hostname_changed), self);
 
-	nm_system_config_interface_init (plugin, NULL);
+	bm_system_config_interface_init (plugin, NULL);
 
 	g_object_get (G_OBJECT (plugin),
-	              NM_SYSTEM_CONFIG_INTERFACE_NAME, &pname,
-	              NM_SYSTEM_CONFIG_INTERFACE_INFO, &pinfo,
+	              BM_SYSTEM_CONFIG_INTERFACE_NAME, &pname,
+	              BM_SYSTEM_CONFIG_INTERFACE_INFO, &pinfo,
 	              NULL);
 
-	g_signal_connect (plugin, NM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED,
+	g_signal_connect (plugin, BM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED,
 	                  G_CALLBACK (unmanaged_specs_changed), self);
 
-	nm_log_info (LOGD_SYS_SET, "Loaded plugin %s: %s", pname, pinfo);
+	bm_log_info (LOGD_SYS_SET, "Loaded plugin %s: %s", pname, pinfo);
 	g_free (pname);
 	g_free (pinfo);
 }
@@ -384,11 +384,11 @@ find_plugin (GSList *list, const char *pname)
 	g_return_val_if_fail (pname != NULL, FALSE);
 
 	for (iter = list; iter && !obj; iter = g_slist_next (iter)) {
-		NMSystemConfigInterface *plugin = NM_SYSTEM_CONFIG_INTERFACE (iter->data);
+		NMSystemConfigInterface *plugin = BM_SYSTEM_CONFIG_INTERFACE (iter->data);
 		char *list_pname = NULL;
 
 		g_object_get (G_OBJECT (plugin),
-		              NM_SYSTEM_CONFIG_INTERFACE_NAME,
+		              BM_SYSTEM_CONFIG_INTERFACE_NAME,
 		              &list_pname,
 		              NULL);
 		if (list_pname && !strcmp (pname, list_pname))
@@ -444,7 +444,7 @@ load_plugins (NMSysconfigSettings *self, const char *plugins, GError **error)
 		g_free (full_name);
 		g_free (path);
 
-		if (!g_module_symbol (plugin, "nm_system_config_factory", (gpointer) (&factory_func))) {
+		if (!g_module_symbol (plugin, "bm_system_config_factory", (gpointer) (&factory_func))) {
 			g_set_error (error, 0, 0,
 			             "Could not find plugin '%s' factory function.",
 			             pname);
@@ -453,7 +453,7 @@ load_plugins (NMSysconfigSettings *self, const char *plugins, GError **error)
 		}
 
 		obj = (*factory_func) ();
-		if (!obj || !NM_IS_SYSTEM_CONFIG_INTERFACE (obj)) {
+		if (!obj || !BM_IS_SYSTEM_CONFIG_INTERFACE (obj)) {
 			g_set_error (error, 0, 0,
 			             "Plugin '%s' returned invalid system config object.",
 			             pname);
@@ -463,7 +463,7 @@ load_plugins (NMSysconfigSettings *self, const char *plugins, GError **error)
 
 		g_module_make_resident (plugin);
 		g_object_weak_ref (obj, (GWeakNotify) g_module_close, plugin);
-		add_plugin (self, NM_SYSTEM_CONFIG_INTERFACE (obj));
+		add_plugin (self, BM_SYSTEM_CONFIG_INTERFACE (obj));
 		list = g_slist_append (list, obj);
 	}
 
@@ -476,11 +476,11 @@ load_plugins (NMSysconfigSettings *self, const char *plugins, GError **error)
 }
 
 static void
-connection_removed (NMSettingsConnectionInterface *connection,
+connection_removed (BMSettingsConnectionInterface *connection,
                     gpointer user_data)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (user_data);
-	NMSettingConnection *s_con;
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (user_data);
+	BMSettingConnection *s_con;
 	GKeyFile *timestamps_file;
 	const char *connection_uuid;
 	char *data;
@@ -491,20 +491,20 @@ connection_removed (NMSettingsConnectionInterface *connection,
 	g_hash_table_remove (priv->connections, connection);
 
 	/* Remove timestamp from timestamps database file */
-	s_con = NM_SETTING_CONNECTION (nm_connection_get_setting (NM_CONNECTION (connection), NM_TYPE_SETTING_CONNECTION));
+	s_con = BM_SETTING_CONNECTION (bm_connection_get_setting (BM_CONNECTION (connection), BM_TYPE_SETTING_CONNECTION));
 	g_assert (s_con);
-	connection_uuid = nm_setting_connection_get_uuid (s_con);
+	connection_uuid = bm_setting_connection_get_uuid (s_con);
 
 	timestamps_file = g_key_file_new ();
-	if (g_key_file_load_from_file (timestamps_file, NM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE, G_KEY_FILE_KEEP_COMMENTS, NULL)) {
+	if (g_key_file_load_from_file (timestamps_file, BM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE, G_KEY_FILE_KEEP_COMMENTS, NULL)) {
 		g_key_file_remove_key (timestamps_file, "timestamps", connection_uuid, NULL);
 		data = g_key_file_to_data (timestamps_file, &len, &error);
 		if (data) {
-			g_file_set_contents (NM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE, data, len, &error);
+			g_file_set_contents (BM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE, data, len, &error);
 			g_free (data);
 		}
 		if (error) {
-			nm_log_warn (LOGD_SYS_SET, "error writing timestamps file '%s': %s", NM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE, error->message);
+			bm_log_warn (LOGD_SYS_SET, "error writing timestamps file '%s': %s", BM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE, error->message);
 			g_error_free (error);
 		}
 	}
@@ -513,32 +513,32 @@ connection_removed (NMSettingsConnectionInterface *connection,
 
 static void
 claim_connection (NMSysconfigSettings *self,
-                  NMSettingsConnectionInterface *connection,
+                  BMSettingsConnectionInterface *connection,
                   gboolean do_export)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
-	NMSettingConnection *s_con;
+	BMSettingConnection *s_con;
 	const char *connection_uuid;
 	guint64 timestamp = 0;
 	GKeyFile *timestamps_file;
 	GError *err = NULL;
 	char *tmp_str;
 
-	g_return_if_fail (NM_IS_SYSCONFIG_SETTINGS (self));
-	g_return_if_fail (NM_IS_SETTINGS_CONNECTION_INTERFACE (connection));
+	g_return_if_fail (BM_IS_SYSCONFIG_SETTINGS (self));
+	g_return_if_fail (BM_IS_SETTINGS_CONNECTION_INTERFACE (connection));
 
 	if (g_hash_table_lookup (priv->connections, connection))
 		/* A plugin is lying to us. */
 		return;
 
 	/* Read timestamp from database file and store it into connection's object data */
-	s_con = NM_SETTING_CONNECTION (nm_connection_get_setting (NM_CONNECTION (connection), NM_TYPE_SETTING_CONNECTION));
+	s_con = BM_SETTING_CONNECTION (bm_connection_get_setting (BM_CONNECTION (connection), BM_TYPE_SETTING_CONNECTION));
 	g_assert (s_con);
-	connection_uuid = nm_setting_connection_get_uuid (s_con);
+	connection_uuid = bm_setting_connection_get_uuid (s_con);
 
 	timestamps_file = g_key_file_new ();
-	g_key_file_load_from_file (timestamps_file, NM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE, G_KEY_FILE_KEEP_COMMENTS, NULL);
+	g_key_file_load_from_file (timestamps_file, BM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE, G_KEY_FILE_KEEP_COMMENTS, NULL);
 	tmp_str = g_key_file_get_value (timestamps_file, "timestamps", connection_uuid, &err);
 	if (tmp_str) {
 		timestamp = g_ascii_strtoull (tmp_str, NULL, 10);
@@ -550,9 +550,9 @@ claim_connection (NMSysconfigSettings *self,
 		guint64 *ts_ptr = g_new (guint64, 1);
 
 		*ts_ptr = timestamp;
-		g_object_set_data_full (G_OBJECT (connection), NM_SYSCONFIG_SETTINGS_TIMESTAMP_TAG, ts_ptr, g_free);
+		g_object_set_data_full (G_OBJECT (connection), BM_SYSCONFIG_SETTINGS_TIMESTAMP_TAG, ts_ptr, g_free);
 	} else {
-		nm_log_dbg (LOGD_SYS_SET, "failed to read connection timestamp for '%s': (%d) %s",
+		bm_log_dbg (LOGD_SYS_SET, "failed to read connection timestamp for '%s': (%d) %s",
 		            connection_uuid, err->code, err->message);
 		g_clear_error (&err);
 	}
@@ -560,28 +560,28 @@ claim_connection (NMSysconfigSettings *self,
 
 	g_hash_table_insert (priv->connections, g_object_ref (connection), GINT_TO_POINTER (1));
 	g_signal_connect (connection,
-	                  NM_SETTINGS_CONNECTION_INTERFACE_REMOVED,
+	                  BM_SETTINGS_CONNECTION_INTERFACE_REMOVED,
 	                  G_CALLBACK (connection_removed),
 	                  self);
 
 	if (do_export) {
-		nm_settings_service_export_connection (NM_SETTINGS_SERVICE (self), connection);
-		g_signal_emit_by_name (self, NM_SETTINGS_INTERFACE_NEW_CONNECTION, connection);
+		bm_settings_service_export_connection (BM_SETTINGS_SERVICE (self), connection);
+		g_signal_emit_by_name (self, BM_SETTINGS_INTERFACE_NEW_CONNECTION, connection);
 	}
 }
 
 static void
 remove_connection (NMSysconfigSettings *self,
-                   NMSettingsConnectionInterface *connection,
+                   BMSettingsConnectionInterface *connection,
                    gboolean do_signal)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
-	g_return_if_fail (NM_IS_SYSCONFIG_SETTINGS (self));
-	g_return_if_fail (NM_IS_SETTINGS_CONNECTION_INTERFACE (connection));
+	g_return_if_fail (BM_IS_SYSCONFIG_SETTINGS (self));
+	g_return_if_fail (BM_IS_SETTINGS_CONNECTION_INTERFACE (connection));
 
 	if (g_hash_table_lookup (priv->connections, connection)) {
-		g_signal_emit_by_name (G_OBJECT (connection), NM_SETTINGS_CONNECTION_INTERFACE_REMOVED);
+		g_signal_emit_by_name (G_OBJECT (connection), BM_SETTINGS_CONNECTION_INTERFACE_REMOVED);
 		g_hash_table_remove (priv->connections, connection);
 	}
 }
@@ -593,13 +593,13 @@ typedef struct {
 	GCancellable *cancellable;
 	gboolean disposed;
 
-	NMConnection *connection;
-	NMSettingsAddConnectionFunc callback;
+	BMConnection *connection;
+	BMSettingsAddConnectionFunc callback;
 	gpointer callback_data;
 
 	char *hostname;
 
-	NMSettingsSystemPermissions permissions;
+	BMSettingsSystemPermissions permissions;
 	guint32 permissions_calls;
 } PolkitCall;
 
@@ -608,8 +608,8 @@ typedef struct {
 static PolkitCall *
 polkit_call_new (NMSysconfigSettings *self,
                  DBusGMethodInvocation *context,
-                 NMConnection *connection,
-                 NMSettingsAddConnectionFunc callback,
+                 BMConnection *connection,
+                 BMSettingsAddConnectionFunc callback,
                  gpointer callback_data,
                  const char *hostname)
 {
@@ -652,10 +652,10 @@ polkit_call_free (PolkitCall *call)
 
 static gboolean
 add_new_connection (NMSysconfigSettings *self,
-                    NMConnection *connection,
+                    BMConnection *connection,
                     GError **error)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GError *tmp_error = NULL, *last_error = NULL;
 	GSList *iter;
 	gboolean success = FALSE;
@@ -668,7 +668,7 @@ add_new_connection (NMSysconfigSettings *self,
 	*/
 
 	for (iter = priv->plugins; iter && !success; iter = iter->next) {
-		success = nm_system_config_interface_add_connection (NM_SYSTEM_CONFIG_INTERFACE (iter->data),
+		success = bm_system_config_interface_add_connection (BM_SYSTEM_CONFIG_INTERFACE (iter->data),
 		                                                     connection,
 		                                                     &tmp_error);
 		g_clear_error (&last_error);
@@ -694,8 +694,8 @@ pk_add_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* If NMSysconfigSettings is already gone, do nothing */
 	if (call->disposed) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
 		                             "Request was canceled.");
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -703,7 +703,7 @@ pk_add_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 		return;
 	}
 
-	priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
 	priv->pk_calls = g_slist_remove (priv->pk_calls, call);
 
@@ -712,29 +712,29 @@ pk_add_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	                                                         &error);
 	/* Some random error happened */
 	if (error) {
-		call->callback (NM_SETTINGS_INTERFACE (self), error, call->callback_data);
+		call->callback (BM_SETTINGS_INTERFACE (self), error, call->callback_data);
 		goto out;
 	}
 
 	/* Caller didn't successfully authenticate */
 	if (!polkit_authorization_result_get_is_authorized (pk_result)) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
 		                             "Insufficient privileges.");
-		call->callback (NM_SETTINGS_INTERFACE (self), error, call->callback_data);
+		call->callback (BM_SETTINGS_INTERFACE (self), error, call->callback_data);
 		goto out;
 	}
 
 	if (add_new_connection (self, call->connection, &add_error))
-		call->callback (NM_SETTINGS_INTERFACE (self), NULL, call->callback_data);
+		call->callback (BM_SETTINGS_INTERFACE (self), NULL, call->callback_data);
 	else {
-		error = g_error_new (NM_SYSCONFIG_SETTINGS_ERROR,
-		                     NM_SYSCONFIG_SETTINGS_ERROR_ADD_FAILED,
+		error = g_error_new (BM_SYSCONFIG_SETTINGS_ERROR,
+		                     BM_SYSCONFIG_SETTINGS_ERROR_ADD_FAILED,
 		                     "Saving connection failed: (%d) %s",
 		                     add_error ? add_error->code : -1,
 		                     (add_error && add_error->message) ? add_error->message : "(unknown)");
 		g_error_free (add_error);
-		call->callback (NM_SETTINGS_INTERFACE (self), error, call->callback_data);
+		call->callback (BM_SETTINGS_INTERFACE (self), error, call->callback_data);
 	}
 
 out:
@@ -745,23 +745,23 @@ out:
 }
 
 static void
-add_connection (NMSettingsService *service,
-	            NMConnection *connection,
+add_connection (BMSettingsService *service,
+	            BMConnection *connection,
 	            DBusGMethodInvocation *context, /* Only present for D-Bus calls */
-	            NMSettingsAddConnectionFunc callback,
+	            BMSettingsAddConnectionFunc callback,
 	            gpointer user_data)
 {
-	NMSysconfigSettings *self = NM_SYSCONFIG_SETTINGS (service);
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettings *self = BM_SYSCONFIG_SETTINGS (service);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	PolkitCall *call;
 	GError *error = NULL;
 
 	/* Do any of the plugins support adding? */
-	if (!get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS)) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_ADD_NOT_SUPPORTED,
+	if (!get_plugin (self, BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS)) {
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_ADD_NOT_SUPPORTED,
 		                             "None of the registered plugins support add.");
-		callback (NM_SETTINGS_INTERFACE (service), error, user_data);
+		callback (BM_SETTINGS_INTERFACE (service), error, user_data);
 		g_error_free (error);
 		return;
 	}
@@ -770,7 +770,7 @@ add_connection (NMSettingsService *service,
 	g_assert (call);
 	polkit_authority_check_authorization (priv->authority,
 	                                      call->subject,
-	                                      NM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
+	                                      BM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
 	                                      NULL,
 	                                      POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
 	                                      call->cancellable,
@@ -792,8 +792,8 @@ pk_hostname_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* If our NMSysconfigConnection is already gone, do nothing */
 	if (call->disposed) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
 		                             "Request was canceled.");
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -801,7 +801,7 @@ pk_hostname_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 		return;
 	}
 
-	priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
 	priv->pk_calls = g_slist_remove (priv->pk_calls, call);
 
@@ -816,8 +816,8 @@ pk_hostname_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* Caller didn't successfully authenticate */
 	if (!polkit_authorization_result_get_is_authorized (pk_result)) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
 		                             "Insufficient privileges.");
 		dbus_g_method_return_error (call->context, error);
 		goto out;
@@ -825,11 +825,11 @@ pk_hostname_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* Set the hostname in all plugins */
 	for (iter = priv->plugins; iter; iter = iter->next) {
-		NMSystemConfigInterfaceCapabilities caps = NM_SYSTEM_CONFIG_INTERFACE_CAP_NONE;
+		NMSystemConfigInterfaceCapabilities caps = BM_SYSTEM_CONFIG_INTERFACE_CAP_NONE;
 
-		g_object_get (G_OBJECT (iter->data), NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES, &caps, NULL);
-		if (caps & NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME) {
-			g_object_set (G_OBJECT (iter->data), NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME, call->hostname, NULL);
+		g_object_get (G_OBJECT (iter->data), BM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES, &caps, NULL);
+		if (caps & BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME) {
+			g_object_set (G_OBJECT (iter->data), BM_SYSTEM_CONFIG_INTERFACE_HOSTNAME, call->hostname, NULL);
 			success = TRUE;
 		}
 	}
@@ -837,8 +837,8 @@ pk_hostname_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	if (success) {
 		dbus_g_method_return (call->context);
 	} else {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_SAVE_HOSTNAME_FAILED,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_SAVE_HOSTNAME_FAILED,
 		                             "Saving the hostname failed.");
 		dbus_g_method_return_error (call->context, error);
 	}
@@ -855,14 +855,14 @@ impl_settings_save_hostname (NMSysconfigSettings *self,
                              const char *hostname,
                              DBusGMethodInvocation *context)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	PolkitCall *call;
 	GError *error = NULL;
 
 	/* Do any of the plugins support setting the hostname? */
-	if (!get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME)) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_SAVE_HOSTNAME_NOT_SUPPORTED,
+	if (!get_plugin (self, BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME)) {
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_SAVE_HOSTNAME_NOT_SUPPORTED,
 		                             "None of the registered plugins support setting the hostname.");
 		dbus_g_method_return_error (context, error);
 		g_error_free (error);
@@ -873,7 +873,7 @@ impl_settings_save_hostname (NMSysconfigSettings *self,
 	g_assert (call);
 	polkit_authority_check_authorization (priv->authority,
 	                                      call->subject,
-	                                      NM_SYSCONFIG_POLICY_ACTION_HOSTNAME_MODIFY,
+	                                      BM_SYSCONFIG_POLICY_ACTION_HOSTNAME_MODIFY,
 	                                      NULL,
 	                                      POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
 	                                      call->cancellable,
@@ -886,15 +886,15 @@ static void
 pk_authority_changed_cb (GObject *object, gpointer user_data)
 {
 	/* Let clients know they should re-check their authorization */
-	g_signal_emit_by_name (NM_SYSCONFIG_SETTINGS (user_data),
-                           NM_SETTINGS_SYSTEM_INTERFACE_CHECK_PERMISSIONS);
+	g_signal_emit_by_name (BM_SYSCONFIG_SETTINGS (user_data),
+                           BM_SETTINGS_SYSTEM_INTERFACE_CHECK_PERMISSIONS);
 }
 
 typedef struct {
 	PolkitCall *pk_call;
 	const char *pk_action;
 	GCancellable *cancellable;
-	NMSettingsSystemPermissions permission;
+	BMSettingsSystemPermissions permission;
 	gboolean disposed;
 } PermissionsCall;
 
@@ -912,7 +912,7 @@ permission_call_done (GObject *object, GAsyncResult *result, gpointer user_data)
 	if (call->disposed)
 		goto done;
 
-	priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
 	priv->permissions_calls = g_slist_remove (priv->permissions_calls, call);
 
@@ -921,7 +921,7 @@ permission_call_done (GObject *object, GAsyncResult *result, gpointer user_data)
 	                                                         &error);
 	/* Some random error happened */
 	if (error) {
-		nm_log_err (LOGD_SYS_SET, "error checking '%s' permission: (%d) %s",
+		bm_log_err (LOGD_SYS_SET, "error checking '%s' permission: (%d) %s",
 		            call->pk_action,
 		            error ? error->code : -1,
 		            error && error->message ? error->message : "(unknown)");
@@ -943,8 +943,8 @@ done:
 	pk_call->permissions_calls--;
 	if (pk_call->permissions_calls == 0) {
 		if (call->disposed) {
-			error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-			                             NM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
+			error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+			                             BM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
 			                             "Request was canceled.");
 			dbus_g_method_return_error (pk_call->context, error);
 			g_error_free (error);
@@ -965,14 +965,14 @@ static void
 start_permission_check (NMSysconfigSettings *self,
                         PolkitCall *pk_call,
                         const char *pk_action,
-                        NMSettingsSystemPermissions permission)
+                        BMSettingsSystemPermissions permission)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	PermissionsCall *call;
 
 	g_return_if_fail (pk_call != NULL);
 	g_return_if_fail (pk_action != NULL);
-	g_return_if_fail (permission != NM_SETTINGS_SYSTEM_PERMISSION_NONE);
+	g_return_if_fail (permission != BM_SETTINGS_SYSTEM_PERMISSION_NONE);
 
 	call = g_malloc0 (sizeof (PermissionsCall));
 	call->pk_call = pk_call;
@@ -1005,35 +1005,35 @@ impl_settings_get_permissions (NMSysconfigSettings *self,
 	/* Start checks for the various permissions */
 
 	/* Only check for connection-modify if one of our plugins supports it. */
-	if (get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS)) {
+	if (get_plugin (self, BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS)) {
 		start_permission_check (self, call,
-		                        NM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
-		                        NM_SETTINGS_SYSTEM_PERMISSION_CONNECTION_MODIFY);
+		                        BM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
+		                        BM_SETTINGS_SYSTEM_PERMISSION_CONNECTION_MODIFY);
 	}
 
 	/* Only check for hostname-modify if one of our plugins supports it. */
-	if (get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME)) {
+	if (get_plugin (self, BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME)) {
 		start_permission_check (self, call,
-		                        NM_SYSCONFIG_POLICY_ACTION_HOSTNAME_MODIFY,
-		                        NM_SETTINGS_SYSTEM_PERMISSION_HOSTNAME_MODIFY);
+		                        BM_SYSCONFIG_POLICY_ACTION_HOSTNAME_MODIFY,
+		                        BM_SETTINGS_SYSTEM_PERMISSION_HOSTNAME_MODIFY);
 	}
 
 	// FIXME: hook these into plugin permissions like the modify permissions */
 	start_permission_check (self, call,
-	                        NM_SYSCONFIG_POLICY_ACTION_WIFI_SHARE_OPEN,
-	                        NM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_OPEN);
+	                        BM_SYSCONFIG_POLICY_ACTION_WIFI_SHARE_OPEN,
+	                        BM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_OPEN);
 	start_permission_check (self, call,
-	                        NM_SYSCONFIG_POLICY_ACTION_WIFI_SHARE_PROTECTED,
-	                        NM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_PROTECTED);
+	                        BM_SYSCONFIG_POLICY_ACTION_WIFI_SHARE_PROTECTED,
+	                        BM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_PROTECTED);
 }
 
 static gboolean
-get_permissions (NMSettingsSystemInterface *settings,
-                 NMSettingsSystemGetPermissionsFunc callback,
+get_permissions (BMSettingsSystemInterface *settings,
+                 BMSettingsSystemGetPermissionsFunc callback,
                  gpointer user_data)
 {
-	NMSysconfigSettings *self = NM_SYSCONFIG_SETTINGS (settings);
-	NMSettingsSystemPermissions permissions = NM_SETTINGS_SYSTEM_PERMISSION_NONE;
+	NMSysconfigSettings *self = BM_SYSCONFIG_SETTINGS (settings);
+	BMSettingsSystemPermissions permissions = BM_SETTINGS_SYSTEM_PERMISSION_NONE;
 
 	/* Local caller (ie, NM) gets full permissions by default because it doesn't
 	 * need authorization.  However, permissions are still subject to plugin's
@@ -1042,16 +1042,16 @@ get_permissions (NMSettingsSystemInterface *settings,
 	 */
 
 	/* Only check for connection-modify if one of our plugins supports it. */
-	if (get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS))
-		permissions |= NM_SETTINGS_SYSTEM_PERMISSION_CONNECTION_MODIFY;
+	if (get_plugin (self, BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS))
+		permissions |= BM_SETTINGS_SYSTEM_PERMISSION_CONNECTION_MODIFY;
 
 	/* Only check for hostname-modify if one of our plugins supports it. */
-	if (get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME))
-		permissions |= NM_SETTINGS_SYSTEM_PERMISSION_HOSTNAME_MODIFY;
+	if (get_plugin (self, BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME))
+		permissions |= BM_SETTINGS_SYSTEM_PERMISSION_HOSTNAME_MODIFY;
 
 	// FIXME: hook these into plugin permissions like the modify permissions */
-	permissions |= NM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_OPEN;
-	permissions |= NM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_PROTECTED;
+	permissions |= BM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_OPEN;
+	permissions |= BM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_PROTECTED;
 
 	callback (settings, permissions, NULL, user_data);
 	return TRUE;
@@ -1060,39 +1060,39 @@ get_permissions (NMSettingsSystemInterface *settings,
 static gboolean
 have_connection_for_device (NMSysconfigSettings *self, GByteArray *mac)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GHashTableIter iter;
 	gpointer key;
-	NMSettingConnection *s_con;
-	NMSettingWired *s_wired;
+	BMSettingConnection *s_con;
+	BMSettingWired *s_wired;
 	const GByteArray *setting_mac;
 	gboolean ret = FALSE;
 
-	g_return_val_if_fail (NM_IS_SYSCONFIG_SETTINGS (self), FALSE);
+	g_return_val_if_fail (BM_IS_SYSCONFIG_SETTINGS (self), FALSE);
 	g_return_val_if_fail (mac != NULL, FALSE);
 
 	/* Find a wired connection locked to the given MAC address, if any */
 	g_hash_table_iter_init (&iter, priv->connections);
 	while (g_hash_table_iter_next (&iter, &key, NULL)) {
-		NMConnection *connection = NM_CONNECTION (key);
+		BMConnection *connection = BM_CONNECTION (key);
 		const char *connection_type;
 
-		s_con = NM_SETTING_CONNECTION (nm_connection_get_setting (connection, NM_TYPE_SETTING_CONNECTION));
-		connection_type = nm_setting_connection_get_connection_type (s_con);
+		s_con = BM_SETTING_CONNECTION (bm_connection_get_setting (connection, BM_TYPE_SETTING_CONNECTION));
+		connection_type = bm_setting_connection_get_connection_type (s_con);
 
-		if (   strcmp (connection_type, NM_SETTING_WIRED_SETTING_NAME)
-		    && strcmp (connection_type, NM_SETTING_PPPOE_SETTING_NAME))
+		if (   strcmp (connection_type, BM_SETTING_WIRED_SETTING_NAME)
+		    && strcmp (connection_type, BM_SETTING_PPPOE_SETTING_NAME))
 			continue;
 
-		s_wired = (NMSettingWired *) nm_connection_get_setting (connection, NM_TYPE_SETTING_WIRED);
+		s_wired = (BMSettingWired *) bm_connection_get_setting (connection, BM_TYPE_SETTING_WIRED);
 
 		/* No wired setting; therefore the PPPoE connection applies to any device */
-		if (!s_wired && !strcmp (connection_type, NM_SETTING_PPPOE_SETTING_NAME)) {
+		if (!s_wired && !strcmp (connection_type, BM_SETTING_PPPOE_SETTING_NAME)) {
 			ret = TRUE;
 			break;
 		}
 
-		setting_mac = nm_setting_wired_get_mac_address (s_wired);
+		setting_mac = bm_setting_wired_get_mac_address (s_wired);
 		if (setting_mac) {
 			/* A connection mac-locked to this device */
 			if (!memcmp (setting_mac->data, mac->data, ETH_ALEN)) {
@@ -1113,7 +1113,7 @@ have_connection_for_device (NMSysconfigSettings *self, GByteArray *mac)
 static gboolean
 is_mac_auto_wired_blacklisted (NMSysconfigSettings *self, const GByteArray *mac)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GKeyFile *config;
 	char **list, **iter;
 	gboolean found = FALSE;
@@ -1125,7 +1125,7 @@ is_mac_auto_wired_blacklisted (NMSysconfigSettings *self, const GByteArray *mac)
 
 	config = g_key_file_new ();
 	if (!config) {
-		nm_log_warn (LOGD_SYS_SET, "not enough memory to load config file.");
+		bm_log_warn (LOGD_SYS_SET, "not enough memory to load config file.");
 		return FALSE;
 	}
 
@@ -1164,8 +1164,8 @@ default_wired_deleted (NMDefaultWiredConnection *wired,
                        const GByteArray *mac,
                        NMSysconfigSettings *self)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
-	NMSettingConnection *s_con;
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	BMSettingConnection *s_con;
 	char *tmp;
 	GKeyFile *config;
 	char **list, **iter, **updated;
@@ -1183,14 +1183,14 @@ default_wired_deleted (NMDefaultWiredConnection *wired,
 	 * connection for that device again.
 	 */
 
-	s_con = (NMSettingConnection *) nm_connection_get_setting (NM_CONNECTION (wired),
-	                                                           NM_TYPE_SETTING_CONNECTION);
+	s_con = (BMSettingConnection *) bm_connection_get_setting (BM_CONNECTION (wired),
+	                                                           BM_TYPE_SETTING_CONNECTION);
 	g_assert (s_con);
 
 	/* Ignore removals of read-only connections, since they couldn't have
 	 * been removed by the user.
 	 */
-	if (nm_setting_connection_get_read_only (s_con))
+	if (bm_setting_connection_get_read_only (s_con))
 		goto cleanup;
 
 	config = g_key_file_new ();
@@ -1251,13 +1251,13 @@ default_wired_deleted (NMDefaultWiredConnection *wired,
 	g_key_file_free (config);
 
 cleanup:
-	g_object_set_data (G_OBJECT (nm_default_wired_connection_get_device (wired)),
+	g_object_set_data (G_OBJECT (bm_default_wired_connection_get_device (wired)),
 	                   DEFAULT_WIRED_TAG,
 	                   NULL);
 }
 
 static void
-delete_cb (NMSettingsConnectionInterface *connection, GError *error, gpointer user_data)
+delete_cb (BMSettingsConnectionInterface *connection, GError *error, gpointer user_data)
 {
 }
 
@@ -1266,33 +1266,33 @@ default_wired_try_update (NMDefaultWiredConnection *wired,
                           NMSysconfigSettings *self)
 {
 	GError *error = NULL;
-	NMSettingConnection *s_con;
+	BMSettingConnection *s_con;
 	const char *id;
 
 	/* Try to move this default wired conneciton to a plugin so that it has
 	 * persistent storage.
 	 */
 
-	s_con = (NMSettingConnection *) nm_connection_get_setting (NM_CONNECTION (wired),
-	                                                           NM_TYPE_SETTING_CONNECTION);
+	s_con = (BMSettingConnection *) bm_connection_get_setting (BM_CONNECTION (wired),
+	                                                           BM_TYPE_SETTING_CONNECTION);
 	g_assert (s_con);
-	id = nm_setting_connection_get_id (s_con);
+	id = bm_setting_connection_get_id (s_con);
 	g_assert (id);
 
-	remove_connection (self, NM_SETTINGS_CONNECTION_INTERFACE (wired), FALSE);
-	if (add_new_connection (self, NM_CONNECTION (wired), &error)) {
-		nm_settings_connection_interface_delete (NM_SETTINGS_CONNECTION_INTERFACE (wired),
+	remove_connection (self, BM_SETTINGS_CONNECTION_INTERFACE (wired), FALSE);
+	if (add_new_connection (self, BM_CONNECTION (wired), &error)) {
+		bm_settings_connection_interface_delete (BM_SETTINGS_CONNECTION_INTERFACE (wired),
 		                                         delete_cb,
 		                                         NULL);
 
-		g_object_set_data (G_OBJECT (nm_default_wired_connection_get_device (wired)),
+		g_object_set_data (G_OBJECT (bm_default_wired_connection_get_device (wired)),
 		                   DEFAULT_WIRED_TAG,
 		                   NULL);
-		nm_log_info (LOGD_SYS_SET, "Saved default wired connection '%s' to persistent storage", id);
+		bm_log_info (LOGD_SYS_SET, "Saved default wired connection '%s' to persistent storage", id);
 		return FALSE;
 	}
 
-	nm_log_warn (LOGD_SYS_SET, "couldn't save default wired connection '%s': %d / %s",
+	bm_log_warn (LOGD_SYS_SET, "couldn't save default wired connection '%s': %d / %s",
 	             id,
 	             error ? error->code : -1,
 	             (error && error->message) ? error->message : "(unknown)");
@@ -1301,31 +1301,31 @@ default_wired_try_update (NMDefaultWiredConnection *wired,
 	 * but add it back to the system settings service. Connection is already
 	 * exported on the bus, don't export it again, thus do_export == FALSE.
 	 */
-	claim_connection (self, NM_SETTINGS_CONNECTION_INTERFACE (wired), FALSE);
+	claim_connection (self, BM_SETTINGS_CONNECTION_INTERFACE (wired), FALSE);
 	return TRUE;
 }
 
 void
-nm_sysconfig_settings_device_added (NMSysconfigSettings *self, NMDevice *device)
+bm_sysconfig_settings_device_added (NMSysconfigSettings *self, BMDevice *device)
 {
 	GByteArray *mac = NULL;
 	struct ether_addr tmp;
 	NMDefaultWiredConnection *wired;
-	NMSettingConnection *s_con;
+	BMSettingConnection *s_con;
 	gboolean read_only = TRUE;
 	const char *id;
 
-	if (nm_device_get_device_type (device) != NM_DEVICE_TYPE_ETHERNET)
+	if (bm_device_get_device_type (device) != BM_DEVICE_TYPE_ETHERNET)
 		return;
 
 	/* If the device isn't managed or it already has a default wired connection,
 	 * ignore it.
 	 */
-	if (   !nm_device_get_managed (device)
+	if (   !bm_device_get_managed (device)
 	    || g_object_get_data (G_OBJECT (device), DEFAULT_WIRED_TAG))
 		return;
 
-	nm_device_ethernet_get_address (NM_DEVICE_ETHERNET (device), &tmp);
+	bm_device_ethernet_get_address (BM_DEVICE_ETHERNET (device), &tmp);
 
 	mac = g_byte_array_sized_new (ETH_ALEN);
 	g_byte_array_append (mac, tmp.ether_addr_octet, ETH_ALEN);
@@ -1334,25 +1334,25 @@ nm_sysconfig_settings_device_added (NMSysconfigSettings *self, NMDevice *device)
 	    || is_mac_auto_wired_blacklisted (self, mac))
 		goto ignore;
 
-	if (get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS))
+	if (get_plugin (self, BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS))
 		read_only = FALSE;
 
-	wired = nm_default_wired_connection_new (mac, device, read_only);
+	wired = bm_default_wired_connection_new (mac, device, read_only);
 	if (!wired)
 		goto ignore;
 
-	s_con = (NMSettingConnection *) nm_connection_get_setting (NM_CONNECTION (wired),
-	                                                           NM_TYPE_SETTING_CONNECTION);
+	s_con = (BMSettingConnection *) bm_connection_get_setting (BM_CONNECTION (wired),
+	                                                           BM_TYPE_SETTING_CONNECTION);
 	g_assert (s_con);
-	id = nm_setting_connection_get_id (s_con);
+	id = bm_setting_connection_get_id (s_con);
 	g_assert (id);
 
-	nm_log_info (LOGD_SYS_SET, "Added default wired connection '%s' for %s",
-	             id, nm_device_get_udi (device));
+	bm_log_info (LOGD_SYS_SET, "Added default wired connection '%s' for %s",
+	             id, bm_device_get_udi (device));
 
 	g_signal_connect (wired, "try-update", (GCallback) default_wired_try_update, self);
 	g_signal_connect (wired, "deleted", (GCallback) default_wired_deleted, self);
-	claim_connection (self, NM_SETTINGS_CONNECTION_INTERFACE (wired), TRUE);
+	claim_connection (self, BM_SETTINGS_CONNECTION_INTERFACE (wired), TRUE);
 	g_object_unref (wired);
 
 	g_object_set_data (G_OBJECT (device), DEFAULT_WIRED_TAG, wired);
@@ -1362,20 +1362,20 @@ ignore:
 }
 
 void
-nm_sysconfig_settings_device_removed (NMSysconfigSettings *self, NMDevice *device)
+bm_sysconfig_settings_device_removed (NMSysconfigSettings *self, BMDevice *device)
 {
 	NMDefaultWiredConnection *connection;
 
-	if (nm_device_get_device_type (device) != NM_DEVICE_TYPE_ETHERNET)
+	if (bm_device_get_device_type (device) != BM_DEVICE_TYPE_ETHERNET)
 		return;
 
 	connection = (NMDefaultWiredConnection *) g_object_get_data (G_OBJECT (device), DEFAULT_WIRED_TAG);
 	if (connection)
-		remove_connection (self, NM_SETTINGS_CONNECTION_INTERFACE (connection), TRUE);
+		remove_connection (self, BM_SETTINGS_CONNECTION_INTERFACE (connection), TRUE);
 }
 
 NMSysconfigSettings *
-nm_sysconfig_settings_new (const char *config_file,
+bm_sysconfig_settings_new (const char *config_file,
                            const char *plugins,
                            DBusGConnection *bus,
                            GError **error)
@@ -1383,14 +1383,14 @@ nm_sysconfig_settings_new (const char *config_file,
 	NMSysconfigSettings *self;
 	NMSysconfigSettingsPrivate *priv;
 
-	self = g_object_new (NM_TYPE_SYSCONFIG_SETTINGS,
-	                     NM_SETTINGS_SERVICE_BUS, bus,
-	                     NM_SETTINGS_SERVICE_SCOPE, NM_CONNECTION_SCOPE_SYSTEM,
+	self = g_object_new (BM_TYPE_SYSCONFIG_SETTINGS,
+	                     BM_SETTINGS_SERVICE_BUS, bus,
+	                     BM_SETTINGS_SERVICE_SCOPE, BM_CONNECTION_SCOPE_SYSTEM,
 	                     NULL);
 	if (!self)
 		return NULL;
 
-	priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
 	priv->config_file = g_strdup (config_file);
 
@@ -1411,8 +1411,8 @@ nm_sysconfig_settings_new (const char *config_file,
 static void
 dispose (GObject *object)
 {
-	NMSysconfigSettings *self = NM_SYSCONFIG_SETTINGS (object);
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettings *self = BM_SYSCONFIG_SETTINGS (object);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GSList *iter;
 
 	if (priv->auth_changed_id) {
@@ -1440,14 +1440,14 @@ dispose (GObject *object)
 	g_slist_free (priv->permissions_calls);
 	priv->permissions_calls = NULL;
 
-	G_OBJECT_CLASS (nm_sysconfig_settings_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_sysconfig_settings_parent_class)->dispose (object);
 }
 
 static void
 finalize (GObject *object)
 {
-	NMSysconfigSettings *self = NM_SYSCONFIG_SETTINGS (object);
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettings *self = BM_SYSCONFIG_SETTINGS (object);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 
 	g_hash_table_destroy (priv->connections);
 
@@ -1458,42 +1458,42 @@ finalize (GObject *object)
 
 	g_free (priv->config_file);
 
-	G_OBJECT_CLASS (nm_sysconfig_settings_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_sysconfig_settings_parent_class)->finalize (object);
 }
 
 static void
-settings_system_interface_init (NMSettingsSystemInterface *iface)
+settings_system_interface_init (BMSettingsSystemInterface *iface)
 {
 	iface->get_permissions = get_permissions;
 
 	dbus_g_object_type_install_info (G_TYPE_FROM_INTERFACE (iface),
-	                                 &dbus_glib_nm_settings_system_object_info);
+	                                 &dbus_glib_bm_settings_system_object_info);
 }
 
 static void
 get_property (GObject *object, guint prop_id,
 			  GValue *value, GParamSpec *pspec)
 {
-	NMSysconfigSettings *self = NM_SYSCONFIG_SETTINGS (object);
+	NMSysconfigSettings *self = BM_SYSCONFIG_SETTINGS (object);
 	const GSList *specs, *iter;
 	GSList *copy = NULL;
 
 	switch (prop_id) {
 	case PROP_UNMANAGED_SPECS:
-		specs = nm_sysconfig_settings_get_unmanaged_specs (self);
+		specs = bm_sysconfig_settings_get_unmanaged_specs (self);
 		for (iter = specs; iter; iter = g_slist_next (iter))
 			copy = g_slist_append (copy, g_strdup (iter->data));
 		g_value_take_boxed (value, copy);
 		break;
-	case NM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME:
-		g_value_take_string (value, nm_sysconfig_settings_get_hostname (self));
+	case BM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME:
+		g_value_take_string (value, bm_sysconfig_settings_get_hostname (self));
 
 		/* Don't ever pass NULL through D-Bus */
 		if (!g_value_get_string (value))
 			g_value_set_static_string (value, "");
 		break;
-	case NM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY:
-		g_value_set_boolean (value, !!get_plugin (self, NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS));
+	case BM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY:
+		g_value_set_boolean (value, !!get_plugin (self, BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1502,10 +1502,10 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_sysconfig_settings_class_init (NMSysconfigSettingsClass *class)
+bm_sysconfig_settings_class_init (NMSysconfigSettingsClass *class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (class);
-	NMSettingsServiceClass *ss_class = NM_SETTINGS_SERVICE_CLASS (class);
+	BMSettingsServiceClass *ss_class = BM_SETTINGS_SERVICE_CLASS (class);
 	
 	g_type_class_add_private (class, sizeof (NMSysconfigSettingsPrivate));
 
@@ -1520,19 +1520,19 @@ nm_sysconfig_settings_class_init (NMSysconfigSettingsClass *class)
 	/* properties */
 	g_object_class_install_property
 		(object_class, PROP_UNMANAGED_SPECS,
-		 g_param_spec_boxed (NM_SYSCONFIG_SETTINGS_UNMANAGED_SPECS,
+		 g_param_spec_boxed (BM_SYSCONFIG_SETTINGS_UNMANAGED_SPECS,
 							 "Unamanged device specs",
 							 "Unmanaged device specs",
 							 DBUS_TYPE_G_LIST_OF_STRING,
 							 G_PARAM_READABLE));
 
 	g_object_class_override_property (object_class,
-									  NM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME,
-									  NM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME);
+									  BM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME,
+									  BM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME);
 
 	g_object_class_override_property (object_class,
-									  NM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY,
-									  NM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY);
+									  BM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY,
+									  BM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY);
 
 	/* signals */
 	signals[PROPERTIES_CHANGED] = 
@@ -1544,38 +1544,38 @@ nm_sysconfig_settings_class_init (NMSysconfigSettingsClass *class)
 	                              g_cclosure_marshal_VOID__BOXED,
 	                              G_TYPE_NONE, 1, DBUS_TYPE_G_MAP_OF_VARIANT);
 
-	dbus_g_error_domain_register (NM_SYSCONFIG_SETTINGS_ERROR,
-	                              NM_DBUS_IFACE_SETTINGS_SYSTEM,
-	                              NM_TYPE_SYSCONFIG_SETTINGS_ERROR);
+	dbus_g_error_domain_register (BM_SYSCONFIG_SETTINGS_ERROR,
+	                              BM_DBUS_IFACE_SETTINGS_SYSTEM,
+	                              BM_TYPE_SYSCONFIG_SETTINGS_ERROR);
 
-	dbus_g_error_domain_register (NM_SETTINGS_INTERFACE_ERROR,
-	                              NM_DBUS_IFACE_SETTINGS,
-	                              NM_TYPE_SETTINGS_INTERFACE_ERROR);
+	dbus_g_error_domain_register (BM_SETTINGS_INTERFACE_ERROR,
+	                              BM_DBUS_IFACE_SETTINGS,
+	                              BM_TYPE_SETTINGS_INTERFACE_ERROR);
 
 	/* And register all the settings errors with D-Bus */
-	dbus_g_error_domain_register (NM_CONNECTION_ERROR, NULL, NM_TYPE_CONNECTION_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_802_1X_ERROR, NULL, NM_TYPE_SETTING_802_1X_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_BLUETOOTH_ERROR, NULL, NM_TYPE_SETTING_BLUETOOTH_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_CDMA_ERROR, NULL, NM_TYPE_SETTING_CDMA_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_CONNECTION_ERROR, NULL, NM_TYPE_SETTING_CONNECTION_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_GSM_ERROR, NULL, NM_TYPE_SETTING_GSM_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_IP4_CONFIG_ERROR, NULL, NM_TYPE_SETTING_IP4_CONFIG_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_IP6_CONFIG_ERROR, NULL, NM_TYPE_SETTING_IP6_CONFIG_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_OLPC_MESH_ERROR, NULL, NM_TYPE_SETTING_OLPC_MESH_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_PPP_ERROR, NULL, NM_TYPE_SETTING_PPP_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_PPPOE_ERROR, NULL, NM_TYPE_SETTING_PPPOE_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_SERIAL_ERROR, NULL, NM_TYPE_SETTING_SERIAL_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_VPN_ERROR, NULL, NM_TYPE_SETTING_VPN_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_WIRED_ERROR, NULL, NM_TYPE_SETTING_WIRED_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_WIRELESS_SECURITY_ERROR, NULL, NM_TYPE_SETTING_WIRELESS_SECURITY_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_WIRELESS_ERROR, NULL, NM_TYPE_SETTING_WIRELESS_ERROR);
-	dbus_g_error_domain_register (NM_SETTING_ERROR, NULL, NM_TYPE_SETTING_ERROR);
+	dbus_g_error_domain_register (BM_CONNECTION_ERROR, NULL, BM_TYPE_CONNECTION_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_802_1X_ERROR, NULL, BM_TYPE_SETTING_802_1X_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_BLUETOOTH_ERROR, NULL, BM_TYPE_SETTING_BLUETOOTH_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_CDMA_ERROR, NULL, BM_TYPE_SETTING_CDMA_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_CONNECTION_ERROR, NULL, BM_TYPE_SETTING_CONNECTION_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_GSM_ERROR, NULL, BM_TYPE_SETTING_GSM_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_IP4_CONFIG_ERROR, NULL, BM_TYPE_SETTING_IP4_CONFIG_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_IP6_CONFIG_ERROR, NULL, BM_TYPE_SETTING_IP6_CONFIG_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_OLPC_MESH_ERROR, NULL, BM_TYPE_SETTING_OLPC_MESH_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_PPP_ERROR, NULL, BM_TYPE_SETTING_PPP_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_PPPOE_ERROR, NULL, BM_TYPE_SETTING_PPPOE_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_SERIAL_ERROR, NULL, BM_TYPE_SETTING_SERIAL_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_VPN_ERROR, NULL, BM_TYPE_SETTING_VPN_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_WIRED_ERROR, NULL, BM_TYPE_SETTING_WIRED_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_WIRELESS_SECURITY_ERROR, NULL, BM_TYPE_SETTING_WIRELESS_SECURITY_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_WIRELESS_ERROR, NULL, BM_TYPE_SETTING_WIRELESS_ERROR);
+	dbus_g_error_domain_register (BM_SETTING_ERROR, NULL, BM_TYPE_SETTING_ERROR);
 }
 
 static void
-nm_sysconfig_settings_init (NMSysconfigSettings *self)
+bm_sysconfig_settings_init (NMSysconfigSettings *self)
 {
-	NMSysconfigSettingsPrivate *priv = NM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
+	NMSysconfigSettingsPrivate *priv = BM_SYSCONFIG_SETTINGS_GET_PRIVATE (self);
 	GError *error = NULL;
 
 	priv->connections = g_hash_table_new_full (g_direct_hash, g_direct_equal, g_object_unref, NULL);
@@ -1587,7 +1587,7 @@ nm_sysconfig_settings_init (NMSysconfigSettings *self)
 		                                          G_CALLBACK (pk_authority_changed_cb),
 		                                          self);
 	} else {
-		nm_log_warn (LOGD_SYS_SET, "failed to create PolicyKit authority: (%d) %s",
+		bm_log_warn (LOGD_SYS_SET, "failed to create PolicyKit authority: (%d) %s",
 		             error ? error->code : -1,
 		             error && error->message ? error->message : "(unknown)");
 		g_clear_error (&error);

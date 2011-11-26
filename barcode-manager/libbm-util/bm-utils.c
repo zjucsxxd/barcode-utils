@@ -695,67 +695,6 @@ _bm_utils_register_value_transformations (void)
 	}
 }
 
-/**
- * bm_utils_uuid_generate:
- *
- * Returns: a newly allocated UUID suitable for use as the #BMSettingConnection
- * object's #BMSettingConnection:id: property.  Should be freed with g_free()
- **/
-char *
-bm_utils_uuid_generate (void)
-{
-	uuid_t uuid;
-	char *buf;
-
-	buf = g_malloc0 (37);
-	uuid_generate_random (uuid);
-	uuid_unparse_lower (uuid, &buf[0]);
-	return buf;
-}
-
-/**
- * bm_utils_uuid_generate_from_string:
- * @s: a string to use as the seed for the UUID
- *
- * For a given @s, this function will always return the same UUID.
- *
- * Returns: a newly allocated UUID suitable for use as the #BMSettingConnection
- * object's #BMSettingConnection:id: property
- **/
-char *
-bm_utils_uuid_generate_from_string (const char *s)
-{
-	GError *error = NULL;
-	uuid_t *uuid;
-	char *buf = NULL;
-
-	if (!bm_utils_init (&error)) {
-		bm_warning ("error initializing crypto: (%d) %s",
-		            error ? error->code : 0,
-		            error ? error->message : "unknown");
-		if (error)
-			g_error_free (error);
-		return NULL;
-	}
-
-	uuid = g_malloc0 (sizeof (*uuid));
-	if (!crypto_md5_hash (NULL, 0, s, strlen (s), (char *) uuid, sizeof (*uuid), &error)) {
-		bm_warning ("error generating UUID: (%d) %s",
-		            error ? error->code : 0,
-		            error ? error->message : "unknown");
-		if (error)
-			g_error_free (error);
-		goto out;
-	}
-
-	buf = g_malloc0 (37);
-	uuid_unparse_lower (*uuid, &buf[0]);
-
-out:
-	g_free (uuid);
-	return buf;
-}
-
 /*
  * utils_bin2hexstr
  *

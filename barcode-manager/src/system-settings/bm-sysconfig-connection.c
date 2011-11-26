@@ -31,34 +31,34 @@
 #include "bm-logging.h"
 
 
-static void settings_connection_interface_init (NMSettingsConnectionInterface *klass);
+static void settings_connection_interface_init (BMSettingsConnectionInterface *klass);
 
-G_DEFINE_TYPE_EXTENDED (NMSysconfigConnection, nm_sysconfig_connection, NM_TYPE_EXPORTED_CONNECTION, 0,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_SETTINGS_CONNECTION_INTERFACE,
+G_DEFINE_TYPE_EXTENDED (NMSysconfigConnection, bm_sysconfig_connection, BM_TYPE_EXPORTED_CONNECTION, 0,
+                        G_IMPLEMENT_INTERFACE (BM_TYPE_SETTINGS_CONNECTION_INTERFACE,
                                                settings_connection_interface_init))
 
-#define NM_SYSCONFIG_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), \
-                                                NM_TYPE_SYSCONFIG_CONNECTION, \
+#define BM_SYSCONFIG_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), \
+                                                BM_TYPE_SYSCONFIG_CONNECTION, \
                                                 NMSysconfigConnectionPrivate))
 
 typedef struct {
 	PolkitAuthority *authority;
 	GSList *pk_calls;
-	NMConnection *secrets;
+	BMConnection *secrets;
 } NMSysconfigConnectionPrivate;
 
 /**************************************************************/
 
 static void
-ignore_cb (NMSettingsConnectionInterface *connection,
+ignore_cb (BMSettingsConnectionInterface *connection,
            GError *error,
            gpointer user_data)
 {
 }
 
 gboolean
-nm_sysconfig_connection_update (NMSysconfigConnection *self,
-                                NMConnection *new,
+bm_sysconfig_connection_update (NMSysconfigConnection *self,
+                                BMConnection *new,
                                 gboolean signal_update,
                                 GError **error)
 {
@@ -67,30 +67,30 @@ nm_sysconfig_connection_update (NMSysconfigConnection *self,
 	gboolean success = FALSE;
 
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SYSCONFIG_CONNECTION (self), FALSE);
+	g_return_val_if_fail (BM_IS_SYSCONFIG_CONNECTION (self), FALSE);
 	g_return_val_if_fail (new != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_CONNECTION (new), FALSE);
+	g_return_val_if_fail (BM_IS_CONNECTION (new), FALSE);
 
-	priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 
 	/* Do nothing if there's nothing to update */
-	if (nm_connection_compare (NM_CONNECTION (self),
-	                           NM_CONNECTION (new),
-	                           NM_SETTING_COMPARE_FLAG_EXACT))
+	if (bm_connection_compare (BM_CONNECTION (self),
+	                           BM_CONNECTION (new),
+	                           BM_SETTING_COMPARE_FLAG_EXACT))
 		return TRUE;
 
-	new_settings = nm_connection_to_hash (new);
+	new_settings = bm_connection_to_hash (new);
 	g_assert (new_settings);
-	if (nm_connection_replace_settings (NM_CONNECTION (self), new_settings, error)) {
+	if (bm_connection_replace_settings (BM_CONNECTION (self), new_settings, error)) {
 		/* Copy the connection to keep its secrets around even if NM
-		 * calls nm_connection_clear_secrets().
+		 * calls bm_connection_clear_secrets().
 		 */
 		if (priv->secrets)
 			g_object_unref (priv->secrets);
-		priv->secrets = nm_connection_duplicate (NM_CONNECTION (self));
+		priv->secrets = bm_connection_duplicate (BM_CONNECTION (self));
 
 		if (signal_update) {
-			nm_settings_connection_interface_update (NM_SETTINGS_CONNECTION_INTERFACE (self),
+			bm_settings_connection_interface_update (BM_SETTINGS_CONNECTION_INTERFACE (self),
 			                                         ignore_cb,
 			                                         NULL);
 		}
@@ -137,7 +137,7 @@ copy_one_secret (gpointer key, gpointer value, gpointer user_data)
 }
 
 static void
-add_secrets (NMSetting *setting,
+add_secrets (BMSetting *setting,
              const char *key,
              const GValue *value,
              GParamFlags flags,
@@ -145,7 +145,7 @@ add_secrets (NMSetting *setting,
 {
 	GHashTable *secrets = user_data;
 
-	if (!(flags & NM_SETTING_PARAM_SECRET))
+	if (!(flags & BM_SETTING_PARAM_SECRET))
 		return;
 
 	/* Copy secrets into the returned hash table */
@@ -177,28 +177,28 @@ destroy_gvalue (gpointer data)
 }
 
 static gboolean
-get_secrets (NMSettingsConnectionInterface *connection,
+get_secrets (BMSettingsConnectionInterface *connection,
 	         const char *setting_name,
              const char **hints,
              gboolean request_new,
-             NMSettingsConnectionInterfaceGetSecretsFunc callback,
+             BMSettingsConnectionInterfaceGetSecretsFunc callback,
              gpointer user_data)
 {
-	NMSysconfigConnection *self = NM_SYSCONFIG_CONNECTION (connection);
-	NMSysconfigConnectionPrivate *priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	NMSysconfigConnection *self = BM_SYSCONFIG_CONNECTION (connection);
+	NMSysconfigConnectionPrivate *priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 	GHashTable *settings = NULL;
 	GHashTable *secrets = NULL;
-	NMSetting *setting;
+	BMSetting *setting;
 	GError *error = NULL;
 
-	/* Use priv->secrets to work around the fact that nm_connection_clear_secrets()
+	/* Use priv->secrets to work around the fact that bm_connection_clear_secrets()
 	 * will clear secrets on this object's settings.  priv->secrets should be
 	 * a complete copy of this object and kept in sync by
-	 * nm_sysconfig_connection_update().
+	 * bm_sysconfig_connection_update().
 	 */
 	if (!priv->secrets) {
-		error = g_error_new (NM_SETTINGS_INTERFACE_ERROR,
-		                     NM_SETTINGS_INTERFACE_ERROR_INVALID_CONNECTION,
+		error = g_error_new (BM_SETTINGS_INTERFACE_ERROR,
+		                     BM_SETTINGS_INTERFACE_ERROR_INVALID_CONNECTION,
 		                     "%s.%d - Internal error; secrets cache invalid.",
 		                     __FILE__, __LINE__);
 		(*callback) (connection, NULL, error, user_data);
@@ -206,10 +206,10 @@ get_secrets (NMSettingsConnectionInterface *connection,
 		return TRUE;
 	}
 
-	setting = nm_connection_get_setting_by_name (priv->secrets, setting_name);
+	setting = bm_connection_get_setting_by_name (priv->secrets, setting_name);
 	if (!setting) {
-		error = g_error_new (NM_SETTINGS_INTERFACE_ERROR,
-		                     NM_SETTINGS_INTERFACE_ERROR_INVALID_SETTING,
+		error = g_error_new (BM_SETTINGS_INTERFACE_ERROR,
+		                     BM_SETTINGS_INTERFACE_ERROR_INVALID_SETTING,
 		                     "%s.%d - Connection didn't have requested setting '%s'.",
 		                     __FILE__, __LINE__, setting_name);
 		(*callback) (connection, NULL, error, user_data);
@@ -225,7 +225,7 @@ get_secrets (NMSettingsConnectionInterface *connection,
 
 	/* Add the secrets from this setting to the inner secrets hash for this setting */
 	secrets = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, destroy_gvalue);
-	nm_setting_enumerate_values (setting, add_secrets, secrets);
+	bm_setting_enumerate_values (setting, add_secrets, secrets);
 
 	g_hash_table_insert (settings, g_strdup (setting_name), secrets);
 	callback (connection, settings, NULL, user_data);
@@ -243,7 +243,7 @@ typedef struct {
 	gboolean disposed;
 
 	/* Update */
-	NMConnection *connection;
+	BMConnection *connection;
 
 	/* Secrets */
 	char *setting_name;
@@ -254,7 +254,7 @@ typedef struct {
 static PolkitCall *
 polkit_call_new (NMSysconfigConnection *self,
                  DBusGMethodInvocation *context,
-                 NMConnection *connection,
+                 BMConnection *connection,
                  const char *setting_name,
                  const char **hints,
                  gboolean request_new)
@@ -297,7 +297,7 @@ polkit_call_free (PolkitCall *call)
 }
 
 static void
-con_update_cb (NMSettingsConnectionInterface *connection,
+con_update_cb (BMSettingsConnectionInterface *connection,
                GError *error,
                gpointer user_data)
 {
@@ -322,8 +322,8 @@ pk_update_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* If our NMSysconfigConnection is already gone, do nothing */
 	if (call->disposed) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
 		                             "Request was canceled.");
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -331,7 +331,7 @@ pk_update_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 		return;
 	}
 
-	priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 
 	priv->pk_calls = g_slist_remove (priv->pk_calls, call);
 
@@ -348,8 +348,8 @@ pk_update_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* Caller didn't successfully authenticate */
 	if (!polkit_authorization_result_get_is_authorized (pk_result)) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
 		                             "Insufficient privileges.");
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -358,10 +358,10 @@ pk_update_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	}
 
 	/* Update our settings internally so the update() call will save the new
-	 * ones.  We don't let nm_sysconfig_connection_update() handle the update
+	 * ones.  We don't let bm_sysconfig_connection_update() handle the update
 	 * signal since we need our own callback after the update is done.
 	 */
-	if (!nm_sysconfig_connection_update (self, call->connection, FALSE, &error)) {
+	if (!bm_sysconfig_connection_update (self, call->connection, FALSE, &error)) {
 		/* Shouldn't really happen since we've already validated the settings */
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -370,7 +370,7 @@ pk_update_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	}
 
 	/* Caller is authenticated, now we can finally try to commit the update */
-	nm_settings_connection_interface_update (NM_SETTINGS_CONNECTION_INTERFACE (self),
+	bm_settings_connection_interface_update (BM_SETTINGS_CONNECTION_INTERFACE (self),
 	                                         con_update_cb,
 	                                         call);
 
@@ -383,14 +383,14 @@ dbus_update (NMExportedConnection *exported,
              GHashTable *new_settings,
              DBusGMethodInvocation *context)
 {
-	NMSysconfigConnection *self = NM_SYSCONFIG_CONNECTION (exported);
-	NMSysconfigConnectionPrivate *priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	NMSysconfigConnection *self = BM_SYSCONFIG_CONNECTION (exported);
+	NMSysconfigConnectionPrivate *priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 	PolkitCall *call;
-	NMConnection *tmp;
+	BMConnection *tmp;
 	GError *error = NULL;
 
 	/* Check if the settings are valid first */
-	tmp = nm_connection_new_from_hash (new_settings, &error);
+	tmp = bm_connection_new_from_hash (new_settings, &error);
 	if (!tmp) {
 		g_assert (error);
 		dbus_g_method_return_error (context, error);
@@ -402,7 +402,7 @@ dbus_update (NMExportedConnection *exported,
 	g_assert (call);
 	polkit_authority_check_authorization (priv->authority,
 	                                      call->subject,
-	                                      NM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
+	                                      BM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
 	                                      NULL,
 	                                      POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
 	                                      call->cancellable,
@@ -412,7 +412,7 @@ dbus_update (NMExportedConnection *exported,
 }
 
 static void
-con_delete_cb (NMSettingsConnectionInterface *connection,
+con_delete_cb (BMSettingsConnectionInterface *connection,
                GError *error,
                gpointer user_data)
 {
@@ -437,8 +437,8 @@ pk_delete_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* If our NMSysconfigConnection is already gone, do nothing */
 	if (call->disposed) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
 		                             "Request was canceled.");
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -446,7 +446,7 @@ pk_delete_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 		return;
 	}
 
-	priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 
 	priv->pk_calls = g_slist_remove (priv->pk_calls, call);
 
@@ -463,8 +463,8 @@ pk_delete_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* Caller didn't successfully authenticate */
 	if (!polkit_authorization_result_get_is_authorized (pk_result)) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
 		                             "Insufficient privileges.");
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -473,7 +473,7 @@ pk_delete_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	}
 
 	/* Caller is authenticated, now we can finally try to delete */
-	nm_settings_connection_interface_delete (NM_SETTINGS_CONNECTION_INTERFACE (self),
+	bm_settings_connection_interface_delete (BM_SETTINGS_CONNECTION_INTERFACE (self),
 	                                         con_delete_cb,
 	                                         call);
 
@@ -485,15 +485,15 @@ static void
 dbus_delete (NMExportedConnection *exported,
              DBusGMethodInvocation *context)
 {
-	NMSysconfigConnection *self = NM_SYSCONFIG_CONNECTION (exported);
-	NMSysconfigConnectionPrivate *priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	NMSysconfigConnection *self = BM_SYSCONFIG_CONNECTION (exported);
+	NMSysconfigConnectionPrivate *priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 	PolkitCall *call;
 
 	call = polkit_call_new (self, context, NULL, NULL, NULL, FALSE);
 	g_assert (call);
 	polkit_authority_check_authorization (priv->authority,
 	                                      call->subject,
-	                                      NM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
+	                                      BM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
 	                                      NULL,
 	                                      POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
 	                                      call->cancellable,
@@ -503,7 +503,7 @@ dbus_delete (NMExportedConnection *exported,
 }
 
 static void
-con_secrets_cb (NMSettingsConnectionInterface *connection,
+con_secrets_cb (BMSettingsConnectionInterface *connection,
                 GHashTable *secrets,
                 GError *error,
                 gpointer user_data)
@@ -529,8 +529,8 @@ pk_secrets_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* If our NMSysconfigConnection is already gone, do nothing */
 	if (call->disposed) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_GENERAL,
 		                             "Request was canceled.");
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -538,7 +538,7 @@ pk_secrets_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 		return;
 	}
 
-	priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 
 	priv->pk_calls = g_slist_remove (priv->pk_calls, call);
 
@@ -555,8 +555,8 @@ pk_secrets_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 	/* Caller didn't successfully authenticate */
 	if (!polkit_authorization_result_get_is_authorized (pk_result)) {
-		error = g_error_new_literal (NM_SYSCONFIG_SETTINGS_ERROR,
-		                             NM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
+		error = g_error_new_literal (BM_SYSCONFIG_SETTINGS_ERROR,
+		                             BM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED,
 		                             "Insufficient privileges.");
 		dbus_g_method_return_error (call->context, error);
 		g_error_free (error);
@@ -565,7 +565,7 @@ pk_secrets_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 	}
 
 	/* Caller is authenticated, now we can finally try to update */
-	nm_settings_connection_interface_get_secrets (NM_SETTINGS_CONNECTION_INTERFACE (self),
+	bm_settings_connection_interface_get_secrets (BM_SETTINGS_CONNECTION_INTERFACE (self),
 	                                              call->setting_name,
 	                                              (const char **) call->hints,
 	                                              call->request_new,
@@ -583,15 +583,15 @@ dbus_get_secrets (NMExportedConnection *exported,
                   gboolean request_new,
                   DBusGMethodInvocation *context)
 {
-	NMSysconfigConnection *self = NM_SYSCONFIG_CONNECTION (exported);
-	NMSysconfigConnectionPrivate *priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	NMSysconfigConnection *self = BM_SYSCONFIG_CONNECTION (exported);
+	NMSysconfigConnectionPrivate *priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 	PolkitCall *call;
 
 	call = polkit_call_new (self, context, NULL, setting_name, hints, request_new);
 	g_assert (call);
 	polkit_authority_check_authorization (priv->authority,
 	                                      call->subject,
-	                                      NM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
+	                                      BM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY,
 	                                      NULL,
 	                                      POLKIT_CHECK_AUTHORIZATION_FLAGS_ALLOW_USER_INTERACTION,
 	                                      call->cancellable,
@@ -603,20 +603,20 @@ dbus_get_secrets (NMExportedConnection *exported,
 /**************************************************************/
 
 static void
-settings_connection_interface_init (NMSettingsConnectionInterface *iface)
+settings_connection_interface_init (BMSettingsConnectionInterface *iface)
 {
 	iface->get_secrets = get_secrets;
 }
 
 static void
-nm_sysconfig_connection_init (NMSysconfigConnection *self)
+bm_sysconfig_connection_init (NMSysconfigConnection *self)
 {
-	NMSysconfigConnectionPrivate *priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	NMSysconfigConnectionPrivate *priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 	GError *error = NULL;
 
 	priv->authority = polkit_authority_get_sync (NULL, NULL);
 	if (!priv->authority) {
-		nm_log_warn (LOGD_SYS_SET, "failed to create PolicyKit authority: (%d) %s",
+		bm_log_warn (LOGD_SYS_SET, "failed to create PolicyKit authority: (%d) %s",
 		             error ? error->code : -1,
 		             error && error->message ? error->message : "(unknown)");
 		g_clear_error (&error);
@@ -626,8 +626,8 @@ nm_sysconfig_connection_init (NMSysconfigConnection *self)
 static void
 dispose (GObject *object)
 {
-	NMSysconfigConnection *self = NM_SYSCONFIG_CONNECTION (object);
-	NMSysconfigConnectionPrivate *priv = NM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
+	NMSysconfigConnection *self = BM_SYSCONFIG_CONNECTION (object);
+	NMSysconfigConnectionPrivate *priv = BM_SYSCONFIG_CONNECTION_GET_PRIVATE (self);
 	GSList *iter;
 
 	if (priv->secrets)
@@ -643,14 +643,14 @@ dispose (GObject *object)
 	g_slist_free (priv->pk_calls);
 	priv->pk_calls = NULL;
 
-	G_OBJECT_CLASS (nm_sysconfig_connection_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_sysconfig_connection_parent_class)->dispose (object);
 }
 
 static void
-nm_sysconfig_connection_class_init (NMSysconfigConnectionClass *class)
+bm_sysconfig_connection_class_init (NMSysconfigConnectionClass *class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (class);
-	NMExportedConnectionClass *ec_class = NM_EXPORTED_CONNECTION_CLASS (class);
+	NMExportedConnectionClass *ec_class = BM_EXPORTED_CONNECTION_CLASS (class);
 
 	g_type_class_add_private (class, sizeof (NMSysconfigConnectionPrivate));
 

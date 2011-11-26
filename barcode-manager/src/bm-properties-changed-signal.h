@@ -19,14 +19,14 @@
  * Copyright (C) 2008 Red Hat, Inc.
  */
 
-#ifndef _NM_PROPERTIES_CHANGED_SIGNAL_H_
-#define _NM_PROPERTIES_CHANGED_SIGNAL_H_
+#ifndef _BM_PROPERTIES_CHANGED_SIGNAL_H_
+#define _BM_PROPERTIES_CHANGED_SIGNAL_H_
 
 #include <glib-object.h>
 
-#define NM_PROPERTY_PARAM_NO_EXPORT    (1 << (0 + G_PARAM_USER_SHIFT))
+#define BM_PROPERTY_PARAM_NO_EXPORT    (1 << (0 + G_PARAM_USER_SHIFT))
 
-guint nm_properties_changed_signal_new (GObjectClass *object_class,
+guint bm_properties_changed_signal_new (GObjectClass *object_class,
 								guint class_offset);
 
-#endif /* _NM_PROPERTIES_CHANGED_SIGNAL_H_ */
+#endif /* _BM_PROPERTIES_CHANGED_SIGNAL_H_ */

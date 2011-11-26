@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,10 +28,9 @@
 #include "bm-object-private.h"
 #include "bm-object-cache.h"
 #include "bm-dbus-glib-types.h"
-#include "bm-setting-ip6-config.h"
 
 static gpointer
-nm_ssid_copy (GByteArray *src)
+bm_ssid_copy (GByteArray *src)
 {
 	GByteArray *dest;
 
@@ -41,25 +40,25 @@ nm_ssid_copy (GByteArray *src)
 }
 
 static void
-nm_ssid_free (GByteArray *ssid)
+bm_ssid_free (GByteArray *ssid)
 {
 	g_byte_array_free (ssid, TRUE);
 }
 
 GType
-nm_ssid_get_type (void)
+bm_ssid_get_type (void)
 {
 	static GType our_type = 0;
 
 	if (our_type == 0)
 		our_type = g_boxed_type_register_static (g_intern_static_string ("bm-ssid"),
-		                                         (GBoxedCopyFunc) nm_ssid_copy,
-		                                         (GBoxedFreeFunc) nm_ssid_free);
+		                                         (GBoxedCopyFunc) bm_ssid_copy,
+		                                         (GBoxedFreeFunc) bm_ssid_free);
 	return our_type;
 }
 
 gboolean
-_nm_ssid_demarshal (GValue *value, GByteArray **dest)
+_bm_ssid_demarshal (GValue *value, GByteArray **dest)
 {
 	GByteArray *array;
 
@@ -67,7 +66,7 @@ _nm_ssid_demarshal (GValue *value, GByteArray **dest)
 		return FALSE;
 
 	if (*dest) {
-		g_boxed_free (NM_TYPE_SSID, *dest);
+		g_boxed_free (BM_TYPE_SSID, *dest);
 		*dest = NULL;
 	}
 
@@ -84,7 +83,7 @@ _nm_ssid_demarshal (GValue *value, GByteArray **dest)
 /*****************************/
 
 static gpointer
-nm_uint_array_copy (GArray *src)
+bm_uint_array_copy (GArray *src)
 {
 	GArray *dest;
 
@@ -94,25 +93,25 @@ nm_uint_array_copy (GArray *src)
 }
 
 static void
-nm_uint_array_free (GArray *array)
+bm_uint_array_free (GArray *array)
 {
 	g_array_free (array, TRUE);
 }
 
 GType
-nm_uint_array_get_type (void)
+bm_uint_array_get_type (void)
 {
 	static GType our_type = 0;
 
 	if (our_type == 0)
 		our_type = g_boxed_type_register_static (g_intern_static_string ("bm-uint-array"),
-		                                         (GBoxedCopyFunc) nm_uint_array_copy,
-		                                         (GBoxedFreeFunc) nm_uint_array_free);
+		                                         (GBoxedCopyFunc) bm_uint_array_copy,
+		                                         (GBoxedFreeFunc) bm_uint_array_free);
 	return our_type;
 }
 
 gboolean
-_nm_uint_array_demarshal (GValue *value, GArray **dest)
+_bm_uint_array_demarshal (GValue *value, GArray **dest)
 {
 	GArray *array;
 
@@ -120,7 +119,7 @@ _nm_uint_array_demarshal (GValue *value, GArray **dest)
 		return FALSE;
 
 	if (*dest) {
-		g_boxed_free (NM_TYPE_UINT_ARRAY, *dest);
+		g_boxed_free (BM_TYPE_UINT_ARRAY, *dest);
 		*dest = NULL;
 	}
 
@@ -136,7 +135,7 @@ _nm_uint_array_demarshal (GValue *value, GArray **dest)
 /*****************************/
 
 static gpointer
-nm_string_array_copy (GPtrArray *src)
+bm_string_array_copy (GPtrArray *src)
 {
 	GPtrArray *dest;
 	int i;
@@ -148,7 +147,7 @@ nm_string_array_copy (GPtrArray *src)
 }
 
 static void
-nm_string_array_free (GPtrArray *array)
+bm_string_array_free (GPtrArray *array)
 {
 	int i;
 
@@ -158,19 +157,19 @@ nm_string_array_free (GPtrArray *array)
 }
 
 GType
-nm_string_array_get_type (void)
+bm_string_array_get_type (void)
 {
 	static GType our_type = 0;
 
 	if (our_type == 0)
 		our_type = g_boxed_type_register_static (g_intern_static_string ("bm-string-array"),
-		                                         (GBoxedCopyFunc) nm_string_array_copy,
-		                                         (GBoxedFreeFunc) nm_string_array_free);
+		                                         (GBoxedCopyFunc) bm_string_array_copy,
+		                                         (GBoxedFreeFunc) bm_string_array_free);
 	return our_type;
 }
 
 gboolean
-_nm_string_array_demarshal (GValue *value, GPtrArray **dest)
+_bm_string_array_demarshal (GValue *value, GPtrArray **dest)
 {
 	GPtrArray *array;
 
@@ -178,7 +177,7 @@ _nm_string_array_demarshal (GValue *value, GPtrArray **dest)
 		return FALSE;
 
 	if (*dest) {
-		g_boxed_free (NM_TYPE_STRING_ARRAY, *dest);
+		g_boxed_free (BM_TYPE_STRING_ARRAY, *dest);
 		*dest = NULL;
 	}
 
@@ -197,7 +196,7 @@ _nm_string_array_demarshal (GValue *value, GPtrArray **dest)
 /*****************************/
 
 static gpointer
-nm_object_array_copy (GPtrArray *src)
+bm_object_array_copy (GPtrArray *src)
 {
 	GPtrArray *dest;
 	int i;
@@ -209,7 +208,7 @@ nm_object_array_copy (GPtrArray *src)
 }
 
 static void
-nm_object_array_free (GPtrArray *array)
+bm_object_array_free (GPtrArray *array)
 {
 	int i;
 
@@ -219,22 +218,22 @@ nm_object_array_free (GPtrArray *array)
 }
 
 GType
-nm_object_array_get_type (void)
+bm_object_array_get_type (void)
 {
 	static GType our_type = 0;
 
 	if (our_type == 0)
 		our_type = g_boxed_type_register_static (g_intern_static_string ("bm-object-array"),
-		                                         (GBoxedCopyFunc) nm_object_array_copy,
-		                                         (GBoxedFreeFunc) nm_object_array_free);
+		                                         (GBoxedCopyFunc) bm_object_array_copy,
+		                                         (GBoxedFreeFunc) bm_object_array_free);
 	return our_type;
 }
 
 gboolean
-_nm_object_array_demarshal (GValue *value,
+_bm_object_array_demarshal (GValue *value,
                            GPtrArray **dest,
                            DBusGConnection *connection,
-                           NMObjectCreatorFunc func)
+                           BMObjectCreatorFunc func)
 {
 	GPtrArray *temp = NULL;
 	GPtrArray *array;
@@ -252,7 +251,7 @@ _nm_object_array_demarshal (GValue *value,
 			GObject *object;
 
 			path = g_ptr_array_index (array, i);
-			object = G_OBJECT (_nm_object_cache_get (path));
+			object = G_OBJECT (_bm_object_cache_get (path));
 			if (object) {
 				g_ptr_array_add (temp, g_object_ref (object));
 			} else {
@@ -270,154 +269,8 @@ _nm_object_array_demarshal (GValue *value,
 	 * be in the array doesn't get destroyed due to refcounting.
 	 */
 	if (*dest)
-		g_boxed_free (NM_TYPE_OBJECT_ARRAY, *dest);
+		g_boxed_free (BM_TYPE_OBJECT_ARRAY, *dest);
 	*dest = temp;
 
 	return TRUE;
 }
-
-/*****************************/
-
-static gpointer
-nm_ip6_address_object_array_copy (GPtrArray *src)
-{
-	GPtrArray *dest;
-	int i;
-
-	dest = g_ptr_array_sized_new (src->len);
-	for (i = 0; i < src->len; i++)
-		g_ptr_array_add (dest, nm_ip6_address_dup (g_ptr_array_index (src, i)));
-	return dest;
-}
-
-static void
-nm_ip6_address_object_array_free (GPtrArray *array)
-{
-	int i;
-
-	for (i = 0; i < array->len; i++)
-		nm_ip6_address_unref (g_ptr_array_index (array, i));
-	g_ptr_array_free (array, TRUE);
-}
-
-GType
-nm_ip6_address_object_array_get_type (void)
-{
-	static GType our_type = 0;
-
-	if (our_type == 0)
-		our_type = g_boxed_type_register_static (g_intern_static_string ("bm-ip6-address-object-array"),
-		                                         (GBoxedCopyFunc) nm_ip6_address_object_array_copy,
-		                                         (GBoxedFreeFunc) nm_ip6_address_object_array_free);
-	return our_type;
-}
-
-/*****************************/
-
-static gpointer
-nm_ip6_address_array_copy (GPtrArray *src)
-{
-	GPtrArray *dest;
-	int i;
-
-	dest = g_ptr_array_sized_new (src->len);
-	for (i = 0; i < src->len; i++) {
-		struct in6_addr *addr = g_ptr_array_index (src, i);
-		struct in6_addr *dup;
-
-		dup = g_malloc0 (sizeof (struct in6_addr));
-		memcpy (dup, addr, sizeof (struct in6_addr));
-		g_ptr_array_add (dest, dup);
-	}
-	return dest;
-}
-
-static void
-nm_ip6_address_array_free (GPtrArray *array)
-{
-	int i;
-
-	for (i = 0; i < array->len; i++)
-		g_free (g_ptr_array_index (array, i));
-	g_ptr_array_free (array, TRUE);
-}
-
-GType
-nm_ip6_address_array_get_type (void)
-{
-	static GType our_type = 0;
-
-	if (our_type == 0)
-		our_type = g_boxed_type_register_static (g_intern_static_string ("bm-ip6-address-array"),
-		                                         (GBoxedCopyFunc) nm_ip6_address_array_copy,
-		                                         (GBoxedFreeFunc) nm_ip6_address_array_free);
-	return our_type;
-}
-
-gboolean
-_nm_ip6_address_array_demarshal (GValue *value, GSList **dest)
-{
-	GPtrArray *array;
-
-	if (!G_VALUE_HOLDS (value, DBUS_TYPE_G_ARRAY_OF_ARRAY_OF_UCHAR))
-		return FALSE;
-
-	if (*dest) {
-		g_slist_foreach (*dest, (GFunc) g_free, NULL);
-		g_slist_free (*dest);
-		*dest = NULL;
-	}
-
-	array = (GPtrArray *) g_value_get_boxed (value);
-	if (array && array->len) {
-		int i;
-
-		for (i = 0; i < array->len; i++) {
-			GByteArray *bytearray = (GByteArray *) g_ptr_array_index (array, i);
-			struct in6_addr *addr;
-
-			addr = g_malloc0 (sizeof (struct in6_addr));
-			memcpy (addr->s6_addr, bytearray->data, bytearray->len);
-			*dest = g_slist_append (*dest, addr);
-		}
-	}
-
-	return TRUE;
-}
-
-/*****************************/
-
-static gpointer
-nm_ip6_route_object_array_copy (GPtrArray *src)
-{
-	GPtrArray *dest;
-	int i;
-
-	dest = g_ptr_array_sized_new (src->len);
-	for (i = 0; i < src->len; i++)
-		g_ptr_array_add (dest, nm_ip6_route_dup (g_ptr_array_index (src, i)));
-	return dest;
-}
-
-static void
-nm_ip6_route_object_array_free (GPtrArray *array)
-{
-	int i;
-
-	for (i = 0; i < array->len; i++)
-		nm_ip6_route_unref (g_ptr_array_index (array, i));
-	g_ptr_array_free (array, TRUE);
-}
-
-GType
-nm_ip6_route_object_array_get_type (void)
-{
-	static GType our_type = 0;
-
-	if (our_type == 0)
-		our_type = g_boxed_type_register_static (g_intern_static_string ("bm-ip6-route-object-array"),
-		                                         (GBoxedCopyFunc) nm_ip6_route_object_array_copy,
-		                                         (GBoxedFreeFunc) nm_ip6_route_object_array_free);
-	return our_type;
-}
-

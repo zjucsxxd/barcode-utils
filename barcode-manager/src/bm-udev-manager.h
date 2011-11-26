@@ -19,8 +19,8 @@
  * Copyright (C) 2007 - 2008 Red Hat, Inc.
  */
 
-#ifndef NM_UDEV_MANAGER_H
-#define NM_UDEV_MANAGER_H
+#ifndef BM_UDEV_MANAGER_H
+#define BM_UDEV_MANAGER_H
 
 #include <glib.h>
 #include <glib-object.h>
@@ -32,18 +32,18 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_UDEV_MANAGER            (nm_udev_manager_get_type ())
-#define NM_UDEV_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_UDEV_MANAGER, NMUdevManager))
-#define NM_UDEV_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_UDEV_MANAGER, NMUdevManagerClass))
-#define NM_IS_UDEV_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_UDEV_MANAGER))
-#define NM_IS_UDEV_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_UDEV_MANAGER))
-#define NM_UDEV_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_UDEV_MANAGER, NMUdevManagerClass))
+#define BM_TYPE_UDEV_MANAGER            (bm_udev_manager_get_type ())
+#define BM_UDEV_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_UDEV_MANAGER, NMUdevManager))
+#define BM_UDEV_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_UDEV_MANAGER, NMUdevManagerClass))
+#define BM_IS_UDEV_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_UDEV_MANAGER))
+#define BM_IS_UDEV_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_UDEV_MANAGER))
+#define BM_UDEV_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_UDEV_MANAGER, NMUdevManagerClass))
 
 typedef struct {
 	GObject parent;
 } NMUdevManager;
 
-typedef GObject *(*NMDeviceCreatorFn) (NMUdevManager *manager,
+typedef GObject *(*BMDeviceCreatorFn) (NMUdevManager *manager,
                                        GUdevDevice *device,
                                        gboolean sleeping);
 
@@ -53,20 +53,20 @@ typedef struct {
 	/* Virtual functions */
 	void (*device_added) (NMUdevManager *manager,
 	                      GUdevDevice *device,
-	                      NMDeviceCreatorFn creator_fn);
+	                      BMDeviceCreatorFn creator_fn);
 
 	void (*device_removed) (NMUdevManager *manager, GUdevDevice *device);
 
 	void (*rfkill_changed) (NMUdevManager *manager, RfKillType rtype, RfKillState state);
 } NMUdevManagerClass;
 
-GType nm_udev_manager_get_type (void);
+GType bm_udev_manager_get_type (void);
 
-NMUdevManager *nm_udev_manager_new (void);
+NMUdevManager *bm_udev_manager_new (void);
 
-void nm_udev_manager_query_devices (NMUdevManager *manager);
+void bm_udev_manager_query_devices (NMUdevManager *manager);
 
-RfKillState nm_udev_manager_get_rfkill_state (NMUdevManager *manager, RfKillType rtype);
+RfKillState bm_udev_manager_get_rfkill_state (NMUdevManager *manager, RfKillType rtype);
 
-#endif /* NM_UDEV_MANAGER_H */
+#endif /* BM_UDEV_MANAGER_H */
 

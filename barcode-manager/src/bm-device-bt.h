@@ -18,55 +18,55 @@
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_BT_H
-#define NM_DEVICE_BT_H
+#ifndef BM_DEVICE_BT_H
+#define BM_DEVICE_BT_H
 
 #include <bm-device.h>
 #include "bm-modem.h"
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_DEVICE_BT		(nm_device_bt_get_type ())
-#define NM_DEVICE_BT(obj)		(G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE_BT, NMDeviceBt))
-#define NM_DEVICE_BT_CLASS(klass)	(G_TYPE_CHECK_CLASS_CAST ((klass),  NM_TYPE_DEVICE_BT, NMDeviceBtClass))
-#define NM_IS_DEVICE_BT(obj)		(G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE_BT))
-#define NM_IS_DEVICE_BT_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_BT))
-#define NM_DEVICE_BT_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_BT, NMDeviceBtClass))
+#define BM_TYPE_DEVICE_BT		(bm_device_bt_get_type ())
+#define BM_DEVICE_BT(obj)		(G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_DEVICE_BT, BMDeviceBt))
+#define BM_DEVICE_BT_CLASS(klass)	(G_TYPE_CHECK_CLASS_CAST ((klass),  BM_TYPE_DEVICE_BT, BMDeviceBtClass))
+#define BM_IS_DEVICE_BT(obj)		(G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_DEVICE_BT))
+#define BM_IS_DEVICE_BT_CLASS(klass)	(G_TYPE_CHECK_CLASS_TYPE ((klass),  BM_TYPE_DEVICE_BT))
+#define BM_DEVICE_BT_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj),  BM_TYPE_DEVICE_BT, BMDeviceBtClass))
 
-#define NM_DEVICE_BT_HW_ADDRESS   "hw-address"
-#define NM_DEVICE_BT_NAME         "name"
-#define NM_DEVICE_BT_CAPABILITIES "bt-capabilities"
-
-typedef struct {
-	NMDevice parent;
-} NMDeviceBt;
+#define BM_DEVICE_BT_HW_ADDRESS   "hw-address"
+#define BM_DEVICE_BT_NAME         "name"
+#define BM_DEVICE_BT_CAPABILITIES "bt-capabilities"
 
 typedef struct {
-	NMDeviceClass parent;
+	BMDevice parent;
+} BMDeviceBt;
+
+typedef struct {
+	BMDeviceClass parent;
 
 	/* Signals */
-	void (*ppp_stats) (NMDeviceBt *device, guint32 in_bytes, guint32 out_bytes);
-	void (*properties_changed) (NMDeviceBt *device, GHashTable *properties);
-} NMDeviceBtClass;
+	void (*ppp_stats) (BMDeviceBt *device, guint32 in_bytes, guint32 out_bytes);
+	void (*properties_changed) (BMDeviceBt *device, GHashTable *properties);
+} BMDeviceBtClass;
 
-GType nm_device_bt_get_type (void);
+GType bm_device_bt_get_type (void);
 
-NMDevice *nm_device_bt_new (const char *udi,
+BMDevice *bm_device_bt_new (const char *udi,
                             const char *bdaddr,
                             const char *name,
                             guint32 capabilities,
                             gboolean managed);
 
-guint32 nm_device_bt_get_capabilities (NMDeviceBt *device);
+guint32 bm_device_bt_get_capabilities (BMDeviceBt *device);
 
-const char *nm_device_bt_get_hw_address (NMDeviceBt *device);
+const char *bm_device_bt_get_hw_address (BMDeviceBt *device);
 
-gboolean nm_device_bt_modem_added (NMDeviceBt *device,
+gboolean bm_device_bt_modem_added (BMDeviceBt *device,
                                    NMModem *modem,
                                    const char *driver);
 
-gboolean nm_device_bt_modem_removed (NMDeviceBt *device, NMModem *modem);
+gboolean bm_device_bt_modem_removed (BMDeviceBt *device, NMModem *modem);
 
 G_END_DECLS
 
-#endif /* NM_GSM_DEVICE_H */
+#endif /* BM_GSM_DEVICE_H */

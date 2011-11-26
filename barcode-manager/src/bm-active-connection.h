@@ -18,26 +18,26 @@
  * Copyright (C) 2008 - 2010 Red Hat, Inc.
  */
 
-#ifndef NM_ACTIVE_CONNECTION_H
-#define NM_ACTIVE_CONNECTION_H
+#ifndef BM_ACTIVE_CONNECTION_H
+#define BM_ACTIVE_CONNECTION_H
 
 #include <glib-object.h>
 #include "bm-connection.h"
 
-#define NM_ACTIVE_CONNECTION_SERVICE_NAME "service-name"
-#define NM_ACTIVE_CONNECTION_CONNECTION "connection"
-#define NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT "specific-object"
-#define NM_ACTIVE_CONNECTION_DEVICES "devices"
-#define NM_ACTIVE_CONNECTION_STATE "state"
-#define NM_ACTIVE_CONNECTION_DEFAULT "default"
-#define NM_ACTIVE_CONNECTION_DEFAULT6 "default6"
-#define NM_ACTIVE_CONNECTION_VPN "vpn"
+#define BM_ACTIVE_CONNECTION_SERVICE_NAME "service-name"
+#define BM_ACTIVE_CONNECTION_CONNECTION "connection"
+#define BM_ACTIVE_CONNECTION_SPECIFIC_OBJECT "specific-object"
+#define BM_ACTIVE_CONNECTION_DEVICES "devices"
+#define BM_ACTIVE_CONNECTION_STATE "state"
+#define BM_ACTIVE_CONNECTION_DEFAULT "default"
+#define BM_ACTIVE_CONNECTION_DEFAULT6 "default6"
+#define BM_ACTIVE_CONNECTION_VPN "vpn"
 
-char *nm_active_connection_get_next_object_path (void);
+char *bm_active_connection_get_next_object_path (void);
 
-void nm_active_connection_scope_to_value (NMConnection *connection, GValue *value);
+void bm_active_connection_scope_to_value (BMConnection *connection, GValue *value);
 
-void nm_active_connection_install_properties (GObjectClass *object_class,
+void bm_active_connection_install_properties (GObjectClass *object_class,
                                               guint prop_service_name,
                                               guint prop_connection,
                                               guint prop_specific_object,
@@ -47,4 +47,4 @@ void nm_active_connection_install_properties (GObjectClass *object_class,
                                               guint prop_default6,
                                               guint prop_vpn);
 
-#endif /* NM_ACTIVE_CONNECTION_H */
+#endif /* BM_ACTIVE_CONNECTION_H */

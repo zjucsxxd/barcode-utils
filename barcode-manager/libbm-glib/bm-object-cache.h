@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,8 +20,8 @@
  * Copyright (C) 2008 Red Hat, Inc.
  */
 
-#ifndef NM_OBJECT_CACHE_H
-#define NM_OBJECT_CACHE_H
+#ifndef BM_OBJECT_CACHE_H
+#define BM_OBJECT_CACHE_H
 
 #include <glib.h>
 #include <glib-object.h>
@@ -29,11 +29,11 @@
 
 G_BEGIN_DECLS
 
-NMObject *_nm_object_cache_get (const char *path);
-void _nm_object_cache_add (NMObject *object);
-void _nm_object_cache_remove_by_object (NMObject *object);
-void _nm_object_cache_remove_by_path (const char *path);
+BMObject *_bm_object_cache_get (const char *path);
+void _bm_object_cache_add (BMObject *object);
+void _bm_object_cache_remove_by_object (BMObject *object);
+void _bm_object_cache_remove_by_path (const char *path);
 
 G_END_DECLS
 
-#endif /* NM_OBJECT_CACHE_H */
+#endif /* BM_OBJECT_CACHE_H */

@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,12 +31,12 @@
 #include "bm-settings-system-bindings.h"
 #include "bm-settings-system-interface.h"
 
-static void settings_system_interface_init (NMSettingsSystemInterface *klass);
+static void settings_system_interface_init (BMSettingsSystemInterface *klass);
 
-G_DEFINE_TYPE_EXTENDED (NMRemoteSettingsSystem, nm_remote_settings_system, NM_TYPE_REMOTE_SETTINGS, 0,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_SETTINGS_SYSTEM_INTERFACE, settings_system_interface_init))
+G_DEFINE_TYPE_EXTENDED (NMRemoteSettingsSystem, bm_remote_settings_system, BM_TYPE_REMOTE_SETTINGS, 0,
+                        G_IMPLEMENT_INTERFACE (BM_TYPE_SETTINGS_SYSTEM_INTERFACE, settings_system_interface_init))
 
-#define NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemPrivate))
+#define BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemPrivate))
 
 typedef struct {
 	DBusGProxy *proxy;
@@ -45,7 +45,7 @@ typedef struct {
 	char *hostname;
 	gboolean can_modify;
 
-	NMSettingsSystemPermissions permissions;
+	BMSettingsSystemPermissions permissions;
 	gboolean have_permissions;
 
 	gboolean disposed;
@@ -56,8 +56,8 @@ properties_changed_cb (DBusGProxy *proxy,
                        GHashTable *properties,
                        gpointer user_data)
 {
-	NMRemoteSettingsSystem *self = NM_REMOTE_SETTINGS_SYSTEM (user_data);
-	NMRemoteSettingsSystemPrivate *priv = NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
+	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
+	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
 	GHashTableIter iter;
 	gpointer key, tmp;
 
@@ -68,12 +68,12 @@ properties_changed_cb (DBusGProxy *proxy,
 		if (!strcmp ((const char *) key, "Hostname")) {
 			g_free (priv->hostname);
 			priv->hostname = g_value_dup_string (value);
-			g_object_notify (G_OBJECT (self), NM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME);
+			g_object_notify (G_OBJECT (self), BM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME);
 		}
 
 		if (!strcmp ((const char *) key, "CanModify")) {
 			priv->can_modify = g_value_get_boolean (value);
-			g_object_notify (G_OBJECT (self), NM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY);
+			g_object_notify (G_OBJECT (self), BM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY);
 		}
 	}
 }
@@ -83,7 +83,7 @@ get_all_cb  (DBusGProxy *proxy,
              DBusGProxyCall *call,
              gpointer user_data)
 {
-	NMRemoteSettingsSystem *self = NM_REMOTE_SETTINGS_SYSTEM (user_data);
+	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
 	GHashTable *props = NULL;
 	GError *error = NULL;
 
@@ -108,8 +108,8 @@ get_all_cb  (DBusGProxy *proxy,
 }
 
 typedef struct {
-	NMSettingsSystemInterface *settings;
-	NMSettingsSystemSaveHostnameFunc callback;
+	BMSettingsSystemInterface *settings;
+	BMSettingsSystemSaveHostnameFunc callback;
 	gpointer callback_data;
 } SaveHostnameInfo;
 
@@ -127,13 +127,13 @@ save_hostname_cb (DBusGProxy *proxy,
 }
 
 static gboolean
-save_hostname (NMSettingsSystemInterface *settings,
+save_hostname (BMSettingsSystemInterface *settings,
 	           const char *hostname,
-	           NMSettingsSystemSaveHostnameFunc callback,
+	           BMSettingsSystemSaveHostnameFunc callback,
 	           gpointer user_data)
 {
-	NMRemoteSettingsSystem *self = NM_REMOTE_SETTINGS_SYSTEM (settings);
-	NMRemoteSettingsSystemPrivate *priv = NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
+	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (settings);
+	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
 	SaveHostnameInfo *info;
 
 	info = g_malloc0 (sizeof (SaveHostnameInfo));
@@ -151,8 +151,8 @@ save_hostname (NMSettingsSystemInterface *settings,
 }
 
 typedef struct {
-	NMSettingsSystemInterface *settings;
-	NMSettingsSystemGetPermissionsFunc callback;
+	BMSettingsSystemInterface *settings;
+	BMSettingsSystemGetPermissionsFunc callback;
 	gpointer callback_data;
 } GetPermissionsInfo;
 
@@ -162,9 +162,9 @@ get_permissions_cb  (DBusGProxy *proxy,
                      gpointer user_data)
 {
 	GetPermissionsInfo *info = user_data;
-	NMRemoteSettingsSystem *self = NM_REMOTE_SETTINGS_SYSTEM (info->settings);
-	NMRemoteSettingsSystemPrivate *priv = NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
-	NMSettingsSystemPermissions permissions = NM_SETTINGS_SYSTEM_PERMISSION_NONE;
+	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (info->settings);
+	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
+	BMSettingsSystemPermissions permissions = BM_SETTINGS_SYSTEM_PERMISSION_NONE;
 	GError *error = NULL;
 
 	dbus_g_proxy_end_call (proxy, call, &error,
@@ -177,11 +177,11 @@ get_permissions_cb  (DBusGProxy *proxy,
 }
 
 static gboolean
-get_permissions (NMSettingsSystemInterface *settings,
-                 NMSettingsSystemGetPermissionsFunc callback,
+get_permissions (BMSettingsSystemInterface *settings,
+                 BMSettingsSystemGetPermissionsFunc callback,
                  gpointer user_data)
 {
-	NMRemoteSettingsSystemPrivate *priv = NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (settings);
+	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (settings);
 	GetPermissionsInfo *info;
 
 	/* Skip D-Bus if we already have permissions */
@@ -207,18 +207,18 @@ get_permissions (NMSettingsSystemInterface *settings,
 static void
 check_permissions_cb (DBusGProxy *proxy, gpointer user_data)
 {
-	NMRemoteSettingsSystem *self = NM_REMOTE_SETTINGS_SYSTEM (user_data);
-	NMRemoteSettingsSystemPrivate *priv = NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
+	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
+	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
 
 	/* Permissions need to be re-fetched */
 	priv->have_permissions = FALSE;
-	g_signal_emit_by_name (self, NM_SETTINGS_SYSTEM_INTERFACE_CHECK_PERMISSIONS);
+	g_signal_emit_by_name (self, BM_SETTINGS_SYSTEM_INTERFACE_CHECK_PERMISSIONS);
 }
 
 /****************************************************************/
 
 static void
-settings_system_interface_init (NMSettingsSystemInterface *klass)
+settings_system_interface_init (BMSettingsSystemInterface *klass)
 {
 	/* interface implementation */
 	klass->save_hostname = save_hostname;
@@ -226,7 +226,7 @@ settings_system_interface_init (NMSettingsSystemInterface *klass)
 }
 
 /**
- * nm_remote_settings_system_new:
+ * bm_remote_settings_system_new:
  * @bus: a valid and connected D-Bus connection
  *
  * Creates a new object representing the remote system settings service.
@@ -234,18 +234,18 @@ settings_system_interface_init (NMSettingsSystemInterface *klass)
  * Returns: the new remote system settings object on success, or %NULL on failure
  **/
 NMRemoteSettingsSystem *
-nm_remote_settings_system_new (DBusGConnection *bus)
+bm_remote_settings_system_new (DBusGConnection *bus)
 {
 	g_return_val_if_fail (bus != NULL, NULL);
 
-	return (NMRemoteSettingsSystem *) g_object_new (NM_TYPE_REMOTE_SETTINGS_SYSTEM,
-	                                                NM_REMOTE_SETTINGS_BUS, bus,
-	                                                NM_REMOTE_SETTINGS_SCOPE, NM_CONNECTION_SCOPE_SYSTEM,
+	return (NMRemoteSettingsSystem *) g_object_new (BM_TYPE_REMOTE_SETTINGS_SYSTEM,
+	                                                BM_REMOTE_SETTINGS_BUS, bus,
+	                                                BM_REMOTE_SETTINGS_SCOPE, BM_CONNECTION_SCOPE_SYSTEM,
 	                                                NULL);
 }
 
 static void
-nm_remote_settings_system_init (NMRemoteSettingsSystem *self)
+bm_remote_settings_system_init (NMRemoteSettingsSystem *self)
 {
 }
 
@@ -258,27 +258,27 @@ constructor (GType type,
 	NMRemoteSettingsSystemPrivate *priv;
 	DBusGConnection *bus = NULL;
 
-	object = G_OBJECT_CLASS (nm_remote_settings_system_parent_class)->constructor (type, n_construct_params, construct_params);
+	object = G_OBJECT_CLASS (bm_remote_settings_system_parent_class)->constructor (type, n_construct_params, construct_params);
 	if (!object)
 		return NULL;
 
-	priv = NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
+	priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
 
-	g_object_get (G_OBJECT (object), NM_REMOTE_SETTINGS_BUS, &bus, NULL);
+	g_object_get (G_OBJECT (object), BM_REMOTE_SETTINGS_BUS, &bus, NULL);
 	g_assert (bus);
 
 	/* D-Bus properties proxy */
 	priv->props_proxy = dbus_g_proxy_new_for_name (bus,
-	                                               NM_DBUS_SERVICE_SYSTEM_SETTINGS,
-	                                               NM_DBUS_PATH_SETTINGS,
+	                                               BM_DBUS_SERVICE_SYSTEM_SETTINGS,
+	                                               BM_DBUS_PATH_SETTINGS,
 	                                               "org.freedesktop.DBus.Properties");
 	g_assert (priv->props_proxy);
 
 	/* System settings proxy */
 	priv->proxy = dbus_g_proxy_new_for_name (bus,
-	                                         NM_DBUS_SERVICE_SYSTEM_SETTINGS,
-	                                         NM_DBUS_PATH_SETTINGS,
-	                                         NM_DBUS_IFACE_SETTINGS_SYSTEM);
+	                                         BM_DBUS_SERVICE_SYSTEM_SETTINGS,
+	                                         BM_DBUS_PATH_SETTINGS,
+	                                         BM_DBUS_IFACE_SETTINGS_SYSTEM);
 	g_assert (priv->proxy);
 	dbus_g_proxy_set_default_timeout (priv->proxy, G_MAXINT);
 
@@ -306,7 +306,7 @@ constructor (GType type,
 	                         get_all_cb,
 	                         object,
 	                         NULL,
-	                         G_TYPE_STRING, NM_DBUS_IFACE_SETTINGS_SYSTEM,
+	                         G_TYPE_STRING, BM_DBUS_IFACE_SETTINGS_SYSTEM,
 	                         G_TYPE_INVALID);
 
 	dbus_g_connection_unref (bus);
@@ -317,7 +317,7 @@ constructor (GType type,
 static void
 dispose (GObject *object)
 {
-	NMRemoteSettingsSystemPrivate *priv = NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
+	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
 
 	if (priv->disposed)
 		return;
@@ -329,20 +329,20 @@ dispose (GObject *object)
 	g_object_unref (priv->props_proxy);
 	g_object_unref (priv->proxy);
 
-	G_OBJECT_CLASS (nm_remote_settings_system_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_remote_settings_system_parent_class)->dispose (object);
 }
 
 static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
-	NMRemoteSettingsSystemPrivate *priv = NM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
+	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
 
 	switch (prop_id) {
-	case NM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME:
+	case BM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME:
 		g_value_set_string (value, priv->hostname);
 		break;
-	case NM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY:
+	case BM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY:
 		g_value_set_boolean (value, priv->can_modify);
 		break;
 	default:
@@ -352,7 +352,7 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_remote_settings_system_class_init (NMRemoteSettingsSystemClass *klass)
+bm_remote_settings_system_class_init (NMRemoteSettingsSystemClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
@@ -365,11 +365,11 @@ nm_remote_settings_system_class_init (NMRemoteSettingsSystemClass *klass)
 
 	/* Properties */
 	g_object_class_override_property (object_class,
-									  NM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME,
-									  NM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME);
+									  BM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME,
+									  BM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME);
 
 	g_object_class_override_property (object_class,
-									  NM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY,
-									  NM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY);
+									  BM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY,
+									  BM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY);
 }
 

@@ -18,8 +18,8 @@
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
-#ifndef NM_SECRETS_PROVIDER_INTERFACE_H
-#define NM_SECRETS_PROVIDER_INTERFACE_H
+#ifndef BM_SECRETS_PROVIDER_INTERFACE_H
+#define BM_SECRETS_PROVIDER_INTERFACE_H
 
 #include <glib-object.h>
 #include <bm-connection.h>
@@ -33,10 +33,10 @@ typedef enum {
 	SECRETS_CALLER_VPN
 } RequestSecretsCaller;
 
-#define NM_TYPE_SECRETS_PROVIDER_INTERFACE               (nm_secrets_provider_interface_get_type ())
-#define NM_SECRETS_PROVIDER_INTERFACE(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SECRETS_PROVIDER_INTERFACE, NMSecretsProviderInterface))
-#define NM_IS_SECRETS_PROVIDER_INTERFACE(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SECRETS_PROVIDER_INTERFACE))
-#define NM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), NM_TYPE_SECRETS_PROVIDER_INTERFACE, NMSecretsProviderInterface))
+#define BM_TYPE_SECRETS_PROVIDER_INTERFACE               (bm_secrets_provider_interface_get_type ())
+#define BM_SECRETS_PROVIDER_INTERFACE(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SECRETS_PROVIDER_INTERFACE, NMSecretsProviderInterface))
+#define BM_IS_SECRETS_PROVIDER_INTERFACE(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SECRETS_PROVIDER_INTERFACE))
+#define BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), BM_TYPE_SECRETS_PROVIDER_INTERFACE, NMSecretsProviderInterface))
 
 typedef struct _NMSecretsProviderInterface NMSecretsProviderInterface;
 
@@ -56,7 +56,7 @@ struct _NMSecretsProviderInterface {
 
 	/* Signals */
 	void (*manager_get_secrets)    (NMSecretsProviderInterface *self,
-	                                NMConnection *connection,
+	                                BMConnection *connection,
 	                                const char *setting_name,
 	                                gboolean request_new,
 	                                RequestSecretsCaller caller,
@@ -66,25 +66,25 @@ struct _NMSecretsProviderInterface {
 	void (*manager_cancel_secrets) (NMSecretsProviderInterface *self);
 };
 
-GType nm_secrets_provider_interface_get_type (void);
+GType bm_secrets_provider_interface_get_type (void);
 
 /* For callers */
-gboolean nm_secrets_provider_interface_get_secrets    (NMSecretsProviderInterface *self,
-                                                       NMConnection *connection,
+gboolean bm_secrets_provider_interface_get_secrets    (NMSecretsProviderInterface *self,
+                                                       BMConnection *connection,
                                                        const char *setting_name,
                                                        gboolean request_new,
                                                        RequestSecretsCaller caller,
                                                        const char *hint1,
                                                        const char *hint2);
 
-void nm_secrets_provider_interface_cancel_get_secrets (NMSecretsProviderInterface *self);
+void bm_secrets_provider_interface_cancel_get_secrets (NMSecretsProviderInterface *self);
 
 /* For NMManager */
-void nm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *self,
+void bm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *self,
                                                        const char *setting_name,
                                                        RequestSecretsCaller caller,
                                                        GHashTable *settings,
                                                        GError *error);
 
-#endif /* NM_SECRETS_PROVIDER_INTERFACE_H */
+#endif /* BM_SECRETS_PROVIDER_INTERFACE_H */
 

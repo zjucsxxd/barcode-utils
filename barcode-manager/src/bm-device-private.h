@@ -19,31 +19,31 @@
  * Copyright (C) 2007 - 2008 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_PRIVATE_H
-#define NM_DEVICE_PRIVATE_H
+#ifndef BM_DEVICE_PRIVATE_H
+#define BM_DEVICE_PRIVATE_H
 
 #include "bm-device.h"
 
-void nm_device_set_ip_iface (NMDevice *self, const char *iface);
+void bm_device_set_ip_iface (BMDevice *self, const char *iface);
 
-void nm_device_activate_schedule_stage3_ip_config_start (NMDevice *device);
+void bm_device_activate_schedule_stage3_ip_config_start (BMDevice *device);
 
-void nm_device_state_changed (NMDevice *device,
-                              NMDeviceState state,
-                              NMDeviceStateReason reason);
+void bm_device_state_changed (BMDevice *device,
+                              BMDeviceState state,
+                              BMDeviceStateReason reason);
 
-gboolean nm_device_hw_bring_up (NMDevice *self, gboolean wait, gboolean *no_firmware);
+gboolean bm_device_hw_bring_up (BMDevice *self, gboolean wait, gboolean *no_firmware);
 
-void nm_device_hw_take_down (NMDevice *self, gboolean block);
+void bm_device_hw_take_down (BMDevice *self, gboolean block);
 
-void nm_device_handle_autoip4_event (NMDevice *self,
+void bm_device_handle_autoip4_event (BMDevice *self,
                                      const char *event,
                                      const char *address);
 
-gboolean nm_device_ip_config_should_fail (NMDevice *self, gboolean ip6);
+gboolean bm_device_ip_config_should_fail (BMDevice *self, gboolean ip6);
 
-gboolean nm_device_get_firmware_missing (NMDevice *self);
+gboolean bm_device_get_firmware_missing (BMDevice *self);
 
-void nm_device_set_firmware_missing (NMDevice *self, gboolean missing);
+void bm_device_set_firmware_missing (BMDevice *self, gboolean missing);
 
-#endif	/* NM_DEVICE_PRIVATE_H */
+#endif	/* BM_DEVICE_PRIVATE_H */

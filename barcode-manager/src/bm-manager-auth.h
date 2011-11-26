@@ -18,8 +18,8 @@
  * Copyright (C) 2010 Red Hat, Inc.
  */
 
-#ifndef NM_MANAGER_AUTH_H
-#define NM_MANAGER_AUTH_H
+#ifndef BM_MANAGER_AUTH_H
+#define BM_MANAGER_AUTH_H
 
 #include <polkit/polkit.h>
 #include <glib.h>
@@ -27,21 +27,21 @@
 
 #include "bm-dbus-manager.h"
 
-#define NM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK "org.freedesktop.BarcodeManager.enable-disable-network"
-#define NM_AUTH_PERMISSION_SLEEP_WAKE             "org.freedesktop.BarcodeManager.sleep-wake"
-#define NM_AUTH_PERMISSION_ENABLE_DISABLE_WIFI    "org.freedesktop.BarcodeManager.enable-disable-wifi"
-#define NM_AUTH_PERMISSION_ENABLE_DISABLE_WWAN    "org.freedesktop.BarcodeManager.enable-disable-wwan"
-#define NM_AUTH_PERMISSION_USE_USER_CONNECTIONS   "org.freedesktop.BarcodeManager.use-user-connections"
-#define NM_AUTH_PERMISSION_NETWORK_CONTROL        "org.freedesktop.BarcodeManager.network-control"
+#define BM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK "org.freedesktop.BarcodeManager.enable-disable-network"
+#define BM_AUTH_PERMISSION_SLEEP_WAKE             "org.freedesktop.BarcodeManager.sleep-wake"
+#define BM_AUTH_PERMISSION_ENABLE_DISABLE_WIFI    "org.freedesktop.BarcodeManager.enable-disable-wifi"
+#define BM_AUTH_PERMISSION_ENABLE_DISABLE_WWAN    "org.freedesktop.BarcodeManager.enable-disable-wwan"
+#define BM_AUTH_PERMISSION_USE_USER_CONNECTIONS   "org.freedesktop.BarcodeManager.use-user-connections"
+#define BM_AUTH_PERMISSION_NETWORK_CONTROL        "org.freedesktop.BarcodeManager.network-control"
 
 
 typedef struct NMAuthChain NMAuthChain;
 
 typedef enum {
-	NM_AUTH_CALL_RESULT_UNKNOWN,
-	NM_AUTH_CALL_RESULT_YES,
-	NM_AUTH_CALL_RESULT_AUTH,
-	NM_AUTH_CALL_RESULT_NO,
+	BM_AUTH_CALL_RESULT_UNKNOWN,
+	BM_AUTH_CALL_RESULT_YES,
+	BM_AUTH_CALL_RESULT_AUTH,
+	BM_AUTH_CALL_RESULT_NO,
 } NMAuthCallResult;
 
 typedef void (*NMAuthChainResultFunc) (NMAuthChain *chain,
@@ -55,40 +55,40 @@ typedef void (*NMAuthChainCallFunc) (NMAuthChain *chain,
                                      NMAuthCallResult result,
                                      gpointer user_data);
 
-NMAuthChain *nm_auth_chain_new (PolkitAuthority *authority,
+NMAuthChain *bm_auth_chain_new (PolkitAuthority *authority,
                                 DBusGMethodInvocation *context,
                                 DBusGProxy *proxy,
                                 NMAuthChainResultFunc done_func,
                                 gpointer user_data);
 
-NMAuthChain *nm_auth_chain_new_raw_message (PolkitAuthority *authority,
+NMAuthChain *bm_auth_chain_new_raw_message (PolkitAuthority *authority,
                                             DBusMessage *message,
                                             NMAuthChainResultFunc done_func,
                                             gpointer user_data);
 
-gpointer nm_auth_chain_get_data (NMAuthChain *chain, const char *tag);
+gpointer bm_auth_chain_get_data (NMAuthChain *chain, const char *tag);
 
-void nm_auth_chain_set_data (NMAuthChain *chain,
+void bm_auth_chain_set_data (NMAuthChain *chain,
                              const char *tag,
                              gpointer data,
                              GDestroyNotify data_destroy);
 
-gboolean nm_auth_chain_add_call (NMAuthChain *chain,
+gboolean bm_auth_chain_add_call (NMAuthChain *chain,
                                  const char *permission,
                                  gboolean allow_interaction);
 
-void nm_auth_chain_unref (NMAuthChain *chain);
+void bm_auth_chain_unref (NMAuthChain *chain);
 
 /* Utils */
-gboolean nm_auth_get_caller_uid (DBusGMethodInvocation *context,
+gboolean bm_auth_get_caller_uid (DBusGMethodInvocation *context,
                                  NMDBusManager *dbus_mgr,
                                  gulong *out_uid,
                                  const char **out_error_desc);
 
-gboolean nm_auth_uid_authorized (gulong uid,
+gboolean bm_auth_uid_authorized (gulong uid,
                                  NMDBusManager *dbus_mgr,
                                  DBusGProxy *user_proxy,
                                  const char **out_error_desc);
 
-#endif /* NM_MANAGER_AUTH_H */
+#endif /* BM_MANAGER_AUTH_H */
 

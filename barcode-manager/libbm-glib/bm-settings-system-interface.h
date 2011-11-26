@@ -20,8 +20,8 @@
  * Copyright (C) 2007 - 2009 Red Hat, Inc.
  */
 
-#ifndef NM_SETTINGS_SYSTEM_INTERFACE_H
-#define NM_SETTINGS_SYSTEM_INTERFACE_H
+#ifndef BM_SETTINGS_SYSTEM_INTERFACE_H
+#define BM_SETTINGS_SYSTEM_INTERFACE_H
 
 #include <glib-object.h>
 
@@ -30,58 +30,58 @@
 G_BEGIN_DECLS
 
 typedef enum {
-	NM_SETTINGS_SYSTEM_PERMISSION_NONE = 0x0,
-	NM_SETTINGS_SYSTEM_PERMISSION_CONNECTION_MODIFY = 0x1,
-	NM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_PROTECTED = 0x2,
-	NM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_OPEN = 0x4,
-	NM_SETTINGS_SYSTEM_PERMISSION_HOSTNAME_MODIFY = 0x8
-} NMSettingsSystemPermissions;
+	BM_SETTINGS_SYSTEM_PERMISSION_NONE = 0x0,
+	BM_SETTINGS_SYSTEM_PERMISSION_CONNECTION_MODIFY = 0x1,
+	BM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_PROTECTED = 0x2,
+	BM_SETTINGS_SYSTEM_PERMISSION_WIFI_SHARE_OPEN = 0x4,
+	BM_SETTINGS_SYSTEM_PERMISSION_HOSTNAME_MODIFY = 0x8
+} BMSettingsSystemPermissions;
 
-#define NM_TYPE_SETTINGS_SYSTEM_INTERFACE               (nm_settings_system_interface_get_type ())
-#define NM_SETTINGS_SYSTEM_INTERFACE(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTINGS_SYSTEM_INTERFACE, NMSettingsSystemInterface))
-#define NM_IS_SETTINGS_SYSTEM_INTERFACE(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SETTINGS_SYSTEM_INTERFACE))
-#define NM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), NM_TYPE_SETTINGS_SYSTEM_INTERFACE, NMSettingsSystemInterface))
+#define BM_TYPE_SETTINGS_SYSTEM_INTERFACE               (bm_settings_system_interface_get_type ())
+#define BM_SETTINGS_SYSTEM_INTERFACE(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SETTINGS_SYSTEM_INTERFACE, BMSettingsSystemInterface))
+#define BM_IS_SETTINGS_SYSTEM_INTERFACE(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SETTINGS_SYSTEM_INTERFACE))
+#define BM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), BM_TYPE_SETTINGS_SYSTEM_INTERFACE, BMSettingsSystemInterface))
 
-#define NM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME          "hostname"
-#define NM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY        "can-modify"
+#define BM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME          "hostname"
+#define BM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY        "can-modify"
 
-#define NM_SETTINGS_SYSTEM_INTERFACE_CHECK_PERMISSIONS "check-permissions"
+#define BM_SETTINGS_SYSTEM_INTERFACE_CHECK_PERMISSIONS "check-permissions"
 
 typedef enum {
-	NM_SETTINGS_SYSTEM_INTERFACE_PROP_FIRST = 0x1000,
+	BM_SETTINGS_SYSTEM_INTERFACE_PROP_FIRST = 0x1000,
 
-	NM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME = NM_SETTINGS_SYSTEM_INTERFACE_PROP_FIRST,
-	NM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY
-} NMSettingsSystemInterfaceProp;
-
-
-typedef struct _NMSettingsSystemInterface NMSettingsSystemInterface;
+	BM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME = BM_SETTINGS_SYSTEM_INTERFACE_PROP_FIRST,
+	BM_SETTINGS_SYSTEM_INTERFACE_PROP_CAN_MODIFY
+} BMSettingsSystemInterfaceProp;
 
 
-typedef void (*NMSettingsSystemSaveHostnameFunc) (NMSettingsSystemInterface *settings,
+typedef struct _BMSettingsSystemInterface BMSettingsSystemInterface;
+
+
+typedef void (*BMSettingsSystemSaveHostnameFunc) (BMSettingsSystemInterface *settings,
                                                   GError *error,
                                                   gpointer user_data);
 
-typedef void (*NMSettingsSystemGetPermissionsFunc) (NMSettingsSystemInterface *settings,
-                                                    NMSettingsSystemPermissions permissions,
+typedef void (*BMSettingsSystemGetPermissionsFunc) (BMSettingsSystemInterface *settings,
+                                                    BMSettingsSystemPermissions permissions,
                                                     GError *error,
                                                     gpointer user_data);
 
-struct _NMSettingsSystemInterface {
+struct _BMSettingsSystemInterface {
 	GTypeInterface g_iface;
 
 	/* Methods */
-	gboolean (*save_hostname) (NMSettingsSystemInterface *settings,
+	gboolean (*save_hostname) (BMSettingsSystemInterface *settings,
 	                           const char *hostname,
-	                           NMSettingsSystemSaveHostnameFunc callback,
+	                           BMSettingsSystemSaveHostnameFunc callback,
 	                           gpointer user_data);
 
-	gboolean (*get_permissions) (NMSettingsSystemInterface *settings,
-	                             NMSettingsSystemGetPermissionsFunc callback,
+	gboolean (*get_permissions) (BMSettingsSystemInterface *settings,
+	                             BMSettingsSystemGetPermissionsFunc callback,
 	                             gpointer user_data);
 
 	/* Signals */
-	void (*check_permissions) (NMSettingsSystemInterface *settings);
+	void (*check_permissions) (BMSettingsSystemInterface *settings);
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
@@ -92,17 +92,17 @@ struct _NMSettingsSystemInterface {
 	void (*_reserved6) (void);
 };
 
-GType nm_settings_system_interface_get_type (void);
+GType bm_settings_system_interface_get_type (void);
 
-gboolean nm_settings_system_interface_save_hostname (NMSettingsSystemInterface *settings,
+gboolean bm_settings_system_interface_save_hostname (BMSettingsSystemInterface *settings,
                                                      const char *hostname,
-                                                     NMSettingsSystemSaveHostnameFunc callback,
+                                                     BMSettingsSystemSaveHostnameFunc callback,
                                                      gpointer user_data);
 
-gboolean nm_settings_system_interface_get_permissions (NMSettingsSystemInterface *settings,
-                                                       NMSettingsSystemGetPermissionsFunc callback,
+gboolean bm_settings_system_interface_get_permissions (BMSettingsSystemInterface *settings,
+                                                       BMSettingsSystemGetPermissionsFunc callback,
                                                        gpointer user_data);
 
 G_END_DECLS
 
-#endif /* NM_SETTINGS_SYSTEM_INTERFACE_H */
+#endif /* BM_SETTINGS_SYSTEM_INTERFACE_H */

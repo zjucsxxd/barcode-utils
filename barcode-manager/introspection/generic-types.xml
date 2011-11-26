@@ -20,7 +20,7 @@
       <tp:member type="a{sv}" name="Value" tp:type="String_Variant_Map"/>
   </tp:mapping>
 
-  <tp:enum name="NM_802_11_MODE" type="u">
+  <tp:enum name="BM_802_11_MODE" type="u">
     <tp:docstring></tp:docstring>
     <tp:enumvalue suffix="UNKNOWN" value="0">
       <tp:docstring>Mode is unknown.</tp:docstring>

@@ -25,8 +25,8 @@
 
 
 /**
- * nm_settings_system_interface_save_hostname:
- * @settings: a object implementing %NMSettingsSystemInterface
+ * bm_settings_system_interface_save_hostname:
+ * @settings: a object implementing %BMSettingsSystemInterface
  * @hostname: the new persistent hostname to set, or NULL to clear any existing
  *  persistent hostname
  * @callback: callback to be called when the hostname operation completes
@@ -38,18 +38,18 @@
  * Returns: TRUE if the request was successful, FALSE if it failed
  **/
 gboolean
-nm_settings_system_interface_save_hostname (NMSettingsSystemInterface *settings,
+bm_settings_system_interface_save_hostname (BMSettingsSystemInterface *settings,
                                             const char *hostname,
-                                            NMSettingsSystemSaveHostnameFunc callback,
+                                            BMSettingsSystemSaveHostnameFunc callback,
                                             gpointer user_data)
 {
 	g_return_val_if_fail (settings != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SETTINGS_SYSTEM_INTERFACE (settings), FALSE);
+	g_return_val_if_fail (BM_IS_SETTINGS_SYSTEM_INTERFACE (settings), FALSE);
 	g_return_val_if_fail (hostname != NULL, FALSE);
 	g_return_val_if_fail (callback != NULL, FALSE);
 
-	if (NM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE (settings)->save_hostname) {
-		return NM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE (settings)->save_hostname (settings,
+	if (BM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE (settings)->save_hostname) {
+		return BM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE (settings)->save_hostname (settings,
 		                                                                             hostname,
 		                                                                             callback,
 		                                                                             user_data);
@@ -58,8 +58,8 @@ nm_settings_system_interface_save_hostname (NMSettingsSystemInterface *settings,
 }
 
 /**
- * nm_settings_system_interface_get_permissions:
- * @settings: a object implementing %NMSettingsSystemInterface
+ * bm_settings_system_interface_get_permissions:
+ * @settings: a object implementing %BMSettingsSystemInterface
  * @callback: callback to be called when the permissions operation completes
  * @user_data: caller-specific data passed to @callback
  *
@@ -69,21 +69,21 @@ nm_settings_system_interface_save_hostname (NMSettingsSystemInterface *settings,
  * Returns: TRUE if the request was successful, FALSE if it failed
  **/
 gboolean
-nm_settings_system_interface_get_permissions (NMSettingsSystemInterface *settings,
-                                              NMSettingsSystemGetPermissionsFunc callback,
+bm_settings_system_interface_get_permissions (BMSettingsSystemInterface *settings,
+                                              BMSettingsSystemGetPermissionsFunc callback,
                                               gpointer user_data)
 {
 	g_return_val_if_fail (settings != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SETTINGS_SYSTEM_INTERFACE (settings), FALSE);
+	g_return_val_if_fail (BM_IS_SETTINGS_SYSTEM_INTERFACE (settings), FALSE);
 	g_return_val_if_fail (callback != NULL, FALSE);
 
-	if (NM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE (settings)->get_permissions)
-		return NM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE (settings)->get_permissions (settings, callback, user_data);
+	if (BM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE (settings)->get_permissions)
+		return BM_SETTINGS_SYSTEM_INTERFACE_GET_INTERFACE (settings)->get_permissions (settings, callback, user_data);
 	return FALSE;
 }
 
 static void
-nm_settings_system_interface_init (gpointer g_iface)
+bm_settings_system_interface_init (gpointer g_iface)
 {
 	GType iface_type = G_TYPE_FROM_INTERFACE (g_iface);
 	static gboolean initialized = FALSE;
@@ -94,7 +94,7 @@ nm_settings_system_interface_init (gpointer g_iface)
 	/* Properties */
 	g_object_interface_install_property
 		(g_iface,
-		 g_param_spec_string (NM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME,
+		 g_param_spec_string (BM_SETTINGS_SYSTEM_INTERFACE_HOSTNAME,
 							  "Hostname",
 							  "Persistent hostname",
 							  NULL,
@@ -102,17 +102,17 @@ nm_settings_system_interface_init (gpointer g_iface)
 
 	g_object_interface_install_property
 		(g_iface,
-		 g_param_spec_boolean (NM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY,
+		 g_param_spec_boolean (BM_SETTINGS_SYSTEM_INTERFACE_CAN_MODIFY,
 		                       "CanModify",
 		                       "Can modify anything (hostname, connections, etc)",
 		                       FALSE,
 		                       G_PARAM_READABLE));
 
 	/* Signals */
-	g_signal_new (NM_SETTINGS_SYSTEM_INTERFACE_CHECK_PERMISSIONS,
+	g_signal_new (BM_SETTINGS_SYSTEM_INTERFACE_CHECK_PERMISSIONS,
 				  iface_type,
 				  G_SIGNAL_RUN_FIRST,
-				  G_STRUCT_OFFSET (NMSettingsSystemInterface, check_permissions),
+				  G_STRUCT_OFFSET (BMSettingsSystemInterface, check_permissions),
 				  NULL, NULL,
 				  g_cclosure_marshal_VOID__VOID,
 				  G_TYPE_NONE, 0);
@@ -121,14 +121,14 @@ nm_settings_system_interface_init (gpointer g_iface)
 }
 
 GType
-nm_settings_system_interface_get_type (void)
+bm_settings_system_interface_get_type (void)
 {
 	static GType itype = 0;
 
 	if (!itype) {
 		const GTypeInfo iinfo = {
-			sizeof (NMSettingsSystemInterface), /* class_size */
-			nm_settings_system_interface_init,   /* base_init */
+			sizeof (BMSettingsSystemInterface), /* class_size */
+			bm_settings_system_interface_init,   /* base_init */
 			NULL,		/* base_finalize */
 			NULL,
 			NULL,		/* class_finalize */
@@ -139,10 +139,10 @@ nm_settings_system_interface_get_type (void)
 		};
 
 		itype = g_type_register_static (G_TYPE_INTERFACE,
-		                                "NMSettingsSystemInterface",
+		                                "BMSettingsSystemInterface",
 		                                &iinfo, 0);
 
-		g_type_interface_add_prerequisite (itype, NM_TYPE_SETTINGS_INTERFACE);
+		g_type_interface_add_prerequisite (itype, BM_TYPE_SETTINGS_INTERFACE);
 	}
 
 	return itype;

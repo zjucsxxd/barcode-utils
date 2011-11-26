@@ -30,7 +30,7 @@
 
 typedef struct NMPolicy NMPolicy;
 
-NMPolicy *nm_policy_new (NMManager *manager, NMVPNManager *vpn_manager);
-void nm_policy_destroy (NMPolicy *policy);
+NMPolicy *bm_policy_new (NMManager *manager, NMVPNManager *vpn_manager);
+void bm_policy_destroy (NMPolicy *policy);
 
 #endif /* NETWORK_MANAGER_POLICY_H */

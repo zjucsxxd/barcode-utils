@@ -18,8 +18,8 @@
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
-#ifndef NM_BLUEZ_COMMON_H
-#define NM_BLUEZ_COMMON_H
+#ifndef BM_BLUEZ_COMMON_H
+#define BM_BLUEZ_COMMON_H
 
 #define BLUEZ_SERVICE           "org.bluez"
 
@@ -30,5 +30,5 @@
 #define BLUEZ_SERIAL_INTERFACE  "org.bluez.Serial"
 #define BLUEZ_NETWORK_INTERFACE "org.bluez.Network"
 
-#endif  /* NM_BLUEZ_COMMON_H */
+#endif  /* BM_BLUEZ_COMMON_H */
 

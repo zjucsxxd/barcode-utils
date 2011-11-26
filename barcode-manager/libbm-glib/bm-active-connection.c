@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,11 +32,11 @@
 
 #include "bm-active-connection-bindings.h"
 
-G_DEFINE_TYPE (NMActiveConnection, nm_active_connection, NM_TYPE_OBJECT)
+G_DEFINE_TYPE (BMActiveConnection, bm_active_connection, BM_TYPE_OBJECT)
 
-#define NM_ACTIVE_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_ACTIVE_CONNECTION, NMActiveConnectionPrivate))
+#define BM_ACTIVE_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_ACTIVE_CONNECTION, BMActiveConnectionPrivate))
 
-static gboolean demarshal_devices (NMObject *object, GParamSpec *pspec, GValue *value, gpointer field);
+static gboolean demarshal_devices (BMObject *object, GParamSpec *pspec, GValue *value, gpointer field);
 
 
 typedef struct {
@@ -44,14 +44,14 @@ typedef struct {
 	DBusGProxy *proxy;
 
 	char *service_name;
-	NMConnectionScope scope;
+	BMConnectionScope scope;
 	char *connection;
 	char *specific_object;
 	GPtrArray *devices;
-	NMActiveConnectionState state;
+	BMActiveConnectionState state;
 	gboolean is_default;
 	gboolean is_default6;
-} NMActiveConnectionPrivate;
+} BMActiveConnectionPrivate;
 
 enum {
 	PROP_0,
@@ -75,40 +75,40 @@ enum {
 #define DBUS_PROP_DEFAULT6 "Default6"
 
 /**
- * nm_active_connection_new:
+ * bm_active_connection_new:
  * @connection: the #DBusGConnection
  * @path: the DBus object path of the device
  *
- * Creates a new #NMActiveConnection.
+ * Creates a new #BMActiveConnection.
  *
  * Returns: a new active connection
  **/
 GObject *
-nm_active_connection_new (DBusGConnection *connection, const char *path)
+bm_active_connection_new (DBusGConnection *connection, const char *path)
 {
 	g_return_val_if_fail (connection != NULL, NULL);
 	g_return_val_if_fail (path != NULL, NULL);
 
-	return g_object_new (NM_TYPE_ACTIVE_CONNECTION,
-						 NM_OBJECT_DBUS_CONNECTION, connection,
-						 NM_OBJECT_DBUS_PATH, path,
+	return g_object_new (BM_TYPE_ACTIVE_CONNECTION,
+						 BM_OBJECT_DBUS_CONNECTION, connection,
+						 BM_OBJECT_DBUS_PATH, path,
 						 NULL);
 }
 
-static NMConnectionScope
+static BMConnectionScope
 get_scope_for_service_name (const char *service_name)
 {
-	if (service_name && !strcmp (service_name, NM_DBUS_SERVICE_USER_SETTINGS))
-		return NM_CONNECTION_SCOPE_USER;
-	else if (service_name && !strcmp (service_name, NM_DBUS_SERVICE_SYSTEM_SETTINGS))
-		return NM_CONNECTION_SCOPE_SYSTEM;
+	if (service_name && !strcmp (service_name, BM_DBUS_SERVICE_USER_SETTINGS))
+		return BM_CONNECTION_SCOPE_USER;
+	else if (service_name && !strcmp (service_name, BM_DBUS_SERVICE_SYSTEM_SETTINGS))
+		return BM_CONNECTION_SCOPE_SYSTEM;
 
-	return NM_CONNECTION_SCOPE_UNKNOWN;
+	return BM_CONNECTION_SCOPE_UNKNOWN;
 }
 
 /**
- * nm_active_connection_get_service_name:
- * @connection: a #NMActiveConnection
+ * bm_active_connection_get_service_name:
+ * @connection: a #BMActiveConnection
  *
  * Gets the service name of the active connection.
  *
@@ -116,16 +116,16 @@ get_scope_for_service_name (const char *service_name)
  * connection, and must not be modified.
  **/
 const char *
-nm_active_connection_get_service_name (NMActiveConnection *connection)
+bm_active_connection_get_service_name (BMActiveConnection *connection)
 {
-	NMActiveConnectionPrivate *priv;
+	BMActiveConnectionPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (connection), NULL);
+	g_return_val_if_fail (BM_IS_ACTIVE_CONNECTION (connection), NULL);
 
-	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
+	priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
 	if (!priv->service_name) {
-		priv->service_name = _nm_object_get_string_property (NM_OBJECT (connection),
-		                                                    NM_DBUS_INTERFACE_ACTIVE_CONNECTION,
+		priv->service_name = _bm_object_get_string_property (BM_OBJECT (connection),
+		                                                    BM_DBUS_INTERFACE_ACTIVE_CONNECTION,
 		                                                    DBUS_PROP_SERVICE_NAME);
 		priv->scope = get_scope_for_service_name (priv->service_name);
 	}
@@ -134,43 +134,43 @@ nm_active_connection_get_service_name (NMActiveConnection *connection)
 }
 
 /**
- * nm_active_connection_get_scope:
- * @connection: a #NMActiveConnection
+ * bm_active_connection_get_scope:
+ * @connection: a #BMActiveConnection
  *
  * Gets the scope of the active connection.
  *
  * Returns: the connection's scope
  **/
-NMConnectionScope
-nm_active_connection_get_scope (NMActiveConnection *connection)
+BMConnectionScope
+bm_active_connection_get_scope (BMActiveConnection *connection)
 {
-	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (connection), NM_CONNECTION_SCOPE_UNKNOWN);
+	g_return_val_if_fail (BM_IS_ACTIVE_CONNECTION (connection), BM_CONNECTION_SCOPE_UNKNOWN);
 
 	/* Make sure service_name and scope are up-to-date */
-	nm_active_connection_get_service_name (connection);
-	return NM_ACTIVE_CONNECTION_GET_PRIVATE (connection)->scope;
+	bm_active_connection_get_service_name (connection);
+	return BM_ACTIVE_CONNECTION_GET_PRIVATE (connection)->scope;
 }
 
 /**
- * nm_active_connection_get_connection:
- * @connection: a #NMActiveConnection
+ * bm_active_connection_get_connection:
+ * @connection: a #BMActiveConnection
  *
- * Gets the #NMConnection<!-- -->'s DBus object path.
+ * Gets the #BMConnection<!-- -->'s DBus object path.
  *
- * Returns: the object path of the #NMConnection inside of #NMActiveConnection.
+ * Returns: the object path of the #BMConnection inside of #BMActiveConnection.
  * This is the internal string used by the connection, and must not be modified.
  **/
 const char *
-nm_active_connection_get_connection (NMActiveConnection *connection)
+bm_active_connection_get_connection (BMActiveConnection *connection)
 {
-	NMActiveConnectionPrivate *priv;
+	BMActiveConnectionPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (connection), NULL);
+	g_return_val_if_fail (BM_IS_ACTIVE_CONNECTION (connection), NULL);
 
-	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
+	priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
 	if (!priv->connection) {
-		priv->connection = _nm_object_get_string_property (NM_OBJECT (connection),
-		                                                  NM_DBUS_INTERFACE_ACTIVE_CONNECTION,
+		priv->connection = _bm_object_get_string_property (BM_OBJECT (connection),
+		                                                  BM_DBUS_INTERFACE_ACTIVE_CONNECTION,
 		                                                  DBUS_PROP_CONNECTION);
 	}
 
@@ -178,8 +178,8 @@ nm_active_connection_get_connection (NMActiveConnection *connection)
 }
 
 /**
- * nm_active_connection_get_specific_object:
- * @connection: a #NMActiveConnection
+ * bm_active_connection_get_specific_object:
+ * @connection: a #BMActiveConnection
  *
  * Gets the "specific object" used at the activation.
  *
@@ -187,16 +187,16 @@ nm_active_connection_get_connection (NMActiveConnection *connection)
  * connection, and must not be modified.
  **/
 const char *
-nm_active_connection_get_specific_object (NMActiveConnection *connection)
+bm_active_connection_get_specific_object (BMActiveConnection *connection)
 {
-	NMActiveConnectionPrivate *priv;
+	BMActiveConnectionPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (connection), NULL);
+	g_return_val_if_fail (BM_IS_ACTIVE_CONNECTION (connection), NULL);
 
-	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
+	priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
 	if (!priv->specific_object) {
-		priv->specific_object = _nm_object_get_string_property (NM_OBJECT (connection),
-		                                                       NM_DBUS_INTERFACE_ACTIVE_CONNECTION,
+		priv->specific_object = _bm_object_get_string_property (BM_OBJECT (connection),
+		                                                       BM_DBUS_INTERFACE_ACTIVE_CONNECTION,
 		                                                       DBUS_PROP_SPECIFIC_OBJECT);
 	}
 
@@ -204,58 +204,58 @@ nm_active_connection_get_specific_object (NMActiveConnection *connection)
 }
 
 /**
- * nm_active_connection_get_devices:
- * @connection: a #NMActiveConnection
+ * bm_active_connection_get_devices:
+ * @connection: a #BMActiveConnection
  *
- * Gets the #NMDevice<!-- -->s used for the active connections.
+ * Gets the #BMDevice<!-- -->s used for the active connections.
  *
- * Returns: the #GPtrArray containing #NMDevice<!-- -->s.
+ * Returns: the #GPtrArray containing #BMDevice<!-- -->s.
  * This is the internal copy used by the connection, and must not be modified.
  **/
 const GPtrArray *
-nm_active_connection_get_devices (NMActiveConnection *connection)
+bm_active_connection_get_devices (BMActiveConnection *connection)
 {
-	NMActiveConnectionPrivate *priv;
+	BMActiveConnectionPrivate *priv;
 	GValue value = { 0, };
 
-	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (connection), NULL);
+	g_return_val_if_fail (BM_IS_ACTIVE_CONNECTION (connection), NULL);
 
-	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
+	priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
 	if (priv->devices)
 		return handle_ptr_array_return (priv->devices);
 
-	if (!_nm_object_get_property (NM_OBJECT (connection),
-	                             NM_DBUS_INTERFACE_ACTIVE_CONNECTION,
+	if (!_bm_object_get_property (BM_OBJECT (connection),
+	                             BM_DBUS_INTERFACE_ACTIVE_CONNECTION,
 	                             DBUS_PROP_DEVICES,
 	                             &value)) {
 		return NULL;
 	}
 
-	demarshal_devices (NM_OBJECT (connection), NULL, &value, &priv->devices);
+	demarshal_devices (BM_OBJECT (connection), NULL, &value, &priv->devices);
 	g_value_unset (&value);
 
 	return handle_ptr_array_return (priv->devices);
 }
 
 /**
- * nm_active_connection_get_state:
- * @connection: a #NMActiveConnection
+ * bm_active_connection_get_state:
+ * @connection: a #BMActiveConnection
  *
  * Gets the active connection's state.
  *
  * Returns: the state
  **/
-NMActiveConnectionState
-nm_active_connection_get_state (NMActiveConnection *connection)
+BMActiveConnectionState
+bm_active_connection_get_state (BMActiveConnection *connection)
 {
-	NMActiveConnectionPrivate *priv;
+	BMActiveConnectionPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (connection), NM_ACTIVE_CONNECTION_STATE_UNKNOWN);
+	g_return_val_if_fail (BM_IS_ACTIVE_CONNECTION (connection), BM_ACTIVE_CONNECTION_STATE_UNKNOWN);
 
-	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
+	priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
 	if (!priv->state) {
-		priv->state = _nm_object_get_uint_property (NM_OBJECT (connection),
-		                                           NM_DBUS_INTERFACE_ACTIVE_CONNECTION,
+		priv->state = _bm_object_get_uint_property (BM_OBJECT (connection),
+		                                           BM_DBUS_INTERFACE_ACTIVE_CONNECTION,
 		                                           DBUS_PROP_STATE);
 	}
 
@@ -263,8 +263,8 @@ nm_active_connection_get_state (NMActiveConnection *connection)
 }
 
 /**
- * nm_active_connection_get_default:
- * @connection: a #NMActiveConnection
+ * bm_active_connection_get_default:
+ * @connection: a #BMActiveConnection
  *
  * Whether the active connection is the default IPv4 one (that is, is used for
  * the default IPv4 route and DNS information).
@@ -272,16 +272,16 @@ nm_active_connection_get_state (NMActiveConnection *connection)
  * Returns: %TRUE if the active connection is the default IPv4 connection
  **/
 gboolean
-nm_active_connection_get_default (NMActiveConnection *connection)
+bm_active_connection_get_default (BMActiveConnection *connection)
 {
-	NMActiveConnectionPrivate *priv;
+	BMActiveConnectionPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (BM_IS_ACTIVE_CONNECTION (connection), FALSE);
 
-	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
+	priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
 	if (!priv->is_default) {
-		priv->is_default = _nm_object_get_boolean_property (NM_OBJECT (connection),
-		                                                    NM_DBUS_INTERFACE_ACTIVE_CONNECTION,
+		priv->is_default = _bm_object_get_boolean_property (BM_OBJECT (connection),
+		                                                    BM_DBUS_INTERFACE_ACTIVE_CONNECTION,
 		                                                    DBUS_PROP_DEFAULT);
 	}
 
@@ -289,8 +289,8 @@ nm_active_connection_get_default (NMActiveConnection *connection)
 }
 
 /**
- * nm_active_connection_get_default6:
- * @connection: a #NMActiveConnection
+ * bm_active_connection_get_default6:
+ * @connection: a #BMActiveConnection
  *
  * Whether the active connection is the default IPv6 one (that is, is used for
  * the default IPv6 route and DNS information).
@@ -298,16 +298,16 @@ nm_active_connection_get_default (NMActiveConnection *connection)
  * Returns: %TRUE if the active connection is the default IPv6 connection
  **/
 gboolean
-nm_active_connection_get_default6 (NMActiveConnection *connection)
+bm_active_connection_get_default6 (BMActiveConnection *connection)
 {
-	NMActiveConnectionPrivate *priv;
+	BMActiveConnectionPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_ACTIVE_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (BM_IS_ACTIVE_CONNECTION (connection), FALSE);
 
-	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
+	priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
 	if (!priv->is_default6) {
-		priv->is_default6 = _nm_object_get_boolean_property (NM_OBJECT (connection),
-		                                                     NM_DBUS_INTERFACE_ACTIVE_CONNECTION,
+		priv->is_default6 = _bm_object_get_boolean_property (BM_OBJECT (connection),
+		                                                     BM_DBUS_INTERFACE_ACTIVE_CONNECTION,
 		                                                     DBUS_PROP_DEFAULT6);
 	}
 
@@ -315,17 +315,17 @@ nm_active_connection_get_default6 (NMActiveConnection *connection)
 }
 
 static void
-nm_active_connection_init (NMActiveConnection *ap)
+bm_active_connection_init (BMActiveConnection *ap)
 {
 }
 
 static void
 dispose (GObject *object)
 {
-	NMActiveConnectionPrivate *priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (object);
+	BMActiveConnectionPrivate *priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (object);
 
 	if (priv->disposed) {
-		G_OBJECT_CLASS (nm_active_connection_parent_class)->dispose (object);
+		G_OBJECT_CLASS (bm_active_connection_parent_class)->dispose (object);
 		return;
 	}
 
@@ -337,19 +337,19 @@ dispose (GObject *object)
 	}
 	g_object_unref (priv->proxy);
 
-	G_OBJECT_CLASS (nm_active_connection_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_active_connection_parent_class)->dispose (object);
 }
 
 static void
 finalize (GObject *object)
 {
-	NMActiveConnectionPrivate *priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (object);
+	BMActiveConnectionPrivate *priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (object);
 
 	g_free (priv->service_name);
 	g_free (priv->connection);
 	g_free (priv->specific_object);
 
-	G_OBJECT_CLASS (nm_active_connection_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_active_connection_parent_class)->finalize (object);
 }
 
 static void
@@ -358,29 +358,29 @@ get_property (GObject *object,
               GValue *value,
               GParamSpec *pspec)
 {
-	NMActiveConnection *self = NM_ACTIVE_CONNECTION (object);
+	BMActiveConnection *self = BM_ACTIVE_CONNECTION (object);
 
 	switch (prop_id) {
 	case PROP_SERVICE_NAME:
-		g_value_set_string (value, nm_active_connection_get_service_name (self));
+		g_value_set_string (value, bm_active_connection_get_service_name (self));
 		break;
 	case PROP_CONNECTION:
-		g_value_set_boxed (value, nm_active_connection_get_connection (self));
+		g_value_set_boxed (value, bm_active_connection_get_connection (self));
 		break;
 	case PROP_SPECIFIC_OBJECT:
-		g_value_set_boxed (value, nm_active_connection_get_specific_object (self));
+		g_value_set_boxed (value, bm_active_connection_get_specific_object (self));
 		break;
 	case PROP_DEVICES:
-		g_value_set_boxed (value, nm_active_connection_get_devices (self));
+		g_value_set_boxed (value, bm_active_connection_get_devices (self));
 		break;
 	case PROP_STATE:
-		g_value_set_uint (value, nm_active_connection_get_state (self));
+		g_value_set_uint (value, bm_active_connection_get_state (self));
 		break;
 	case PROP_DEFAULT:
-		g_value_set_boolean (value, nm_active_connection_get_default (self));
+		g_value_set_boolean (value, bm_active_connection_get_default (self));
 		break;
 	case PROP_DEFAULT6:
-		g_value_set_boolean (value, nm_active_connection_get_default6 (self));
+		g_value_set_boolean (value, bm_active_connection_get_default6 (self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -389,24 +389,24 @@ get_property (GObject *object,
 }
 
 static gboolean
-demarshal_devices (NMObject *object, GParamSpec *pspec, GValue *value, gpointer field)
+demarshal_devices (BMObject *object, GParamSpec *pspec, GValue *value, gpointer field)
 {
 	DBusGConnection *connection;
 
-	connection = nm_object_get_connection (object);
-	if (!_nm_object_array_demarshal (value, (GPtrArray **) field, connection, nm_device_new))
+	connection = bm_object_get_connection (object);
+	if (!_bm_object_array_demarshal (value, (GPtrArray **) field, connection, bm_device_new))
 		return FALSE;
 
-	_nm_object_queue_notify (object, NM_ACTIVE_CONNECTION_DEVICES);
+	_bm_object_queue_notify (object, BM_ACTIVE_CONNECTION_DEVICES);
 	return TRUE;
 }
 
 static gboolean
-demarshal_service (NMObject *object, GParamSpec *pspec, GValue *value, gpointer field)
+demarshal_service (BMObject *object, GParamSpec *pspec, GValue *value, gpointer field)
 {
-	NMActiveConnectionPrivate *priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (object);
+	BMActiveConnectionPrivate *priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (object);
 
-	if (_nm_object_demarshal_generic (object, pspec, value, field)) {
+	if (_bm_object_demarshal_generic (object, pspec, value, field)) {
 		priv->scope = get_scope_for_service_name (priv->service_name);
 		return TRUE;
 	}
@@ -414,21 +414,21 @@ demarshal_service (NMObject *object, GParamSpec *pspec, GValue *value, gpointer 
 }
 
 static void
-register_for_property_changed (NMActiveConnection *connection)
+register_for_property_changed (BMActiveConnection *connection)
 {
-	NMActiveConnectionPrivate *priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
+	BMActiveConnectionPrivate *priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (connection);
 	const NMPropertiesChangedInfo property_changed_info[] = {
-		{ NM_ACTIVE_CONNECTION_SERVICE_NAME,        demarshal_service,           &priv->service_name },
-		{ NM_ACTIVE_CONNECTION_CONNECTION,          _nm_object_demarshal_generic, &priv->connection },
-		{ NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT,     _nm_object_demarshal_generic, &priv->specific_object },
-		{ NM_ACTIVE_CONNECTION_DEVICES,             demarshal_devices,           &priv->devices },
-		{ NM_ACTIVE_CONNECTION_STATE,               _nm_object_demarshal_generic, &priv->state },
-		{ NM_ACTIVE_CONNECTION_DEFAULT,             _nm_object_demarshal_generic, &priv->is_default },
-		{ NM_ACTIVE_CONNECTION_DEFAULT6,            _nm_object_demarshal_generic, &priv->is_default6 },
+		{ BM_ACTIVE_CONNECTION_SERVICE_NAME,        demarshal_service,           &priv->service_name },
+		{ BM_ACTIVE_CONNECTION_CONNECTION,          _bm_object_demarshal_generic, &priv->connection },
+		{ BM_ACTIVE_CONNECTION_SPECIFIC_OBJECT,     _bm_object_demarshal_generic, &priv->specific_object },
+		{ BM_ACTIVE_CONNECTION_DEVICES,             demarshal_devices,           &priv->devices },
+		{ BM_ACTIVE_CONNECTION_STATE,               _bm_object_demarshal_generic, &priv->state },
+		{ BM_ACTIVE_CONNECTION_DEFAULT,             _bm_object_demarshal_generic, &priv->is_default },
+		{ BM_ACTIVE_CONNECTION_DEFAULT6,            _bm_object_demarshal_generic, &priv->is_default6 },
 		{ NULL },
 	};
 
-	_nm_object_handle_properties_changed (NM_OBJECT (connection),
+	_bm_object_handle_properties_changed (BM_OBJECT (connection),
 	                                     priv->proxy,
 	                                     property_changed_info);
 }
@@ -438,34 +438,34 @@ constructor (GType type,
 			 guint n_construct_params,
 			 GObjectConstructParam *construct_params)
 {
-	NMObject *object;
-	NMActiveConnectionPrivate *priv;
+	BMObject *object;
+	BMActiveConnectionPrivate *priv;
 
-	object = (NMObject *) G_OBJECT_CLASS (nm_active_connection_parent_class)->constructor (type,
+	object = (BMObject *) G_OBJECT_CLASS (bm_active_connection_parent_class)->constructor (type,
 																	  n_construct_params,
 																	  construct_params);
 	if (!object)
 		return NULL;
 
-	priv = NM_ACTIVE_CONNECTION_GET_PRIVATE (object);
+	priv = BM_ACTIVE_CONNECTION_GET_PRIVATE (object);
 
-	priv->proxy = dbus_g_proxy_new_for_name (nm_object_get_connection (object),
-									    NM_DBUS_SERVICE,
-									    nm_object_get_path (object),
-									    NM_DBUS_INTERFACE_ACTIVE_CONNECTION);
+	priv->proxy = dbus_g_proxy_new_for_name (bm_object_get_connection (object),
+									    BM_DBUS_SERVICE,
+									    bm_object_get_path (object),
+									    BM_DBUS_INTERFACE_ACTIVE_CONNECTION);
 
-	register_for_property_changed (NM_ACTIVE_CONNECTION (object));
+	register_for_property_changed (BM_ACTIVE_CONNECTION (object));
 
 	return G_OBJECT (object);
 }
 
 
 static void
-nm_active_connection_class_init (NMActiveConnectionClass *ap_class)
+bm_active_connection_class_init (BMActiveConnectionClass *ap_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (ap_class);
 
-	g_type_class_add_private (ap_class, sizeof (NMActiveConnectionPrivate));
+	g_type_class_add_private (ap_class, sizeof (BMActiveConnectionPrivate));
 
 	/* virtual methods */
 	object_class->constructor = constructor;
@@ -476,93 +476,93 @@ nm_active_connection_class_init (NMActiveConnectionClass *ap_class)
 	/* properties */
 
 	/**
-	 * NMActiveConnection:service-name:
+	 * BMActiveConnection:service-name:
 	 *
 	 * The service name of the active connection.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SERVICE_NAME,
-		 g_param_spec_string (NM_ACTIVE_CONNECTION_SERVICE_NAME,
+		 g_param_spec_string (BM_ACTIVE_CONNECTION_SERVICE_NAME,
 						  "Service Name",
 						  "Service Name",
 						  NULL,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMActiveConnection:connection:
+	 * BMActiveConnection:connection:
 	 *
 	 * The connection's path of the active connection.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CONNECTION,
-		 g_param_spec_string (NM_ACTIVE_CONNECTION_CONNECTION,
+		 g_param_spec_string (BM_ACTIVE_CONNECTION_CONNECTION,
 						      "Connection",
 						      "Connection",
 						      NULL,
 						      G_PARAM_READABLE));
 
 	/**
-	 * NMActiveConnection:specific-object:
+	 * BMActiveConnection:specific-object:
 	 *
 	 * The specific object's path of the active connection.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SPECIFIC_OBJECT,
-		 g_param_spec_string (NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT,
+		 g_param_spec_string (BM_ACTIVE_CONNECTION_SPECIFIC_OBJECT,
 						      "Specific object",
 						      "Specific object",
 						      NULL,
 						      G_PARAM_READABLE));
 
 	/**
-	 * NMActiveConnection:device:
+	 * BMActiveConnection:device:
 	 *
-	 * The devices (#NMDevice) of the active connection.
+	 * The devices (#BMDevice) of the active connection.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DEVICES,
-		 g_param_spec_boxed (NM_ACTIVE_CONNECTION_DEVICES,
+		 g_param_spec_boxed (BM_ACTIVE_CONNECTION_DEVICES,
 						       "Devices",
 						       "Devices",
-						       NM_TYPE_OBJECT_ARRAY,
+						       BM_TYPE_OBJECT_ARRAY,
 						       G_PARAM_READABLE));
 
 	/**
-	 * NMActiveConnection:state:
+	 * BMActiveConnection:state:
 	 *
 	 * The state of the active connection.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_STATE,
-		 g_param_spec_uint (NM_ACTIVE_CONNECTION_STATE,
+		 g_param_spec_uint (BM_ACTIVE_CONNECTION_STATE,
 							  "State",
 							  "State",
-							  NM_ACTIVE_CONNECTION_STATE_UNKNOWN,
-							  NM_ACTIVE_CONNECTION_STATE_ACTIVATED,
-							  NM_ACTIVE_CONNECTION_STATE_UNKNOWN,
+							  BM_ACTIVE_CONNECTION_STATE_UNKNOWN,
+							  BM_ACTIVE_CONNECTION_STATE_ACTIVATED,
+							  BM_ACTIVE_CONNECTION_STATE_UNKNOWN,
 							  G_PARAM_READABLE));
 
 	/**
-	 * NMActiveConnection:default:
+	 * BMActiveConnection:default:
 	 *
 	 * Whether the active connection is the default IPv4 one.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DEFAULT,
-		 g_param_spec_boolean (NM_ACTIVE_CONNECTION_DEFAULT,
+		 g_param_spec_boolean (BM_ACTIVE_CONNECTION_DEFAULT,
 							   "Default",
 							   "Is the default IPv4 active connection",
 							   FALSE,
 							   G_PARAM_READABLE));
 
 	/**
-	 * NMActiveConnection:default6:
+	 * BMActiveConnection:default6:
 	 *
 	 * Whether the active connection is the default IPv6 one.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DEFAULT6,
-		 g_param_spec_boolean (NM_ACTIVE_CONNECTION_DEFAULT6,
+		 g_param_spec_boolean (BM_ACTIVE_CONNECTION_DEFAULT6,
 							   "Default6",
 							   "Is the default IPv6 active connection",
 							   FALSE,

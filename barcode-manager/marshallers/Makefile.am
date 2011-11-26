@@ -20,7 +20,7 @@ bm-marshal.h: bm-marshal.list
 	$(GLIB_GENMARSHAL) $< --prefix=_bm_marshal --header > $@
 
 bm-marshal.c: bm-marshal.list
-	$(GLIB_GENMARSHAL) $< --prefix=_nm_marshal --body > $@
+	$(GLIB_GENMARSHAL) $< --prefix=_bm_marshal --body > $@
 
 bm-marshal-main.c: bm-marshal.c bm-marshal.h
 

@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
  * Copyright (C) 2007 - 2009 Red Hat, Inc.
  */
 
-#ifndef __NM_SETTINGS_CONNECTION_INTERFACE_H__
-#define __NM_SETTINGS_CONNECTION_INTERFACE_H__
+#ifndef __BM_SETTINGS_CONNECTION_INTERFACE_H__
+#define __BM_SETTINGS_CONNECTION_INTERFACE_H__
 
 #include <glib-object.h>
 #include <dbus/dbus-glib.h>
@@ -31,56 +31,56 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SETTINGS_CONNECTION_INTERFACE               (nm_settings_connection_interface_get_type ())
-#define NM_SETTINGS_CONNECTION_INTERFACE(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTINGS_CONNECTION_INTERFACE, NMSettingsConnectionInterface))
-#define NM_IS_SETTINGS_CONNECTION_INTERFACE(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SETTINGS_CONNECTION_INTERFACE))
-#define NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), NM_TYPE_SETTINGS_CONNECTION_INTERFACE, NMSettingsConnectionInterface))
+#define BM_TYPE_SETTINGS_CONNECTION_INTERFACE               (bm_settings_connection_interface_get_type ())
+#define BM_SETTINGS_CONNECTION_INTERFACE(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SETTINGS_CONNECTION_INTERFACE, BMSettingsConnectionInterface))
+#define BM_IS_SETTINGS_CONNECTION_INTERFACE(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SETTINGS_CONNECTION_INTERFACE))
+#define BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), BM_TYPE_SETTINGS_CONNECTION_INTERFACE, BMSettingsConnectionInterface))
 
-#define NM_SETTINGS_CONNECTION_INTERFACE_UPDATED               "updated"
-#define NM_SETTINGS_CONNECTION_INTERFACE_REMOVED               "removed"
+#define BM_SETTINGS_CONNECTION_INTERFACE_UPDATED               "updated"
+#define BM_SETTINGS_CONNECTION_INTERFACE_REMOVED               "removed"
 
-typedef struct _NMSettingsConnectionInterface NMSettingsConnectionInterface;
+typedef struct _BMSettingsConnectionInterface BMSettingsConnectionInterface;
 
-typedef void (*NMSettingsConnectionInterfaceUpdateFunc) (NMSettingsConnectionInterface *connection,
+typedef void (*BMSettingsConnectionInterfaceUpdateFunc) (BMSettingsConnectionInterface *connection,
                                                          GError *error,
                                                          gpointer user_data);
 
-typedef void (*NMSettingsConnectionInterfaceDeleteFunc) (NMSettingsConnectionInterface *connection,
+typedef void (*BMSettingsConnectionInterfaceDeleteFunc) (BMSettingsConnectionInterface *connection,
                                                          GError *error,
                                                          gpointer user_data);
 
-typedef void (*NMSettingsConnectionInterfaceGetSecretsFunc) (NMSettingsConnectionInterface *connection,
+typedef void (*BMSettingsConnectionInterfaceGetSecretsFunc) (BMSettingsConnectionInterface *connection,
                                                              GHashTable *secrets,
                                                              GError *error,
                                                              gpointer user_data);
 
-struct _NMSettingsConnectionInterface {
+struct _BMSettingsConnectionInterface {
 	GTypeInterface g_iface;
 
 	/* Methods */
-	gboolean (*update) (NMSettingsConnectionInterface *connection,
-	                    NMSettingsConnectionInterfaceUpdateFunc callback,
+	gboolean (*update) (BMSettingsConnectionInterface *connection,
+	                    BMSettingsConnectionInterfaceUpdateFunc callback,
 	                    gpointer user_data);
 
-	gboolean (*delete) (NMSettingsConnectionInterface *connection,
-	                    NMSettingsConnectionInterfaceDeleteFunc callback,
+	gboolean (*delete) (BMSettingsConnectionInterface *connection,
+	                    BMSettingsConnectionInterfaceDeleteFunc callback,
 	                    gpointer user_data);
 
-	gboolean (*get_secrets) (NMSettingsConnectionInterface *connection,
+	gboolean (*get_secrets) (BMSettingsConnectionInterface *connection,
 	                         const char *setting_name,
                              const char **hints,
                              gboolean request_new,
-                             NMSettingsConnectionInterfaceGetSecretsFunc callback,
+                             BMSettingsConnectionInterfaceGetSecretsFunc callback,
                              gpointer user_data);
 
-	void (*emit_updated) (NMSettingsConnectionInterface *connection);
+	void (*emit_updated) (BMSettingsConnectionInterface *connection);
 
 	/* Signals */
 	/* 'new_settings' hash should *not* contain secrets */
-	void (*updated) (NMSettingsConnectionInterface *connection,
+	void (*updated) (BMSettingsConnectionInterface *connection,
 	                 GHashTable *new_settings);
 
-	void (*removed) (NMSettingsConnectionInterface *connection);
+	void (*removed) (BMSettingsConnectionInterface *connection);
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
@@ -91,26 +91,26 @@ struct _NMSettingsConnectionInterface {
 	void (*_reserved6) (void);
 };
 
-GType nm_settings_connection_interface_get_type (void);
+GType bm_settings_connection_interface_get_type (void);
 
-gboolean nm_settings_connection_interface_update (NMSettingsConnectionInterface *connection,
-                                                  NMSettingsConnectionInterfaceUpdateFunc callback,
+gboolean bm_settings_connection_interface_update (BMSettingsConnectionInterface *connection,
+                                                  BMSettingsConnectionInterfaceUpdateFunc callback,
                                                   gpointer user_data);
 
-gboolean nm_settings_connection_interface_delete (NMSettingsConnectionInterface *connection,
-                                                  NMSettingsConnectionInterfaceDeleteFunc callback,
+gboolean bm_settings_connection_interface_delete (BMSettingsConnectionInterface *connection,
+                                                  BMSettingsConnectionInterfaceDeleteFunc callback,
                                                   gpointer user_data);
 
-gboolean nm_settings_connection_interface_get_secrets (NMSettingsConnectionInterface *connection,
+gboolean bm_settings_connection_interface_get_secrets (BMSettingsConnectionInterface *connection,
                                                        const char *setting_name,
                                                        const char **hints,
                                                        gboolean request_new,
-                                                       NMSettingsConnectionInterfaceGetSecretsFunc callback,
+                                                       BMSettingsConnectionInterfaceGetSecretsFunc callback,
                                                        gpointer user_data);
 
-void nm_settings_connection_interface_emit_updated (NMSettingsConnectionInterface *connection);
+void bm_settings_connection_interface_emit_updated (BMSettingsConnectionInterface *connection);
 
 G_END_DECLS
 
-#endif  /* __NM_SETTINGS_CONNECTION_INTERFACE_H__ */
+#endif  /* __BM_SETTINGS_CONNECTION_INTERFACE_H__ */
 

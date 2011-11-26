@@ -19,138 +19,138 @@
  * Copyright (C) 2007 - 2010 Red Hat, Inc.
  */
 
-#ifndef NM_DEVICE_INTERFACE_H
-#define NM_DEVICE_INTERFACE_H
+#ifndef BM_DEVICE_INTERFACE_H
+#define BM_DEVICE_INTERFACE_H
 
 #include <glib-object.h>
 #include "BarcodeManager.h"
 #include "bm-connection.h"
 #include "bm-activation-request.h"
 
-#define NM_TYPE_DEVICE_INTERFACE      (nm_device_interface_get_type ())
-#define NM_DEVICE_INTERFACE(obj)      (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE_INTERFACE, NMDeviceInterface))
-#define NM_IS_DEVICE_INTERFACE(obj)   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE_INTERFACE))
-#define NM_DEVICE_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), NM_TYPE_DEVICE_INTERFACE, NMDeviceInterface))
+#define BM_TYPE_DEVICE_INTERFACE      (bm_device_interface_get_type ())
+#define BM_DEVICE_INTERFACE(obj)      (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_DEVICE_INTERFACE, BMDeviceInterface))
+#define BM_IS_DEVICE_INTERFACE(obj)   (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_DEVICE_INTERFACE))
+#define BM_DEVICE_INTERFACE_GET_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE ((obj), BM_TYPE_DEVICE_INTERFACE, BMDeviceInterface))
 
 #define IS_ACTIVATING_STATE(state) \
-	(state > NM_DEVICE_STATE_DISCONNECTED && state < NM_DEVICE_STATE_ACTIVATED)
+	(state > BM_DEVICE_STATE_DISCONNECTED && state < BM_DEVICE_STATE_ACTIVATED)
 
 typedef enum
 {
-	NM_DEVICE_INTERFACE_ERROR_CONNECTION_ACTIVATING = 0,
-	NM_DEVICE_INTERFACE_ERROR_CONNECTION_INVALID,
-	NM_DEVICE_INTERFACE_ERROR_NOT_ACTIVE,
-} NMDeviceInterfaceError;
+	BM_DEVICE_INTERFACE_ERROR_CONNECTION_ACTIVATING = 0,
+	BM_DEVICE_INTERFACE_ERROR_CONNECTION_INVALID,
+	BM_DEVICE_INTERFACE_ERROR_NOT_ACTIVE,
+} BMDeviceInterfaceError;
 
-#define NM_DEVICE_INTERFACE_ERROR (nm_device_interface_error_quark ())
-#define NM_TYPE_DEVICE_INTERFACE_ERROR (nm_device_interface_error_get_type ()) 
+#define BM_DEVICE_INTERFACE_ERROR (bm_device_interface_error_quark ())
+#define BM_TYPE_DEVICE_INTERFACE_ERROR (bm_device_interface_error_get_type ()) 
 
-#define NM_DEVICE_INTERFACE_DISCONNECT_REQUEST "disconnect-request"
+#define BM_DEVICE_INTERFACE_DISCONNECT_REQUEST "disconnect-request"
 
-#define NM_DEVICE_INTERFACE_UDI              "udi"
-#define NM_DEVICE_INTERFACE_IFACE            "interface"
-#define NM_DEVICE_INTERFACE_IP_IFACE         "ip-interface"
-#define NM_DEVICE_INTERFACE_DRIVER           "driver"
-#define NM_DEVICE_INTERFACE_CAPABILITIES     "capabilities"
-#define NM_DEVICE_INTERFACE_IP4_ADDRESS      "ip4-address"
-#define NM_DEVICE_INTERFACE_IP4_CONFIG       "ip4-config"
-#define NM_DEVICE_INTERFACE_DHCP4_CONFIG     "dhcp4-config"
-#define NM_DEVICE_INTERFACE_IP6_CONFIG       "ip6-config"
-#define NM_DEVICE_INTERFACE_DHCP6_CONFIG     "dhcp6-config"
-#define NM_DEVICE_INTERFACE_STATE            "state"
-#define NM_DEVICE_INTERFACE_DEVICE_TYPE      "device-type" /* ugh */
-#define NM_DEVICE_INTERFACE_MANAGED          "managed"
-#define NM_DEVICE_INTERFACE_FIRMWARE_MISSING "firmware-missing"
-#define NM_DEVICE_INTERFACE_TYPE_DESC        "type-desc"    /* Internal only */
-#define NM_DEVICE_INTERFACE_RFKILL_TYPE      "rfkill-type"  /* Internal only */
-#define NM_DEVICE_INTERFACE_IFINDEX          "ifindex"      /* Internal only */
+#define BM_DEVICE_INTERFACE_UDI              "udi"
+#define BM_DEVICE_INTERFACE_IFACE            "interface"
+#define BM_DEVICE_INTERFACE_IP_IFACE         "ip-interface"
+#define BM_DEVICE_INTERFACE_DRIVER           "driver"
+#define BM_DEVICE_INTERFACE_CAPABILITIES     "capabilities"
+#define BM_DEVICE_INTERFACE_IP4_ADDRESS      "ip4-address"
+#define BM_DEVICE_INTERFACE_IP4_CONFIG       "ip4-config"
+#define BM_DEVICE_INTERFACE_DHCP4_CONFIG     "dhcp4-config"
+#define BM_DEVICE_INTERFACE_IP6_CONFIG       "ip6-config"
+#define BM_DEVICE_INTERFACE_DHCP6_CONFIG     "dhcp6-config"
+#define BM_DEVICE_INTERFACE_STATE            "state"
+#define BM_DEVICE_INTERFACE_DEVICE_TYPE      "device-type" /* ugh */
+#define BM_DEVICE_INTERFACE_MANAGED          "managed"
+#define BM_DEVICE_INTERFACE_FIRMWARE_MISSING "firmware-missing"
+#define BM_DEVICE_INTERFACE_TYPE_DESC        "type-desc"    /* Internal only */
+#define BM_DEVICE_INTERFACE_RFKILL_TYPE      "rfkill-type"  /* Internal only */
+#define BM_DEVICE_INTERFACE_IFINDEX          "ifindex"      /* Internal only */
 
 typedef enum {
-	NM_DEVICE_INTERFACE_PROP_FIRST = 0x1000,
+	BM_DEVICE_INTERFACE_PROP_FIRST = 0x1000,
 
-	NM_DEVICE_INTERFACE_PROP_UDI = NM_DEVICE_INTERFACE_PROP_FIRST,
-	NM_DEVICE_INTERFACE_PROP_IFACE,
-	NM_DEVICE_INTERFACE_PROP_IP_IFACE,
-	NM_DEVICE_INTERFACE_PROP_DRIVER,
-	NM_DEVICE_INTERFACE_PROP_CAPABILITIES,
-	NM_DEVICE_INTERFACE_PROP_IP4_ADDRESS,
-	NM_DEVICE_INTERFACE_PROP_IP4_CONFIG,
-	NM_DEVICE_INTERFACE_PROP_DHCP4_CONFIG,
-	NM_DEVICE_INTERFACE_PROP_IP6_CONFIG,
-	NM_DEVICE_INTERFACE_PROP_DHCP6_CONFIG,
-	NM_DEVICE_INTERFACE_PROP_STATE,
-	NM_DEVICE_INTERFACE_PROP_DEVICE_TYPE,
-	NM_DEVICE_INTERFACE_PROP_MANAGED,
-	NM_DEVICE_INTERFACE_PROP_FIRMWARE_MISSING,
-	NM_DEVICE_INTERFACE_PROP_TYPE_DESC,
-	NM_DEVICE_INTERFACE_PROP_RFKILL_TYPE,
-	NM_DEVICE_INTERFACE_PROP_IFINDEX,
-} NMDeviceInterfaceProp;
+	BM_DEVICE_INTERFACE_PROP_UDI = BM_DEVICE_INTERFACE_PROP_FIRST,
+	BM_DEVICE_INTERFACE_PROP_IFACE,
+	BM_DEVICE_INTERFACE_PROP_IP_IFACE,
+	BM_DEVICE_INTERFACE_PROP_DRIVER,
+	BM_DEVICE_INTERFACE_PROP_CAPABILITIES,
+	BM_DEVICE_INTERFACE_PROP_IP4_ADDRESS,
+	BM_DEVICE_INTERFACE_PROP_IP4_CONFIG,
+	BM_DEVICE_INTERFACE_PROP_DHCP4_CONFIG,
+	BM_DEVICE_INTERFACE_PROP_IP6_CONFIG,
+	BM_DEVICE_INTERFACE_PROP_DHCP6_CONFIG,
+	BM_DEVICE_INTERFACE_PROP_STATE,
+	BM_DEVICE_INTERFACE_PROP_DEVICE_TYPE,
+	BM_DEVICE_INTERFACE_PROP_MANAGED,
+	BM_DEVICE_INTERFACE_PROP_FIRMWARE_MISSING,
+	BM_DEVICE_INTERFACE_PROP_TYPE_DESC,
+	BM_DEVICE_INTERFACE_PROP_RFKILL_TYPE,
+	BM_DEVICE_INTERFACE_PROP_IFINDEX,
+} BMDeviceInterfaceProp;
 
 
-typedef struct _NMDeviceInterface NMDeviceInterface;
+typedef struct _BMDeviceInterface BMDeviceInterface;
 
-struct _NMDeviceInterface {
+struct _BMDeviceInterface {
 	GTypeInterface g_iface;
 
 	/* Methods */
-	gboolean (*check_connection_compatible) (NMDeviceInterface *device,
-	                                         NMConnection *connection,
+	gboolean (*check_connection_compatible) (BMDeviceInterface *device,
+	                                         BMConnection *connection,
 	                                         GError **error);
 
-	gboolean (*activate) (NMDeviceInterface *device,
+	gboolean (*activate) (BMDeviceInterface *device,
 	                      NMActRequest *req,
 	                      GError **error);
 
-	void (*deactivate) (NMDeviceInterface *device, NMDeviceStateReason reason);
-	gboolean (*disconnect) (NMDeviceInterface *device, GError **error);
+	void (*deactivate) (BMDeviceInterface *device, BMDeviceStateReason reason);
+	gboolean (*disconnect) (BMDeviceInterface *device, GError **error);
 
-	gboolean (*spec_match_list) (NMDeviceInterface *device, const GSList *specs);
+	gboolean (*spec_match_list) (BMDeviceInterface *device, const GSList *specs);
 
-	NMConnection * (*connection_match_config) (NMDeviceInterface *device, const GSList *specs);
+	BMConnection * (*connection_match_config) (BMDeviceInterface *device, const GSList *specs);
 
-	gboolean (*can_assume_connections) (NMDeviceInterface *device);
+	gboolean (*can_assume_connections) (BMDeviceInterface *device);
 
-	void (*set_enabled) (NMDeviceInterface *device, gboolean enabled);
+	void (*set_enabled) (BMDeviceInterface *device, gboolean enabled);
 
-	gboolean (*get_enabled) (NMDeviceInterface *device);
+	gboolean (*get_enabled) (BMDeviceInterface *device);
 
 	/* Signals */
-	void (*state_changed) (NMDeviceInterface *device,
-	                       NMDeviceState new_state,
-	                       NMDeviceState old_state,
-	                       NMDeviceStateReason reason);
+	void (*state_changed) (BMDeviceInterface *device,
+	                       BMDeviceState new_state,
+	                       BMDeviceState old_state,
+	                       BMDeviceStateReason reason);
 };
 
-GQuark nm_device_interface_error_quark (void);
-GType nm_device_interface_error_get_type (void);
+GQuark bm_device_interface_error_quark (void);
+GType bm_device_interface_error_get_type (void);
 
-gboolean nm_device_interface_disconnect (NMDeviceInterface *device, GError **error);
+gboolean bm_device_interface_disconnect (BMDeviceInterface *device, GError **error);
 
-GType nm_device_interface_get_type (void);
+GType bm_device_interface_get_type (void);
 
-gboolean nm_device_interface_check_connection_compatible (NMDeviceInterface *device,
-                                                          NMConnection *connection,
+gboolean bm_device_interface_check_connection_compatible (BMDeviceInterface *device,
+                                                          BMConnection *connection,
                                                           GError **error);
 
-gboolean nm_device_interface_activate (NMDeviceInterface *device,
+gboolean bm_device_interface_activate (BMDeviceInterface *device,
 				       NMActRequest *req,
 				       GError **error);
 
-void nm_device_interface_deactivate (NMDeviceInterface *device, NMDeviceStateReason reason);
+void bm_device_interface_deactivate (BMDeviceInterface *device, BMDeviceStateReason reason);
 
-NMDeviceState nm_device_interface_get_state (NMDeviceInterface *device);
+BMDeviceState bm_device_interface_get_state (BMDeviceInterface *device);
 
-gboolean nm_device_interface_spec_match_list (NMDeviceInterface *device,
+gboolean bm_device_interface_spec_match_list (BMDeviceInterface *device,
                                               const GSList *specs);
 
-NMConnection * nm_device_interface_connection_match_config (NMDeviceInterface *device,
+BMConnection * bm_device_interface_connection_match_config (BMDeviceInterface *device,
                                                             const GSList *connections);
 
-gboolean nm_device_interface_can_assume_connections (NMDeviceInterface *device);
+gboolean bm_device_interface_can_assume_connections (BMDeviceInterface *device);
 
-gboolean nm_device_interface_get_enabled (NMDeviceInterface *device);
+gboolean bm_device_interface_get_enabled (BMDeviceInterface *device);
 
-void nm_device_interface_set_enabled (NMDeviceInterface *device, gboolean enabled);
+void bm_device_interface_set_enabled (BMDeviceInterface *device, gboolean enabled);
 
-#endif /* NM_DEVICE_INTERFACE_H */
+#endif /* BM_DEVICE_INTERFACE_H */

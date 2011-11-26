@@ -28,32 +28,32 @@
 #include "bm-settings-interface.h"
 #include "bm-exported-connection.h"
 
-static gboolean impl_settings_list_connections (NMSettingsService *self,
+static gboolean impl_settings_list_connections (BMSettingsService *self,
                                                 GPtrArray **connections,
                                                 GError **error);
 
-static void impl_settings_add_connection (NMSettingsService *self,
+static void impl_settings_add_connection (BMSettingsService *self,
                                           GHashTable *settings,
                                           DBusGMethodInvocation *context);
 
 #include "bm-settings-glue.h"
 
-static void settings_interface_init (NMSettingsInterface *class);
+static void settings_interface_init (BMSettingsInterface *class);
 
-G_DEFINE_TYPE_EXTENDED (NMSettingsService, nm_settings_service, G_TYPE_OBJECT, G_TYPE_FLAG_ABSTRACT,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_SETTINGS_INTERFACE, settings_interface_init))
+G_DEFINE_TYPE_EXTENDED (BMSettingsService, bm_settings_service, G_TYPE_OBJECT, G_TYPE_FLAG_ABSTRACT,
+                        G_IMPLEMENT_INTERFACE (BM_TYPE_SETTINGS_INTERFACE, settings_interface_init))
 
-#define NM_SETTINGS_SERVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), \
-                                            NM_TYPE_SETTINGS_SERVICE, \
-                                            NMSettingsServicePrivate))
+#define BM_SETTINGS_SERVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), \
+                                            BM_TYPE_SETTINGS_SERVICE, \
+                                            BMSettingsServicePrivate))
 
 typedef struct {
 	DBusGConnection *bus;
-	NMConnectionScope scope;
+	BMConnectionScope scope;
 	gboolean exported;
 
 	gboolean disposed;
-} NMSettingsServicePrivate;
+} BMSettingsServicePrivate;
 
 enum {
 	PROP_0,
@@ -67,14 +67,14 @@ enum {
 /**************************************************************/
 
 void
-nm_settings_service_export (NMSettingsService *self)
+bm_settings_service_export (BMSettingsService *self)
 {
-	NMSettingsServicePrivate *priv;
+	BMSettingsServicePrivate *priv;
 
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (NM_IS_SETTINGS_SERVICE (self));
+	g_return_if_fail (BM_IS_SETTINGS_SERVICE (self));
 
-	priv = NM_SETTINGS_SERVICE_GET_PRIVATE (self);
+	priv = BM_SETTINGS_SERVICE_GET_PRIVATE (self);
 
 	g_return_if_fail (priv->bus != NULL);
 
@@ -82,7 +82,7 @@ nm_settings_service_export (NMSettingsService *self)
 	g_return_if_fail (priv->exported == FALSE);
 
 	dbus_g_connection_register_g_object (priv->bus,
-	                                     NM_DBUS_PATH_SETTINGS,
+	                                     BM_DBUS_PATH_SETTINGS,
 	                                     G_OBJECT (self));
 	priv->exported = TRUE;
 }
@@ -90,78 +90,78 @@ nm_settings_service_export (NMSettingsService *self)
 /**************************************************************/
 
 static GSList *
-list_connections (NMSettingsInterface *settings)
+list_connections (BMSettingsInterface *settings)
 {
 	/* Must always be implemented */
-	g_assert (NM_SETTINGS_SERVICE_GET_CLASS (settings)->list_connections);
-	return NM_SETTINGS_SERVICE_GET_CLASS (settings)->list_connections (NM_SETTINGS_SERVICE (settings));
+	g_assert (BM_SETTINGS_SERVICE_GET_CLASS (settings)->list_connections);
+	return BM_SETTINGS_SERVICE_GET_CLASS (settings)->list_connections (BM_SETTINGS_SERVICE (settings));
 }
 
 static gboolean
-impl_settings_list_connections (NMSettingsService *self,
+impl_settings_list_connections (BMSettingsService *self,
                                 GPtrArray **connections,
                                 GError **error)
 {
 	GSList *list = NULL, *iter;
 
-	list = list_connections (NM_SETTINGS_INTERFACE (self));
+	list = list_connections (BM_SETTINGS_INTERFACE (self));
 	*connections = g_ptr_array_sized_new (g_slist_length (list) + 1);
 	for (iter = list; iter; iter = g_slist_next (iter)) {
 		g_ptr_array_add (*connections,
-		                 g_strdup (nm_connection_get_path (NM_CONNECTION (iter->data))));
+		                 g_strdup (bm_connection_get_path (BM_CONNECTION (iter->data))));
 	}
 	g_slist_free (list);
 	return TRUE;
 }
 
-static NMSettingsConnectionInterface *
-get_connection_by_path (NMSettingsInterface *settings, const char *path)
+static BMSettingsConnectionInterface *
+get_connection_by_path (BMSettingsInterface *settings, const char *path)
 {
 	NMExportedConnection *connection = NULL;
 	GSList *list = NULL, *iter;
 
 	list = list_connections (settings);
 	for (iter = list; iter; iter = g_slist_next (iter)) {
-		if (!strcmp (nm_connection_get_path (NM_CONNECTION (iter->data)), path)) {
-			connection = NM_EXPORTED_CONNECTION (iter->data);
+		if (!strcmp (bm_connection_get_path (BM_CONNECTION (iter->data)), path)) {
+			connection = BM_EXPORTED_CONNECTION (iter->data);
 			break;
 		}
 	}
 	g_slist_free (list);
 
-	return (NMSettingsConnectionInterface *) connection;
+	return (BMSettingsConnectionInterface *) connection;
 }
 
 NMExportedConnection *
-nm_settings_service_get_connection_by_path (NMSettingsService *self,
+bm_settings_service_get_connection_by_path (BMSettingsService *self,
                                             const char *path)
 {
 	g_return_val_if_fail (self != NULL, NULL);
-	g_return_val_if_fail (NM_IS_SETTINGS_SERVICE (self), NULL);
+	g_return_val_if_fail (BM_IS_SETTINGS_SERVICE (self), NULL);
 
-	return (NMExportedConnection *) get_connection_by_path (NM_SETTINGS_INTERFACE (self), path);
+	return (NMExportedConnection *) get_connection_by_path (BM_SETTINGS_INTERFACE (self), path);
 }
 
 static gboolean
-add_connection (NMSettingsInterface *settings,
-                NMConnection *connection,
-                NMSettingsAddConnectionFunc callback,
+add_connection (BMSettingsInterface *settings,
+                BMConnection *connection,
+                BMSettingsAddConnectionFunc callback,
                 gpointer user_data)
 {
-	NMSettingsService *self = NM_SETTINGS_SERVICE (settings);
+	BMSettingsService *self = BM_SETTINGS_SERVICE (settings);
 	GError *error = NULL;
 	gboolean success = FALSE;
 
-	if (NM_SETTINGS_SERVICE_GET_CLASS (self)->add_connection) {
-		NM_SETTINGS_SERVICE_GET_CLASS (self)->add_connection (NM_SETTINGS_SERVICE (self),
+	if (BM_SETTINGS_SERVICE_GET_CLASS (self)->add_connection) {
+		BM_SETTINGS_SERVICE_GET_CLASS (self)->add_connection (BM_SETTINGS_SERVICE (self),
 		                                                      connection,
 		                                                      NULL,
 		                                                      callback,
 		                                                      user_data);
 		success = TRUE;
 	} else {
-		error = g_error_new (NM_SETTINGS_INTERFACE_ERROR,
-		                     NM_SETTINGS_INTERFACE_ERROR_INTERNAL_ERROR,
+		error = g_error_new (BM_SETTINGS_INTERFACE_ERROR,
+		                     BM_SETTINGS_INTERFACE_ERROR_INTERNAL_ERROR,
 		                     "%s: %s:%d add_connection() not implemented",
 		                     __func__, __FILE__, __LINE__);
 		callback (settings, error, user_data);
@@ -172,7 +172,7 @@ add_connection (NMSettingsInterface *settings,
 }
 
 static void
-dbus_add_connection_cb (NMSettingsInterface *settings,
+dbus_add_connection_cb (BMSettingsInterface *settings,
                         GError *error,
                         gpointer user_data)
 {
@@ -185,15 +185,15 @@ dbus_add_connection_cb (NMSettingsInterface *settings,
 }
 
 static void
-impl_settings_add_connection (NMSettingsService *self,
+impl_settings_add_connection (BMSettingsService *self,
                               GHashTable *settings,
                               DBusGMethodInvocation *context)
 {
-	NMConnection *tmp;
+	BMConnection *tmp;
 	GError *error = NULL;
 
 	/* Check if the settings are valid first */
-	tmp = nm_connection_new_from_hash (settings, &error);
+	tmp = bm_connection_new_from_hash (settings, &error);
 	if (!tmp) {
 		g_assert (error);
 		dbus_g_method_return_error (context, error);
@@ -201,15 +201,15 @@ impl_settings_add_connection (NMSettingsService *self,
 		return;
 	}
 
-	if (NM_SETTINGS_SERVICE_GET_CLASS (self)->add_connection) {
-		NM_SETTINGS_SERVICE_GET_CLASS (self)->add_connection (NM_SETTINGS_SERVICE (self),
+	if (BM_SETTINGS_SERVICE_GET_CLASS (self)->add_connection) {
+		BM_SETTINGS_SERVICE_GET_CLASS (self)->add_connection (BM_SETTINGS_SERVICE (self),
 		                                                      tmp,
 		                                                      context,
 		                                                      dbus_add_connection_cb,
 		                                                      context);
 	} else {
-		error = g_error_new (NM_SETTINGS_INTERFACE_ERROR,
-		                     NM_SETTINGS_INTERFACE_ERROR_INTERNAL_ERROR,
+		error = g_error_new (BM_SETTINGS_INTERFACE_ERROR,
+		                     BM_SETTINGS_INTERFACE_ERROR_INTERNAL_ERROR,
 		                     "%s: %s:%d add_connection() not implemented",
 		                     __func__, __FILE__, __LINE__);
 		dbus_g_method_return_error (context, error);
@@ -220,23 +220,23 @@ impl_settings_add_connection (NMSettingsService *self,
 }
 
 void
-nm_settings_service_export_connection (NMSettingsService *self,
-                                       NMSettingsConnectionInterface *connection)
+bm_settings_service_export_connection (BMSettingsService *self,
+                                       BMSettingsConnectionInterface *connection)
 {
-	NMSettingsServicePrivate *priv = NM_SETTINGS_SERVICE_GET_PRIVATE (self);
+	BMSettingsServicePrivate *priv = BM_SETTINGS_SERVICE_GET_PRIVATE (self);
 	static guint32 ec_counter = 0;
 	char *path;
 
 	g_return_if_fail (connection != NULL);
-	g_return_if_fail (NM_IS_SETTINGS_CONNECTION_INTERFACE (connection));
+	g_return_if_fail (BM_IS_SETTINGS_CONNECTION_INTERFACE (connection));
 	g_return_if_fail (priv->bus != NULL);
 
 	/* Don't allow exporting twice */
-	g_return_if_fail (nm_connection_get_path (NM_CONNECTION (connection)) == NULL);
+	g_return_if_fail (bm_connection_get_path (BM_CONNECTION (connection)) == NULL);
 
-	path = g_strdup_printf ("%s/%u", NM_DBUS_PATH_SETTINGS, ec_counter++);
-	nm_connection_set_path (NM_CONNECTION (connection), path);
-	nm_connection_set_scope (NM_CONNECTION (connection), priv->scope);
+	path = g_strdup_printf ("%s/%u", BM_DBUS_PATH_SETTINGS, ec_counter++);
+	bm_connection_set_path (BM_CONNECTION (connection), path);
+	bm_connection_set_scope (BM_CONNECTION (connection), priv->scope);
 
 	dbus_g_connection_register_g_object (priv->bus, path, G_OBJECT (connection));
 	g_free (path);
@@ -245,7 +245,7 @@ nm_settings_service_export_connection (NMSettingsService *self,
 /**************************************************************/
 
 static void
-settings_interface_init (NMSettingsInterface *iface)
+settings_interface_init (BMSettingsInterface *iface)
 {
 	/* interface implementation */
 	iface->list_connections = list_connections;
@@ -253,7 +253,7 @@ settings_interface_init (NMSettingsInterface *iface)
 	iface->add_connection = add_connection;
 
 	dbus_g_object_type_install_info (G_TYPE_FROM_INTERFACE (iface),
-	                                 &dbus_glib_nm_settings_object_info);
+	                                 &dbus_glib_bm_settings_object_info);
 }
 
 static GObject *
@@ -263,15 +263,15 @@ constructor (GType type,
 {
 	GObject *object;
 
-	object = G_OBJECT_CLASS (nm_settings_service_parent_class)->constructor (type, n_construct_params, construct_params);
+	object = G_OBJECT_CLASS (bm_settings_service_parent_class)->constructor (type, n_construct_params, construct_params);
 	if (object) {
-		g_assert (NM_SETTINGS_SERVICE_GET_PRIVATE (object)->scope != NM_CONNECTION_SCOPE_UNKNOWN);
+		g_assert (BM_SETTINGS_SERVICE_GET_PRIVATE (object)->scope != BM_CONNECTION_SCOPE_UNKNOWN);
 	}
 	return object;
 }
 
 static void
-nm_settings_service_init (NMSettingsService *self)
+bm_settings_service_init (BMSettingsService *self)
 {
 }
 
@@ -279,7 +279,7 @@ static void
 set_property (GObject *object, guint prop_id,
               const GValue *value, GParamSpec *pspec)
 {
-	NMSettingsServicePrivate *priv = NM_SETTINGS_SERVICE_GET_PRIVATE (object);
+	BMSettingsServicePrivate *priv = BM_SETTINGS_SERVICE_GET_PRIVATE (object);
 	DBusGConnection *bus;
 
 	switch (prop_id) {
@@ -303,7 +303,7 @@ static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
-	NMSettingsServicePrivate *priv = NM_SETTINGS_SERVICE_GET_PRIVATE (object);
+	BMSettingsServicePrivate *priv = BM_SETTINGS_SERVICE_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_BUS:
@@ -321,7 +321,7 @@ get_property (GObject *object, guint prop_id,
 static void
 dispose (GObject *object)
 {
-	NMSettingsServicePrivate *priv = NM_SETTINGS_SERVICE_GET_PRIVATE (object);
+	BMSettingsServicePrivate *priv = BM_SETTINGS_SERVICE_GET_PRIVATE (object);
 
 	if (!priv->disposed) {
 		priv->disposed = TRUE;
@@ -329,15 +329,15 @@ dispose (GObject *object)
 			dbus_g_connection_unref (priv->bus);
 	}
 
-	G_OBJECT_CLASS (nm_settings_service_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_settings_service_parent_class)->dispose (object);
 }
 
 static void
-nm_settings_service_class_init (NMSettingsServiceClass *class)
+bm_settings_service_class_init (BMSettingsServiceClass *class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-	g_type_class_add_private (class, sizeof (NMSettingsServicePrivate));
+	g_type_class_add_private (class, sizeof (BMSettingsServicePrivate));
 
 	/* Virtual methods */
 	object_class->dispose = dispose;
@@ -346,27 +346,27 @@ nm_settings_service_class_init (NMSettingsServiceClass *class)
 	object_class->set_property = set_property;
 
 	/**
-	 * NMSettingsService:bus:
+	 * BMSettingsService:bus:
 	 *
 	 * The %DBusGConnection which this object is exported on
 	 **/
 	g_object_class_install_property (object_class, PROP_BUS,
-	                                 g_param_spec_boxed (NM_SETTINGS_SERVICE_BUS,
+	                                 g_param_spec_boxed (BM_SETTINGS_SERVICE_BUS,
 	                                                     "Bus",
 	                                                     "Bus",
 	                                                     DBUS_TYPE_G_CONNECTION,
 	                                                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 	/**
-	 * NMSettingsService:scope:
+	 * BMSettingsService:scope:
 	 *
 	 * The capabilities of the device.
 	 **/
 	g_object_class_install_property (object_class, PROP_SCOPE,
-	                                 g_param_spec_uint (NM_SETTINGS_SERVICE_SCOPE,
+	                                 g_param_spec_uint (BM_SETTINGS_SERVICE_SCOPE,
 	                                                    "Scope",
 	                                                    "Scope",
-	                                                    NM_CONNECTION_SCOPE_SYSTEM,
-	                                                    NM_CONNECTION_SCOPE_USER,
-	                                                    NM_CONNECTION_SCOPE_USER,
+	                                                    BM_CONNECTION_SCOPE_SYSTEM,
+	                                                    BM_CONNECTION_SCOPE_USER,
+	                                                    BM_CONNECTION_SCOPE_USER,
 	                                                    G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }

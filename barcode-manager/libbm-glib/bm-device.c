@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access barcode scanner status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2010 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #include <string.h>
@@ -27,10 +26,6 @@
 #include <gudev/gudev.h>
 
 #include "BarcodeManager.h"
-#include "bm-device-ethernet.h"
-#include "bm-device-wifi.h"
-#include "bm-gsm-device.h"
-#include "bm-cdma-device.h"
 #include "bm-device-bt.h"
 #include "bm-device.h"
 #include "bm-device-private.h"
@@ -40,35 +35,26 @@
 
 #include "bm-device-bindings.h"
 
-G_DEFINE_TYPE (NMDevice, nm_device, NM_TYPE_OBJECT)
+G_DEFINE_TYPE (BMDevice, bm_device, BM_TYPE_OBJECT)
 
-#define NM_DEVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DEVICE, NMDevicePrivate))
+#define BM_DEVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_DEVICE, BMDevicePrivate))
 
 typedef struct {
 	gboolean disposed;
 	DBusGProxy *proxy;
 
 	char *iface;
-	char *ip_iface;
 	char *udi;
 	char *driver;
 	guint32 capabilities;
 	gboolean managed;
 	gboolean firmware_missing;
-	NMIP4Config *ip4_config;
-	gboolean null_ip4_config;
-	NMDHCP4Config *dhcp4_config;
-	gboolean null_dhcp4_config;
-	NMIP6Config *ip6_config;
-	gboolean null_ip6_config;
-	NMDHCP6Config *dhcp6_config;
-	gboolean null_dhcp6_config;
-	NMDeviceState state;
+	BMDeviceState state;
 
 	GUdevClient *client;
 	char *product;
 	char *vendor;
-} NMDevicePrivate;
+} BMDevicePrivate;
 
 enum {
 	PROP_0,
@@ -78,14 +64,9 @@ enum {
 	PROP_CAPABILITIES,
 	PROP_MANAGED,
 	PROP_FIRMWARE_MISSING,
-	PROP_IP4_CONFIG,
-	PROP_DHCP4_CONFIG,
-	PROP_IP6_CONFIG,
 	PROP_STATE,
 	PROP_PRODUCT,
 	PROP_VENDOR,
-	PROP_DHCP6_CONFIG,
-	PROP_IP_INTERFACE,
 
 	LAST_PROP
 };
@@ -100,211 +81,46 @@ static guint signals[LAST_SIGNAL] = { 0 };
 
 
 static void
-nm_device_init (NMDevice *device)
+bm_device_init (BMDevice *device)
 {
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
+	BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (device);
 
-	priv->state = NM_DEVICE_STATE_UNKNOWN;
-}
-
-static gboolean
-demarshal_ip4_config (NMObject *object, GParamSpec *pspec, GValue *value, gpointer field)
-{
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
-	const char *path;
-	NMIP4Config *config = NULL;
-	DBusGConnection *connection;
-
-	if (!G_VALUE_HOLDS (value, DBUS_TYPE_G_OBJECT_PATH))
-		return FALSE;
-
-	priv->null_ip4_config = FALSE;
-
-	path = g_value_get_boxed (value);
-	if (path) {
-		if (!strcmp (path, "/"))
-			priv->null_ip4_config = TRUE;
-		else {
-			config = NM_IP4_CONFIG (_nm_object_cache_get (path));
-			if (config)
-				config = g_object_ref (config);
-			else {
-				connection = nm_object_get_connection (object);
-				config = NM_IP4_CONFIG (nm_ip4_config_new (connection, path));
-			}
-		}
-	}
-
-	if (priv->ip4_config) {
-		g_object_unref (priv->ip4_config);
-		priv->ip4_config = NULL;
-	}
-
-	if (config)
-		priv->ip4_config = config;
-
-	_nm_object_queue_notify (object, NM_DEVICE_IP4_CONFIG);
-	return TRUE;
-}
-
-static gboolean
-demarshal_dhcp4_config (NMObject *object, GParamSpec *pspec, GValue *value, gpointer field)
-{
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
-	const char *path;
-	NMDHCP4Config *config = NULL;
-	DBusGConnection *connection;
-
-	if (!G_VALUE_HOLDS (value, DBUS_TYPE_G_OBJECT_PATH))
-		return FALSE;
-
-	priv->null_dhcp4_config = FALSE;
-
-	path = g_value_get_boxed (value);
-	if (path) {
-		if (!strcmp (path, "/"))
-			priv->null_dhcp4_config = TRUE;
-		else {
-			config = NM_DHCP4_CONFIG (_nm_object_cache_get (path));
-			if (config)
-				config = g_object_ref (config);
-			else {
-				connection = nm_object_get_connection (object);
-				config = NM_DHCP4_CONFIG (nm_dhcp4_config_new (connection, path));
-			}
-		}
-	}
-
-	if (priv->dhcp4_config) {
-		g_object_unref (priv->dhcp4_config);
-		priv->dhcp4_config = NULL;
-	}
-
-	if (config)
-		priv->dhcp4_config = config;
-
-	_nm_object_queue_notify (object, NM_DEVICE_DHCP4_CONFIG);
-	return TRUE;
-}
-
-static gboolean
-demarshal_ip6_config (NMObject *object, GParamSpec *pspec, GValue *value, gpointer field)
-{
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
-	const char *path;
-	NMIP6Config *config = NULL;
-	DBusGConnection *connection;
-
-	if (!G_VALUE_HOLDS (value, DBUS_TYPE_G_OBJECT_PATH))
-		return FALSE;
-
-	priv->null_ip6_config = FALSE;
-
-	path = g_value_get_boxed (value);
-	if (path) {
-		if (!strcmp (path, "/"))
-			priv->null_ip6_config = TRUE;
-		else {
-			config = NM_IP6_CONFIG (_nm_object_cache_get (path));
-			if (config)
-				config = g_object_ref (config);
-			else {
-				connection = nm_object_get_connection (object);
-				config = NM_IP6_CONFIG (nm_ip6_config_new (connection, path));
-			}
-		}
-	}
-
-	if (priv->ip6_config) {
-		g_object_unref (priv->ip6_config);
-		priv->ip6_config = NULL;
-	}
-
-	if (config)
-		priv->ip6_config = config;
-
-	_nm_object_queue_notify (object, NM_DEVICE_IP6_CONFIG);
-	return TRUE;
-}
-
-static gboolean
-demarshal_dhcp6_config (NMObject *object, GParamSpec *pspec, GValue *value, gpointer field)
-{
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
-	const char *path;
-	NMDHCP6Config *config = NULL;
-	DBusGConnection *connection;
-
-	if (!G_VALUE_HOLDS (value, DBUS_TYPE_G_OBJECT_PATH))
-		return FALSE;
-
-	priv->null_dhcp6_config = FALSE;
-
-	path = g_value_get_boxed (value);
-	if (path) {
-		if (!strcmp (path, "/"))
-			priv->null_dhcp6_config = TRUE;
-		else {
-			config = NM_DHCP6_CONFIG (_nm_object_cache_get (path));
-			if (config)
-				config = g_object_ref (config);
-			else {
-				connection = nm_object_get_connection (object);
-				config = NM_DHCP6_CONFIG (nm_dhcp6_config_new (connection, path));
-			}
-		}
-	}
-
-	if (priv->dhcp6_config) {
-		g_object_unref (priv->dhcp6_config);
-		priv->dhcp6_config = NULL;
-	}
-
-	if (config)
-		priv->dhcp6_config = config;
-
-	_nm_object_queue_notify (object, NM_DEVICE_DHCP6_CONFIG);
-	return TRUE;
+	priv->state = BM_DEVICE_STATE_UNKNOWN;
 }
 
 static void
-register_for_property_changed (NMDevice *device)
+register_for_property_changed (BMDevice *device)
 {
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
+	BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (device);
 	const NMPropertiesChangedInfo property_changed_info[] = {
-		{ NM_DEVICE_UDI,              _nm_object_demarshal_generic, &priv->udi },
-		{ NM_DEVICE_INTERFACE,        _nm_object_demarshal_generic, &priv->iface },
-		{ NM_DEVICE_IP_INTERFACE,     _nm_object_demarshal_generic, &priv->ip_iface },
-		{ NM_DEVICE_DRIVER,           _nm_object_demarshal_generic, &priv->driver },
-		{ NM_DEVICE_CAPABILITIES,     _nm_object_demarshal_generic, &priv->capabilities },
-		{ NM_DEVICE_MANAGED,          _nm_object_demarshal_generic, &priv->managed },
-		{ NM_DEVICE_FIRMWARE_MISSING, _nm_object_demarshal_generic, &priv->firmware_missing },
-		{ NM_DEVICE_IP4_CONFIG,       demarshal_ip4_config,         &priv->ip4_config },
-		{ NM_DEVICE_DHCP4_CONFIG,     demarshal_dhcp4_config,       &priv->dhcp4_config },
-		{ NM_DEVICE_IP6_CONFIG,       demarshal_ip6_config,         &priv->ip6_config },
-		{ NM_DEVICE_DHCP6_CONFIG,     demarshal_dhcp6_config,       &priv->dhcp6_config },
+		{ BM_DEVICE_UDI,              _bm_object_demarshal_generic, &priv->udi },
+		{ BM_DEVICE_INTERFACE,        _bm_object_demarshal_generic, &priv->iface },
+		{ BM_DEVICE_DRIVER,           _bm_object_demarshal_generic, &priv->driver },
+		{ BM_DEVICE_CAPABILITIES,     _bm_object_demarshal_generic, &priv->capabilities },
+		{ BM_DEVICE_MANAGED,          _bm_object_demarshal_generic, &priv->managed },
+		{ BM_DEVICE_FIRMWARE_MISSING, _bm_object_demarshal_generic, &priv->firmware_missing },
 		{ NULL },
 	};
 
-	_nm_object_handle_properties_changed (NM_OBJECT (device),
+	_bm_object_handle_properties_changed (BM_OBJECT (device),
 	                                     priv->proxy,
 	                                     property_changed_info);
 }
 
 static void
 device_state_changed (DBusGProxy *proxy,
-                      NMDeviceState new_state,
-                      NMDeviceState old_state,
-                      NMDeviceStateReason reason,
+                      BMDeviceState new_state,
+                      BMDeviceState old_state,
+                      BMDeviceStateReason reason,
                       gpointer user_data)
 {
-	NMDevice *self = NM_DEVICE (user_data);
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+	BMDevice *self = BM_DEVICE (user_data);
+	BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (self);
 
 	if (priv->state != new_state) {
 		priv->state = new_state;
 		g_signal_emit (self, signals[STATE_CHANGED], 0, new_state, old_state, reason);
-		_nm_object_queue_notify (NM_OBJECT (self), "state");
+		_bm_object_queue_notify (BM_OBJECT (self), "state");
 	}
 }
 
@@ -313,25 +129,25 @@ constructor (GType type,
 			 guint n_construct_params,
 			 GObjectConstructParam *construct_params)
 {
-	NMObject *object;
-	NMDevicePrivate *priv;
+	BMObject *object;
+	BMDevicePrivate *priv;
 
-	object = (NMObject *) G_OBJECT_CLASS (nm_device_parent_class)->constructor (type,
+	object = (BMObject *) G_OBJECT_CLASS (bm_device_parent_class)->constructor (type,
 																				n_construct_params,
 																				construct_params);
 	if (!object)
 		return NULL;
 
-	priv = NM_DEVICE_GET_PRIVATE (object);
+	priv = BM_DEVICE_GET_PRIVATE (object);
 
-	priv->proxy = dbus_g_proxy_new_for_name (nm_object_get_connection (object),
-											 NM_DBUS_SERVICE,
-											 nm_object_get_path (object),
-											 NM_DBUS_INTERFACE_DEVICE);
+	priv->proxy = dbus_g_proxy_new_for_name (bm_object_get_connection (object),
+											 BM_DBUS_SERVICE,
+											 bm_object_get_path (object),
+											 BM_DBUS_INTERFACE_DEVICE);
 
-	register_for_property_changed (NM_DEVICE (object));
+	register_for_property_changed (BM_DEVICE (object));
 
-	dbus_g_object_register_marshaller (_nm_marshal_VOID__UINT_UINT_UINT,
+	dbus_g_object_register_marshaller (_bm_marshal_VOID__UINT_UINT_UINT,
 									   G_TYPE_NONE,
 									   G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT,
 									   G_TYPE_INVALID);
@@ -343,7 +159,7 @@ constructor (GType type,
 
 	dbus_g_proxy_connect_signal (priv->proxy, "StateChanged",
 								 G_CALLBACK (device_state_changed),
-								 NM_DEVICE (object),
+								 BM_DEVICE (object),
 								 NULL);
 
 	return G_OBJECT (object);
@@ -352,43 +168,34 @@ constructor (GType type,
 static void
 dispose (GObject *object)
 {
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
+	BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (object);
 
 	if (priv->disposed) {
-		G_OBJECT_CLASS (nm_device_parent_class)->dispose (object);
+		G_OBJECT_CLASS (bm_device_parent_class)->dispose (object);
 		return;
 	}
 
 	priv->disposed = TRUE;
 
 	g_object_unref (priv->proxy);
-	if (priv->ip4_config)
-		g_object_unref (priv->ip4_config);
-	if (priv->dhcp4_config)
-		g_object_unref (priv->dhcp4_config);
-	if (priv->ip6_config)
-		g_object_unref (priv->ip6_config);
-	if (priv->dhcp6_config)
-		g_object_unref (priv->dhcp6_config);
 	if (priv->client)
 		g_object_unref (priv->client);
 
-	G_OBJECT_CLASS (nm_device_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_device_parent_class)->dispose (object);
 }
 
 static void
 finalize (GObject *object)
 {
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
+	BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (object);
 
 	g_free (priv->iface);
-	g_free (priv->ip_iface);
 	g_free (priv->udi);
 	g_free (priv->driver);
 	g_free (priv->product);
 	g_free (priv->vendor);
 
-	G_OBJECT_CLASS (nm_device_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_device_parent_class)->finalize (object);
 }
 
 static void
@@ -397,50 +204,35 @@ get_property (GObject *object,
               GValue *value,
               GParamSpec *pspec)
 {
-	NMDevice *device = NM_DEVICE (object);
+	BMDevice *device = BM_DEVICE (object);
 
 	switch (prop_id) {
 	case PROP_UDI:
-		g_value_set_string (value, nm_device_get_udi (device));
+		g_value_set_string (value, bm_device_get_udi (device));
 		break;
 	case PROP_INTERFACE:
-		g_value_set_string (value, nm_device_get_iface (device));
-		break;
-	case PROP_IP_INTERFACE:
-		g_value_set_string (value, nm_device_get_ip_iface (device));
+		g_value_set_string (value, bm_device_get_iface (device));
 		break;
 	case PROP_DRIVER:
-		g_value_set_string (value, nm_device_get_driver (device));
+		g_value_set_string (value, bm_device_get_driver (device));
 		break;
 	case PROP_CAPABILITIES:
-		g_value_set_uint (value, nm_device_get_capabilities (device));
+		g_value_set_uint (value, bm_device_get_capabilities (device));
 		break;
 	case PROP_MANAGED:
-		g_value_set_boolean (value, nm_device_get_managed (device));
+		g_value_set_boolean (value, bm_device_get_managed (device));
 		break;
 	case PROP_FIRMWARE_MISSING:
-		g_value_set_boolean (value, nm_device_get_firmware_missing (device));
-		break;
-	case PROP_IP4_CONFIG:
-		g_value_set_object (value, nm_device_get_ip4_config (device));
-		break;
-	case PROP_DHCP4_CONFIG:
-		g_value_set_object (value, nm_device_get_dhcp4_config (device));
-		break;
-	case PROP_IP6_CONFIG:
-		g_value_set_object (value, nm_device_get_ip6_config (device));
-		break;
-	case PROP_DHCP6_CONFIG:
-		g_value_set_object (value, nm_device_get_dhcp6_config (device));
+		g_value_set_boolean (value, bm_device_get_firmware_missing (device));
 		break;
 	case PROP_STATE:
-		g_value_set_uint (value, nm_device_get_state (device));
+		g_value_set_uint (value, bm_device_get_state (device));
 		break;
 	case PROP_PRODUCT:
-		g_value_set_string (value, nm_device_get_product (device));
+		g_value_set_string (value, bm_device_get_product (device));
 		break;
 	case PROP_VENDOR:
-		g_value_set_string (value, nm_device_get_vendor (device));
+		g_value_set_string (value, bm_device_get_vendor (device));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -449,11 +241,11 @@ get_property (GObject *object,
 }
 
 static void
-nm_device_class_init (NMDeviceClass *device_class)
+bm_device_class_init (BMDeviceClass *device_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (device_class);
 
-	g_type_class_add_private (device_class, sizeof (NMDevicePrivate));
+	g_type_class_add_private (device_class, sizeof (BMDevicePrivate));
 
 	/* virtual methods */
 	object_class->constructor = constructor;
@@ -464,184 +256,118 @@ nm_device_class_init (NMDeviceClass *device_class)
 	/* properties */
 
 	/**
-	 * NMDevice:interface:
+	 * BMDevice:interface:
 	 *
 	 * The interface of the device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_INTERFACE,
-		 g_param_spec_string (NM_DEVICE_INTERFACE,
+		 g_param_spec_string (BM_DEVICE_INTERFACE,
 						  "Interface",
 						  "Interface name",
 						  NULL,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMDevice:ip-interface:
-	 *
-	 * The IP interface of the device which should be used for all IP-related
-	 * operations like addressing and routing.
-	 **/
-	g_object_class_install_property
-		(object_class, PROP_IP_INTERFACE,
-		 g_param_spec_string (NM_DEVICE_IP_INTERFACE,
-						  "IP Interface",
-						  "IP Interface name",
-						  NULL,
-						  G_PARAM_READABLE));
-
-	/**
-	 * NMDevice:udi:
+	 * BMDevice:udi:
 	 *
 	 * The Unique Device Identifier of the device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_UDI,
-		 g_param_spec_string (NM_DEVICE_UDI,
+		 g_param_spec_string (BM_DEVICE_UDI,
 						  "UDI",
 						  "Unique Device Identifier",
 						  NULL,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMDevice:driver:
+	 * BMDevice:driver:
 	 *
 	 * The driver of the device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_DRIVER,
-		 g_param_spec_string (NM_DEVICE_DRIVER,
+		 g_param_spec_string (BM_DEVICE_DRIVER,
 						  "Driver",
 						  "Driver",
 						  NULL,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMDevice:capabilities:
+	 * BMDevice:capabilities:
 	 *
 	 * The capabilities of the device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_CAPABILITIES,
-		 g_param_spec_uint (NM_DEVICE_CAPABILITIES,
+		 g_param_spec_uint (BM_DEVICE_CAPABILITIES,
 						  "Capabilities",
 						  "Capabilities",
 						  0, G_MAXUINT32, 0,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMDevice:managed:
+	 * BMDevice:managed:
 	 *
 	 * Whether the device is managed by BarcodeManager.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_MANAGED,
-		 g_param_spec_boolean (NM_DEVICE_MANAGED,
+		 g_param_spec_boolean (BM_DEVICE_MANAGED,
 						  "Managed",
 						  "Managed",
 						  FALSE,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMDevice:firmware-missing:
+	 * BMDevice:firmware-missing:
 	 *
 	 * When %TRUE indicates the device is likely missing firmware required
 	 * for its operation.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_FIRMWARE_MISSING,
-		 g_param_spec_boolean (NM_DEVICE_FIRMWARE_MISSING,
+		 g_param_spec_boolean (BM_DEVICE_FIRMWARE_MISSING,
 						  "FirmwareMissing",
 						  "Firmware missing",
 						  FALSE,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMDevice:ip4-config:
-	 *
-	 * The #NMIP4Config of the device.
-	 **/
-	g_object_class_install_property
-		(object_class, PROP_IP4_CONFIG,
-		 g_param_spec_object (NM_DEVICE_IP4_CONFIG,
-						  "IP4 Config",
-						  "IP4 Config",
-						  NM_TYPE_IP4_CONFIG,
-						  G_PARAM_READABLE));
-
-	/**
-	 * NMDevice:dhcp4-config:
-	 *
-	 * The #NMDHCP4Config of the device.
-	 **/
-	g_object_class_install_property
-		(object_class, PROP_DHCP4_CONFIG,
-		 g_param_spec_object (NM_DEVICE_DHCP4_CONFIG,
-						  "DHCP4 Config",
-						  "DHCP4 Config",
-						  NM_TYPE_DHCP4_CONFIG,
-						  G_PARAM_READABLE));
-
-	/**
-	 * NMDevice:ip6-config:
-	 *
-	 * The #NMIP6Config of the device.
-	 **/
-	g_object_class_install_property
-		(object_class, PROP_IP6_CONFIG,
-		 g_param_spec_object (NM_DEVICE_IP6_CONFIG,
-		                      "IP6 Config",
-		                      "IP6 Config",
-		                      NM_TYPE_IP6_CONFIG,
-		                      G_PARAM_READABLE));
-
-	/**
-	 * NMDevice:dhcp6-config:
-	 *
-	 * The #NMDHCP6Config of the device.
-	 **/
-	g_object_class_install_property
-		(object_class, PROP_DHCP6_CONFIG,
-		 g_param_spec_object (NM_DEVICE_DHCP6_CONFIG,
-						  "DHCP6 Config",
-						  "DHCP6 Config",
-						  NM_TYPE_DHCP6_CONFIG,
-						  G_PARAM_READABLE));
-
-	/**
-	 * NMDevice:state:
+	 * BMDevice:state:
 	 *
 	 * The state of the device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_STATE,
-		 g_param_spec_uint (NM_DEVICE_STATE,
+		 g_param_spec_uint (BM_DEVICE_STATE,
 						  "State",
 						  "State",
 						  0, G_MAXUINT32, 0,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMDevice:vendor:
+	 * BMDevice:vendor:
 	 *
 	 * The vendor string of the device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_VENDOR,
-		 g_param_spec_string (NM_DEVICE_VENDOR,
+		 g_param_spec_string (BM_DEVICE_VENDOR,
 						  "Vendor",
 						  "Vendor string",
 						  NULL,
 						  G_PARAM_READABLE));
 
 	/**
-	 * NMDevice:product:
+	 * BMDevice:product:
 	 *
 	 * The product string of the device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PRODUCT,
-		 g_param_spec_string (NM_DEVICE_PRODUCT,
+		 g_param_spec_string (BM_DEVICE_PRODUCT,
 						  "Product",
 						  "Product string",
 						  NULL,
@@ -650,46 +376,46 @@ nm_device_class_init (NMDeviceClass *device_class)
 	/* signals */
 
 	/**
-	 * NMDevice::state-changed:
+	 * BMDevice::state-changed:
 	 * @device: the client that received the signal
 	 * @state: the new state of the device
 	 *
-	 * Notifies the state change of a #NMDevice.
+	 * Notifies the state change of a #BMDevice.
 	 **/
 	signals[STATE_CHANGED] =
 		g_signal_new ("state-changed",
 				    G_OBJECT_CLASS_TYPE (object_class),
 				    G_SIGNAL_RUN_FIRST,
-				    G_STRUCT_OFFSET (NMDeviceClass, state_changed),
+				    G_STRUCT_OFFSET (BMDeviceClass, state_changed),
 				    NULL, NULL,
-				    _nm_marshal_VOID__UINT_UINT_UINT,
+				    _bm_marshal_VOID__UINT_UINT_UINT,
 				    G_TYPE_NONE, 3,
 				    G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
 }
 
 /**
- * nm_device_new:
+ * bm_device_new:
  * @connection: the #DBusGConnection
  * @path: the DBus object path of the device
  *
- * Creates a new #NMDevice.
+ * Creates a new #BMDevice.
  *
  * Returns: a new device
  **/
 GObject *
-nm_device_new (DBusGConnection *connection, const char *path)
+bm_device_new (DBusGConnection *connection, const char *path)
 {
 	DBusGProxy *proxy;
 	GError *err = NULL;
 	GValue value = {0,};
 	GType dtype = 0;
-	NMDevice *device = NULL;
+	BMDevice *device = NULL;
 
 	g_return_val_if_fail (connection != NULL, NULL);
 	g_return_val_if_fail (path != NULL, NULL);
 
 	proxy = dbus_g_proxy_new_for_name (connection,
-									   NM_DBUS_SERVICE,
+									   BM_DBUS_SERVICE,
 									   path,
 									   "org.freedesktop.DBus.Properties");
 	if (!proxy) {
@@ -699,7 +425,7 @@ nm_device_new (DBusGConnection *connection, const char *path)
 
 	if (!dbus_g_proxy_call (proxy,
 						    "Get", &err,
-						    G_TYPE_STRING, NM_DBUS_INTERFACE_DEVICE,
+						    G_TYPE_STRING, BM_DBUS_INTERFACE_DEVICE,
 						    G_TYPE_STRING, "DeviceType",
 						    G_TYPE_INVALID,
 						    G_TYPE_VALUE, &value, G_TYPE_INVALID)) {
@@ -708,21 +434,11 @@ nm_device_new (DBusGConnection *connection, const char *path)
 		goto out;
 	}
 
+	// FIXME more types here
+
 	switch (g_value_get_uint (&value)) {
-	case NM_DEVICE_TYPE_ETHERNET:
-		dtype = NM_TYPE_DEVICE_ETHERNET;
-		break;
-	case NM_DEVICE_TYPE_WIFI:
-		dtype = NM_TYPE_DEVICE_WIFI;
-		break;
-	case NM_DEVICE_TYPE_GSM:
-		dtype = NM_TYPE_GSM_DEVICE;
-		break;
-	case NM_DEVICE_TYPE_CDMA:
-		dtype = NM_TYPE_CDMA_DEVICE;
-		break;
-	case NM_DEVICE_TYPE_BT:
-		dtype = NM_TYPE_DEVICE_BT;
+	case BM_DEVICE_TYPE_BT:
+		dtype = BM_TYPE_DEVICE_BT;
 		break;
 	default:
 		g_warning ("Unknown device type %d", g_value_get_uint (&value));
@@ -730,9 +446,9 @@ nm_device_new (DBusGConnection *connection, const char *path)
 	}
 
 	if (dtype) {
-		device = (NMDevice *) g_object_new (dtype,
-											NM_OBJECT_DBUS_CONNECTION, connection,
-											NM_OBJECT_DBUS_PATH, path,
+		device = (BMDevice *) g_object_new (dtype,
+											BM_OBJECT_DBUS_CONNECTION, connection,
+											BM_OBJECT_DBUS_PATH, path,
 											NULL);
 	}
 
@@ -742,25 +458,25 @@ out:
 }
 
 /**
- * nm_device_get_iface:
- * @device: a #NMDevice
+ * bm_device_get_iface:
+ * @device: a #BMDevice
  *
- * Gets the interface name of the #NMDevice.
+ * Gets the interface name of the #BMDevice.
  *
  * Returns: the interface of the device. This is the internal string used by the
  * device, and must not be modified.
  **/
 const char *
-nm_device_get_iface (NMDevice *device)
+bm_device_get_iface (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
+	g_return_val_if_fail (BM_IS_DEVICE (device), NULL);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	priv = BM_DEVICE_GET_PRIVATE (device);
 	if (!priv->iface) {
-		priv->iface = _nm_object_get_string_property (NM_OBJECT (device),
-		                                             NM_DBUS_INTERFACE_DEVICE,
+		priv->iface = _bm_object_get_string_property (BM_OBJECT (device),
+		                                             BM_DBUS_INTERFACE_DEVICE,
 		                                             "Interface");
 	}
 
@@ -768,53 +484,26 @@ nm_device_get_iface (NMDevice *device)
 }
 
 /**
- * nm_device_get_ip_iface:
- * @device: a #NMDevice
+ * bm_device_get_udi:
+ * @device: a #BMDevice
  *
- * Gets the IP interface name of the #NMDevice over which IP traffic flows
- * when the device is in the ACTIVATED state.
- *
- * Returns: the IP traffic interface of the device. This is the internal string
- * used by the device, and must not be modified.
- **/
-const char *
-nm_device_get_ip_iface (NMDevice *device)
-{
-	NMDevicePrivate *priv;
-
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
-
-	priv = NM_DEVICE_GET_PRIVATE (device);
-	if (!priv->ip_iface) {
-		priv->ip_iface = _nm_object_get_string_property (NM_OBJECT (device),
-		                                                 NM_DBUS_INTERFACE_DEVICE,
-		                                                 "IpInterface");
-	}
-
-	return priv->ip_iface;
-}
-
-/**
- * nm_device_get_udi:
- * @device: a #NMDevice
- *
- * Gets the Unique Device Identifier of the #NMDevice.
+ * Gets the Unique Device Identifier of the #BMDevice.
  *
  * Returns: the Unique Device Identifier of the device.  This identifier may be
  * used to gather more information about the device from various operating
  * system services like udev or sysfs.
  **/
 const char *
-nm_device_get_udi (NMDevice *device)
+bm_device_get_udi (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
+	g_return_val_if_fail (BM_IS_DEVICE (device), NULL);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	priv = BM_DEVICE_GET_PRIVATE (device);
 	if (!priv->udi) {
-		priv->udi = _nm_object_get_string_property (NM_OBJECT (device),
-		                                           NM_DBUS_INTERFACE_DEVICE,
+		priv->udi = _bm_object_get_string_property (BM_OBJECT (device),
+		                                           BM_DBUS_INTERFACE_DEVICE,
 		                                           "Udi");
 	}
 
@@ -822,25 +511,25 @@ nm_device_get_udi (NMDevice *device)
 }
 
 /**
- * nm_device_get_driver:
- * @device: a #NMDevice
+ * bm_device_get_driver:
+ * @device: a #BMDevice
  *
- * Gets the driver of the #NMDevice.
+ * Gets the driver of the #BMDevice.
  *
  * Returns: the driver of the device. This is the internal string used by the
  * device, and must not be modified.
  **/
 const char *
-nm_device_get_driver (NMDevice *device)
+bm_device_get_driver (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
+	g_return_val_if_fail (BM_IS_DEVICE (device), NULL);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	priv = BM_DEVICE_GET_PRIVATE (device);
 	if (!priv->driver) {
-		priv->driver = _nm_object_get_string_property (NM_OBJECT (device),
-		                                              NM_DBUS_INTERFACE_DEVICE,
+		priv->driver = _bm_object_get_string_property (BM_OBJECT (device),
+		                                              BM_DBUS_INTERFACE_DEVICE,
 		                                              "Driver");
 	}
 
@@ -848,24 +537,24 @@ nm_device_get_driver (NMDevice *device)
 }
 
 /**
- * nm_device_get_capabilities:
- * @device: a #NMDevice
+ * bm_device_get_capabilities:
+ * @device: a #BMDevice
  *
  * Gets the device' capabilities.
  *
  * Returns: the capabilities
  **/
 guint32
-nm_device_get_capabilities (NMDevice *device)
+bm_device_get_capabilities (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), 0);
+	g_return_val_if_fail (BM_IS_DEVICE (device), 0);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	priv = BM_DEVICE_GET_PRIVATE (device);
 	if (!priv->capabilities) {
-		priv->capabilities = _nm_object_get_uint_property (NM_OBJECT (device),
-		                                                  NM_DBUS_INTERFACE_DEVICE,
+		priv->capabilities = _bm_object_get_uint_property (BM_OBJECT (device),
+		                                                  BM_DBUS_INTERFACE_DEVICE,
 		                                                  "Capabilities");
 	}
 
@@ -873,24 +562,24 @@ nm_device_get_capabilities (NMDevice *device)
 }
 
 /**
- * nm_device_get_managed:
- * @device: a #NMDevice
+ * bm_device_get_managed:
+ * @device: a #BMDevice
  *
- * Whether the #NMDevice is managed by BarcodeManager.
+ * Whether the #BMDevice is managed by BarcodeManager.
  *
  * Returns: %TRUE if the device is managed by BarcodeManager
  **/
 gboolean
-nm_device_get_managed (NMDevice *device)
+bm_device_get_managed (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), 0);
+	g_return_val_if_fail (BM_IS_DEVICE (device), 0);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	priv = BM_DEVICE_GET_PRIVATE (device);
 	if (!priv->managed) {
-		priv->managed = _nm_object_get_boolean_property (NM_OBJECT (device),
-		                                                NM_DBUS_INTERFACE_DEVICE,
+		priv->managed = _bm_object_get_boolean_property (BM_OBJECT (device),
+		                                                BM_DBUS_INTERFACE_DEVICE,
 		                                                "Managed");
 	}
 
@@ -898,8 +587,8 @@ nm_device_get_managed (NMDevice *device)
 }
 
 /**
- * nm_device_get_firmware_missing:
- * @device: a #NMDevice
+ * bm_device_get_firmware_missing:
+ * @device: a #BMDevice
  *
  * Indicates that firmware required for the device's operation is likely
  * to be missing.
@@ -908,179 +597,42 @@ nm_device_get_managed (NMDevice *device)
  * to be missing.
  **/
 gboolean
-nm_device_get_firmware_missing (NMDevice *device)
+bm_device_get_firmware_missing (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), 0);
+	g_return_val_if_fail (BM_IS_DEVICE (device), 0);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	priv = BM_DEVICE_GET_PRIVATE (device);
 	if (!priv->firmware_missing) {
-		priv->firmware_missing = _nm_object_get_boolean_property (NM_OBJECT (device),
-		                                                          NM_DBUS_INTERFACE_DEVICE,
+		priv->firmware_missing = _bm_object_get_boolean_property (BM_OBJECT (device),
+		                                                          BM_DBUS_INTERFACE_DEVICE,
 		                                                          "FirmwareMissing");
 	}
 
 	return priv->firmware_missing;
 }
 
-/**
- * nm_device_get_ip4_config:
- * @device: a #NMDevice
- *
- * Gets the current #NMIP4Config associated with the #NMDevice.
- *
- * Returns: the #NMIP4Config or %NULL if the device is not activated.
- **/
-NMIP4Config *
-nm_device_get_ip4_config (NMDevice *device)
-{
-	NMDevicePrivate *priv;
-	char *path;
-	GValue value = { 0, };
-
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
-
-	priv = NM_DEVICE_GET_PRIVATE (device);
-	if (priv->ip4_config)
-		return priv->ip4_config;
-	if (priv->null_ip4_config)
-		return NULL;
-
-	path = _nm_object_get_object_path_property (NM_OBJECT (device), NM_DBUS_INTERFACE_DEVICE, "Ip4Config");
-	if (path) {
-		g_value_init (&value, DBUS_TYPE_G_OBJECT_PATH);
-		g_value_take_boxed (&value, path);
-		demarshal_ip4_config (NM_OBJECT (device), NULL, &value, &priv->ip4_config);
-		g_value_unset (&value);
-	}
-
-	return priv->ip4_config;
-}
 
 /**
- * nm_device_get_dhcp4_config:
- * @device: a #NMDevice
+ * bm_device_get_state:
+ * @device: a #BMDevice
  *
- * Gets the current #NMDHCP4Config associated with the #NMDevice.
- *
- * Returns: the #NMDHCPConfig or %NULL if the device is not activated or not
- * using DHCP.
- **/
-NMDHCP4Config *
-nm_device_get_dhcp4_config (NMDevice *device)
-{
-	NMDevicePrivate *priv;
-	char *path;
-	GValue value = { 0, };
-
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
-
-	priv = NM_DEVICE_GET_PRIVATE (device);
-	if (priv->dhcp4_config)
-		return priv->dhcp4_config;
-	if (priv->null_dhcp4_config)
-		return NULL;
-
-	path = _nm_object_get_object_path_property (NM_OBJECT (device), NM_DBUS_INTERFACE_DEVICE, "Dhcp4Config");
-	if (path) {
-		g_value_init (&value, DBUS_TYPE_G_OBJECT_PATH);
-		g_value_take_boxed (&value, path);
-		demarshal_dhcp4_config (NM_OBJECT (device), NULL, &value, &priv->dhcp4_config);
-		g_value_unset (&value);
-	}
-
-	return priv->dhcp4_config;
-}
-
-/**
- * nm_device_get_ip6_config:
- * @device: a #NMDevice
- *
- * Gets the current #NMIP6Config associated with the #NMDevice.
- *
- * Returns: the #NMIP6Config or %NULL if the device is not activated.
- **/
-NMIP6Config *
-nm_device_get_ip6_config (NMDevice *device)
-{
-	NMDevicePrivate *priv;
-	char *path;
-	GValue value = { 0, };
-
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
-
-	priv = NM_DEVICE_GET_PRIVATE (device);
-	if (priv->ip6_config)
-		return priv->ip6_config;
-	if (priv->null_ip6_config)
-		return NULL;
-
-	path = _nm_object_get_object_path_property (NM_OBJECT (device), NM_DBUS_INTERFACE_DEVICE, "Ip6Config");
-	if (path) {
-		g_value_init (&value, DBUS_TYPE_G_OBJECT_PATH);
-		g_value_take_boxed (&value, path);
-		demarshal_ip6_config (NM_OBJECT (device), NULL, &value, &priv->ip6_config);
-		g_value_unset (&value);
-	}
-
-	return priv->ip6_config;
-}
-
-/**
- * nm_device_get_dhcp6_config:
- * @device: a #NMDevice
- *
- * Gets the current #NMDHCP6Config associated with the #NMDevice.
- *
- * Returns: the #NMDHCPConfig or %NULL if the device is not activated or not
- * using DHCP.
- **/
-NMDHCP6Config *
-nm_device_get_dhcp6_config (NMDevice *device)
-{
-	NMDevicePrivate *priv;
-	char *path;
-	GValue value = { 0, };
-
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
-
-	priv = NM_DEVICE_GET_PRIVATE (device);
-	if (priv->dhcp6_config)
-		return priv->dhcp6_config;
-	if (priv->null_dhcp6_config)
-		return NULL;
-
-	path = _nm_object_get_object_path_property (NM_OBJECT (device), NM_DBUS_INTERFACE_DEVICE, "Dhcp6Config");
-	if (path) {
-		g_value_init (&value, DBUS_TYPE_G_OBJECT_PATH);
-		g_value_take_boxed (&value, path);
-		demarshal_dhcp6_config (NM_OBJECT (device), NULL, &value, &priv->dhcp6_config);
-		g_value_unset (&value);
-	}
-
-	return priv->dhcp6_config;
-}
-
-/**
- * nm_device_get_state:
- * @device: a #NMDevice
- *
- * Gets the current #NMDevice state.
+ * Gets the current #BMDevice state.
  *
  * Returns: the current device state
  **/
-NMDeviceState
-nm_device_get_state (NMDevice *device)
+BMDeviceState
+bm_device_get_state (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), NM_DEVICE_STATE_UNKNOWN);
+	g_return_val_if_fail (BM_IS_DEVICE (device), BM_DEVICE_STATE_UNKNOWN);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
-	if (priv->state == NM_DEVICE_STATE_UNKNOWN) {
-		priv->state = _nm_object_get_uint_property (NM_OBJECT (device), 
-		                                           NM_DBUS_INTERFACE_DEVICE,
+	priv = BM_DEVICE_GET_PRIVATE (device);
+	if (priv->state == BM_DEVICE_STATE_UNKNOWN) {
+		priv->state = _bm_object_get_uint_property (BM_OBJECT (device), 
+		                                           BM_DBUS_INTERFACE_DEVICE,
 		                                           "State");
 	}
 
@@ -1142,17 +694,17 @@ get_decoded_property (GUdevDevice *device, const char *property)
 }
 
 static void
-nm_device_update_description (NMDevice *device)
+bm_device_update_description (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 	const char *subsys[3] = { "net", "tty", NULL };
 	GUdevDevice *udev_device = NULL, *tmpdev, *olddev;
 	const char *ifname;
 	guint32 count = 0;
 	const char *vendor, *model;
 
-	g_return_if_fail (NM_IS_DEVICE (device));
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	g_return_if_fail (BM_IS_DEVICE (device));
+	priv = BM_DEVICE_GET_PRIVATE (device);
 
 	if (!priv->client) {
 		priv->client = g_udev_client_new (subsys);
@@ -1160,7 +712,7 @@ nm_device_update_description (NMDevice *device)
 			return;
 	}
 
-	ifname = nm_device_get_iface (device);
+	ifname = bm_device_get_iface (device);
 	if (!ifname)
 		return;
 
@@ -1235,57 +787,57 @@ nm_device_update_description (NMDevice *device)
 	/* Balance the initial g_udev_client_query_by_subsystem_and_name() */
 	g_object_unref (udev_device);
 
-	_nm_object_queue_notify (NM_OBJECT (device), NM_DEVICE_VENDOR);
-	_nm_object_queue_notify (NM_OBJECT (device), NM_DEVICE_PRODUCT);
+	_bm_object_queue_notify (BM_OBJECT (device), BM_DEVICE_VENDOR);
+	_bm_object_queue_notify (BM_OBJECT (device), BM_DEVICE_PRODUCT);
 }
 
 /**
- * nm_device_get_product:
- * @device: a #NMDevice
+ * bm_device_get_product:
+ * @device: a #BMDevice
  *
- * Gets the product string of the #NMDevice.
+ * Gets the product string of the #BMDevice.
  *
  * Returns: the product name of the device. This is the internal string used by the
  * device, and must not be modified.
  **/
 const char *
-nm_device_get_product (NMDevice *device)
+bm_device_get_product (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
+	g_return_val_if_fail (BM_IS_DEVICE (device), NULL);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	priv = BM_DEVICE_GET_PRIVATE (device);
 	if (!priv->product)
-		nm_device_update_description (device);
+		bm_device_update_description (device);
 	return priv->product;
 }
 
 /**
- * nm_device_get_vendor:
- * @device: a #NMDevice
+ * bm_device_get_vendor:
+ * @device: a #BMDevice
  *
- * Gets the vendor string of the #NMDevice.
+ * Gets the vendor string of the #BMDevice.
  *
  * Returns: the vendor name of the device. This is the internal string used by the
  * device, and must not be modified.
  **/
 const char *
-nm_device_get_vendor (NMDevice *device)
+bm_device_get_vendor (BMDevice *device)
 {
-	NMDevicePrivate *priv;
+	BMDevicePrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
+	g_return_val_if_fail (BM_IS_DEVICE (device), NULL);
 
-	priv = NM_DEVICE_GET_PRIVATE (device);
+	priv = BM_DEVICE_GET_PRIVATE (device);
 	if (!priv->vendor)
-		nm_device_update_description (device);
+		bm_device_update_description (device);
 	return priv->vendor;
 }
 
 typedef struct {
-	NMDevice *device;
-	NMDeviceDeactivateFn fn;
+	BMDevice *device;
+	BMDeviceDeactivateFn fn;
 	gpointer user_data;
 } DeactivateInfo;
 
@@ -1301,7 +853,7 @@ deactivate_cb (DBusGProxy *proxy,
 	else if (error) {
 		g_warning ("%s: device %s deactivation failed: (%d) %s",
 		           __func__,
-		           nm_object_get_path (NM_OBJECT (info->device)),
+		           bm_object_get_path (BM_OBJECT (info->device)),
 		           error ? error->code : -1,
 		           error && error->message ? error->message : "(unknown)");
 	}
@@ -1311,8 +863,8 @@ deactivate_cb (DBusGProxy *proxy,
 }
 
 /**
- * nm_device_disconnect:
- * @device: a #NMDevice
+ * bm_device_disconnect:
+ * @device: a #BMDevice
  * @callback: callback to be called when disconnect operation completes
  * @user_data: caller-specific data passed to @callback
  *
@@ -1321,20 +873,20 @@ deactivate_cb (DBusGProxy *proxy,
  * request.
  **/
 void
-nm_device_disconnect (NMDevice *device,
-                      NMDeviceDeactivateFn callback,
+bm_device_disconnect (BMDevice *device,
+                      BMDeviceDeactivateFn callback,
                       gpointer user_data)
 {
 	DeactivateInfo *info;
 
-	g_return_if_fail (NM_IS_DEVICE (device));
+	g_return_if_fail (BM_IS_DEVICE (device));
 
 	info = g_slice_new (DeactivateInfo);
 	info->fn = callback;
 	info->user_data = user_data;
 	info->device = g_object_ref (device);
 
-	org_freedesktop_BarcodeManager_Device_disconnect_async (NM_DEVICE_GET_PRIVATE (device)->proxy,
+	org_freedesktop_BarcodeManager_Device_disconnect_async (BM_DEVICE_GET_PRIVATE (device)->proxy,
 	                                                        deactivate_cb,
 	                                                        info);
 }

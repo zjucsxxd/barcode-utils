@@ -212,7 +212,7 @@
       </tp:docstring>
     </property>
 
-    <property name="State" type="u" access="read" tp:type="NM_STATE">
+    <property name="State" type="u" access="read" tp:type="BM_STATE">
       <tp:docstring>
         The overall state of the BarcodeManager daemon.
       </tp:docstring>
@@ -222,7 +222,7 @@
       <tp:docstring>
         BarcodeManager's state changed.
       </tp:docstring>
-      <arg name="state" type="u" tp:type="NM_STATE">
+      <arg name="state" type="u" tp:type="BM_STATE">
         <tp:docstring>
           The new state of BarcodeManager.
         </tp:docstring>
@@ -262,7 +262,7 @@
       </arg>
     </signal>
 
-    <tp:enum name="NM_STATE" type="u">
+    <tp:enum name="BM_STATE" type="u">
       <tp:docstring>
         Describes the overall state of the daemon.
       </tp:docstring>
@@ -299,7 +299,7 @@
       <tp:docstring>
         DEPRECATED.  BarcodeManager's state changed.  Use the 'StateChanged' signal instead.
       </tp:docstring>
-      <arg name="state" type="u" tp:type="NM_STATE">
+      <arg name="state" type="u" tp:type="BM_STATE">
         <tp:docstring>
           The new state of BarcodeManager.
         </tp:docstring>
@@ -327,7 +327,7 @@
         DEPRECATED.  The overall state of the BarcodeManager daemon.
       </tp:docstring>
       <annotation name="org.freedesktop.DBus.GLib.CSymbol" value="impl_manager_legacy_state"/>
-      <arg name="state" type="u" direction="out" tp:type="NM_STATE"/>
+      <arg name="state" type="u" direction="out" tp:type="BM_STATE"/>
     </method>
 
   </interface>

@@ -28,7 +28,7 @@
 #include "bm-logging.h"
 
 static void
-nm_secrets_provider_interface_init (gpointer g_iface)
+bm_secrets_provider_interface_init (gpointer g_iface)
 {
 	GType iface_type = G_TYPE_FROM_INTERFACE (g_iface);
 	static gboolean initialized = FALSE;
@@ -43,7 +43,7 @@ nm_secrets_provider_interface_init (gpointer g_iface)
 	              G_SIGNAL_RUN_LAST,
 	              G_STRUCT_OFFSET (NMSecretsProviderInterface, manager_get_secrets),
 	              NULL, NULL,
-	              _nm_marshal_BOOLEAN__POINTER_STRING_BOOLEAN_UINT_STRING_STRING,
+	              _bm_marshal_BOOLEAN__POINTER_STRING_BOOLEAN_UINT_STRING_STRING,
 	              G_TYPE_BOOLEAN, 6,
 	              G_TYPE_POINTER, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING);
 
@@ -58,14 +58,14 @@ nm_secrets_provider_interface_init (gpointer g_iface)
 
 
 GType
-nm_secrets_provider_interface_get_type (void)
+bm_secrets_provider_interface_get_type (void)
 {
 	static GType interface_type = 0;
 
 	if (!interface_type) {
 		const GTypeInfo interface_info = {
 			sizeof (NMSecretsProviderInterface), /* class_size */
-			nm_secrets_provider_interface_init,   /* base_init */
+			bm_secrets_provider_interface_init,   /* base_init */
 			NULL,		/* base_finalize */
 			NULL,
 			NULL,		/* class_finalize */
@@ -86,8 +86,8 @@ nm_secrets_provider_interface_get_type (void)
 }
 
 gboolean
-nm_secrets_provider_interface_get_secrets (NMSecretsProviderInterface *self,
-                                           NMConnection *connection,
+bm_secrets_provider_interface_get_secrets (NMSecretsProviderInterface *self,
+                                           BMConnection *connection,
                                            const char *setting_name,
                                            gboolean request_new,
                                            RequestSecretsCaller caller,
@@ -97,18 +97,18 @@ nm_secrets_provider_interface_get_secrets (NMSecretsProviderInterface *self,
 	guint success = FALSE;
 
 	g_return_val_if_fail (self != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SECRETS_PROVIDER_INTERFACE (self), FALSE);
+	g_return_val_if_fail (BM_IS_SECRETS_PROVIDER_INTERFACE (self), FALSE);
 	g_return_val_if_fail (connection != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (BM_IS_CONNECTION (connection), FALSE);
 	g_return_val_if_fail (setting_name != NULL, FALSE);
 
-	nm_secrets_provider_interface_cancel_get_secrets (self);
+	bm_secrets_provider_interface_cancel_get_secrets (self);
 
 	g_signal_emit_by_name (self, "manager-get-secrets",
 	                       connection, setting_name, request_new, caller, hint1, hint2,
 	                       &success);
 	if (!success) {
-		nm_log_warn (LOGD_CORE, "failed to get connection secrets.");
+		bm_log_warn (LOGD_CORE, "failed to get connection secrets.");
 		return FALSE;
 	}
 
@@ -116,10 +116,10 @@ nm_secrets_provider_interface_get_secrets (NMSecretsProviderInterface *self,
 }
 
 void
-nm_secrets_provider_interface_cancel_get_secrets (NMSecretsProviderInterface *self)
+bm_secrets_provider_interface_cancel_get_secrets (NMSecretsProviderInterface *self)
 {
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (NM_IS_SECRETS_PROVIDER_INTERFACE (self));
+	g_return_if_fail (BM_IS_SECRETS_PROVIDER_INTERFACE (self));
 
 	g_signal_emit_by_name (self, "manager-cancel-secrets");
 }
@@ -140,19 +140,19 @@ settings_order_func (gconstpointer a, gconstpointer b)
 	 * wireless-security one.
 	 */
 
-	if (   !strcmp (a, NM_SETTING_802_1X_SETTING_NAME)
-	    && !strcmp (b, NM_SETTING_WIRELESS_SECURITY_SETTING_NAME))
+	if (   !strcmp (a, BM_SETTING_802_1X_SETTING_NAME)
+	    && !strcmp (b, BM_SETTING_WIRELESS_SECURITY_SETTING_NAME))
 		return -1;
 
-	if (   !strcmp (a, NM_SETTING_WIRELESS_SECURITY_SETTING_NAME)
-	    && !strcmp (b, NM_SETTING_802_1X_SETTING_NAME))
+	if (   !strcmp (a, BM_SETTING_WIRELESS_SECURITY_SETTING_NAME)
+	    && !strcmp (b, BM_SETTING_802_1X_SETTING_NAME))
 		return 1;
 
 	return 0;
 }
 
 void
-nm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *self,
+bm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *self,
                                                   const char *setting_name,
                                                   RequestSecretsCaller caller,
                                                   GHashTable *settings,
@@ -163,10 +163,10 @@ nm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *se
 	GError *tmp_error = NULL;
 
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (NM_IS_SECRETS_PROVIDER_INTERFACE (self));
+	g_return_if_fail (BM_IS_SECRETS_PROVIDER_INTERFACE (self));
 
 	if (error) {
-		NM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
+		BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
 		                                                            setting_name,
 		                                                            caller,
 		                                                            NULL,
@@ -176,7 +176,7 @@ nm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *se
 
 	if (g_hash_table_size (settings) == 0) {
 		g_set_error (&tmp_error, 0, 0, "%s", "no secrets were received!");
-		NM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
+		BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
 		                                                            setting_name,
 		                                                            caller,
 		                                                            NULL,
@@ -193,17 +193,17 @@ nm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *se
 
 		hash = g_hash_table_lookup (settings, name);
 		if (!hash) {
-			nm_log_warn (LOGD_CORE, "couldn't get setting secrets for '%s'", name);
+			bm_log_warn (LOGD_CORE, "couldn't get setting secrets for '%s'", name);
 			continue;
 		}
 
-		if (NM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->update_setting (self, name, hash))
+		if (BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->update_setting (self, name, hash))
 			updated = g_slist_append (updated, (gpointer) setting_name);
 	}
 	g_slist_free (keys);
 
 	if (g_slist_length (updated)) {
-		NM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
+		BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
 		                                                            setting_name,
 		                                                            caller,
 		                                                            updated,
@@ -211,7 +211,7 @@ nm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *se
 	} else {
 		g_set_error (&tmp_error, 0, 0, "%s", "no secrets updated because no valid "
 		             "settings were received!");
-		NM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
+		BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
 		                                                            setting_name,
 		                                                            caller,
 		                                                            NULL,

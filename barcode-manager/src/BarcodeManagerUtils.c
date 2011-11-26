@@ -41,13 +41,13 @@
 #include <netinet/in.h>
 
 /*
- * nm_ethernet_address_is_valid
+ * bm_ethernet_address_is_valid
  *
  * Compares an Ethernet address against known invalid addresses.
  *
  */
 gboolean
-nm_ethernet_address_is_valid (const struct ether_addr *test_addr)
+bm_ethernet_address_is_valid (const struct ether_addr *test_addr)
 {
 	guint8 invalid_addr1[ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 	guint8 invalid_addr2[ETH_ALEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -77,7 +77,7 @@ nm_ethernet_address_is_valid (const struct ether_addr *test_addr)
 
 
 int
-nm_spawn_process (const char *args)
+bm_spawn_process (const char *args)
 {
 	gint num_args;
 	char **argv = NULL;
@@ -87,13 +87,13 @@ nm_spawn_process (const char *args)
 	g_return_val_if_fail (args != NULL, -1);
 
 	if (!g_shell_parse_argv (args, &num_args, &argv, &error)) {
-		nm_log_warn (LOGD_CORE, "could not parse arguments for '%s': %s", args, error->message);
+		bm_log_warn (LOGD_CORE, "could not parse arguments for '%s': %s", args, error->message);
 		g_error_free (error);
 		return -1;
 	}
 
 	if (!g_spawn_sync ("/", argv, NULL, 0, NULL, NULL, NULL, NULL, &status, &error)) {
-		nm_log_warn (LOGD_CORE, "could not spawn process '%s': %s", args, error->message);
+		bm_log_warn (LOGD_CORE, "could not spawn process '%s': %s", args, error->message);
 		g_error_free (error);
 	}
 
@@ -102,14 +102,14 @@ nm_spawn_process (const char *args)
 }
 
 /*
- * nm_utils_ip4_netmask_to_prefix
+ * bm_utils_ip4_netmask_to_prefix
  *
  * Figure out the network prefix from a netmask.  Netmask
  * MUST be in network byte order.
  *
  */
 guint32
-nm_utils_ip4_netmask_to_prefix (guint32 netmask)
+bm_utils_ip4_netmask_to_prefix (guint32 netmask)
 {
 	guchar *p, *end;
 	guint32 prefix = 0;
@@ -135,13 +135,13 @@ nm_utils_ip4_netmask_to_prefix (guint32 netmask)
 }
 
 /*
- * nm_utils_ip4_prefix_to_netmask
+ * bm_utils_ip4_prefix_to_netmask
  *
  * Figure out the netmask from a prefix.
  *
  */
 guint32
-nm_utils_ip4_prefix_to_netmask (guint32 prefix)
+bm_utils_ip4_prefix_to_netmask (guint32 prefix)
 {
 	guint32 msk = 0x80000000;
 	guint32 netmask = 0;
@@ -156,7 +156,7 @@ nm_utils_ip4_prefix_to_netmask (guint32 prefix)
 }
 
 char *
-nm_ether_ntop (const struct ether_addr *mac)
+bm_ether_ntop (const struct ether_addr *mac)
 {
 	/* we like leading zeros and all-caps, instead
 	 * of what glibc's ether_ntop() gives us
@@ -168,100 +168,100 @@ nm_ether_ntop (const struct ether_addr *mac)
 }
 
 void
-nm_utils_merge_ip4_config (NMIP4Config *ip4_config, NMSettingIP4Config *setting)
+bm_utils_merge_ip4_config (NMIP4Config *ip4_config, BMSettingIP4Config *setting)
 {
 	int i, j;
 
 	if (!setting)
 		return; /* Defaults are just fine */
 
-	if (nm_setting_ip4_config_get_ignore_auto_dns (setting)) {
-		nm_ip4_config_reset_nameservers (ip4_config);
-		nm_ip4_config_reset_domains (ip4_config);
-		nm_ip4_config_reset_searches (ip4_config);
+	if (bm_setting_ip4_config_get_ignore_auto_dns (setting)) {
+		bm_ip4_config_reset_nameservers (ip4_config);
+		bm_ip4_config_reset_domains (ip4_config);
+		bm_ip4_config_reset_searches (ip4_config);
 	}
 
-	if (nm_setting_ip4_config_get_ignore_auto_routes (setting))
-		nm_ip4_config_reset_routes (ip4_config);
+	if (bm_setting_ip4_config_get_ignore_auto_routes (setting))
+		bm_ip4_config_reset_routes (ip4_config);
 
-	for (i = 0; i < nm_setting_ip4_config_get_num_dns (setting); i++) {
+	for (i = 0; i < bm_setting_ip4_config_get_num_dns (setting); i++) {
 		guint32 ns;
 		gboolean found = FALSE;
 
 		/* Avoid dupes */
-		ns = nm_setting_ip4_config_get_dns (setting, i);
-		for (j = 0; j < nm_ip4_config_get_num_nameservers (ip4_config); j++) {
-			if (nm_ip4_config_get_nameserver (ip4_config, j) == ns) {
+		ns = bm_setting_ip4_config_get_dns (setting, i);
+		for (j = 0; j < bm_ip4_config_get_num_nameservers (ip4_config); j++) {
+			if (bm_ip4_config_get_nameserver (ip4_config, j) == ns) {
 				found = TRUE;
 				break;
 			}
 		}
 
 		if (!found)
-			nm_ip4_config_add_nameserver (ip4_config, ns);
+			bm_ip4_config_add_nameserver (ip4_config, ns);
 	}
 
 	/* DNS search domains */
-	for (i = 0; i < nm_setting_ip4_config_get_num_dns_searches (setting); i++) {
-		const char *search = nm_setting_ip4_config_get_dns_search (setting, i);
+	for (i = 0; i < bm_setting_ip4_config_get_num_dns_searches (setting); i++) {
+		const char *search = bm_setting_ip4_config_get_dns_search (setting, i);
 		gboolean found = FALSE;
 
 		/* Avoid dupes */
-		for (j = 0; j < nm_ip4_config_get_num_searches (ip4_config); j++) {
-			if (!strcmp (search, nm_ip4_config_get_search (ip4_config, j))) {
+		for (j = 0; j < bm_ip4_config_get_num_searches (ip4_config); j++) {
+			if (!strcmp (search, bm_ip4_config_get_search (ip4_config, j))) {
 				found = TRUE;
 				break;
 			}
 		}
 
 		if (!found)
-			nm_ip4_config_add_search (ip4_config, search);
+			bm_ip4_config_add_search (ip4_config, search);
 	}
 
 	/* IPv4 addresses */
-	for (i = 0; i < nm_setting_ip4_config_get_num_addresses (setting); i++) {
-		NMIP4Address *setting_addr = nm_setting_ip4_config_get_address (setting, i);
+	for (i = 0; i < bm_setting_ip4_config_get_num_addresses (setting); i++) {
+		NMIP4Address *setting_addr = bm_setting_ip4_config_get_address (setting, i);
 		guint32 num;
 
-		num = nm_ip4_config_get_num_addresses (ip4_config);
+		num = bm_ip4_config_get_num_addresses (ip4_config);
 		for (j = 0; j < num; j++) {
-			NMIP4Address *cfg_addr = nm_ip4_config_get_address (ip4_config, j);
+			NMIP4Address *cfg_addr = bm_ip4_config_get_address (ip4_config, j);
 
 			/* Dupe, override with user-specified address */
-			if (nm_ip4_address_get_address (cfg_addr) == nm_ip4_address_get_address (setting_addr)) {
-				nm_ip4_config_replace_address (ip4_config, j, setting_addr);
+			if (bm_ip4_address_get_address (cfg_addr) == bm_ip4_address_get_address (setting_addr)) {
+				bm_ip4_config_replace_address (ip4_config, j, setting_addr);
 				break;
 			}
 		}
 
 		if (j == num)
-			nm_ip4_config_add_address (ip4_config, setting_addr);
+			bm_ip4_config_add_address (ip4_config, setting_addr);
 	}
 
 	/* IPv4 routes */
-	for (i = 0; i < nm_setting_ip4_config_get_num_routes (setting); i++) {
-		NMIP4Route *setting_route = nm_setting_ip4_config_get_route (setting, i);
+	for (i = 0; i < bm_setting_ip4_config_get_num_routes (setting); i++) {
+		NMIP4Route *setting_route = bm_setting_ip4_config_get_route (setting, i);
 		guint32 num;
 
-		num = nm_ip4_config_get_num_routes (ip4_config);
+		num = bm_ip4_config_get_num_routes (ip4_config);
 		for (j = 0; j < num; j++) {
-			NMIP4Route *cfg_route = nm_ip4_config_get_route (ip4_config, j);
+			NMIP4Route *cfg_route = bm_ip4_config_get_route (ip4_config, j);
 
 			/* Dupe, override with user-specified route */
-			if (   (nm_ip4_route_get_dest (cfg_route) == nm_ip4_route_get_dest (setting_route))
-			    && (nm_ip4_route_get_prefix (cfg_route) == nm_ip4_route_get_prefix (setting_route))
-			    && (nm_ip4_route_get_next_hop (cfg_route) == nm_ip4_route_get_next_hop (setting_route))) {
-				nm_ip4_config_replace_route (ip4_config, j, setting_route);
+			if (   (bm_ip4_route_get_dest (cfg_route) == bm_ip4_route_get_dest (setting_route))
+			    && (bm_ip4_route_get_prefix (cfg_route) == bm_ip4_route_get_prefix (setting_route))
+			    && (bm_ip4_route_get_next_hop (cfg_route) == bm_ip4_route_get_next_hop (setting_route))) {
+				bm_ip4_config_replace_route (ip4_config, j, setting_route);
 				break;
 			}
 		}
 
 		if (j == num)
-			nm_ip4_config_add_route (ip4_config, setting_route);
+			bm_ip4_config_add_route (ip4_config, setting_route);
 	}
 
-	if (nm_setting_ip4_config_get_never_default (setting))
-		nm_ip4_config_set_never_default (ip4_config, TRUE);
+	if (bm_setting_ip4_config_get_never_default (setting))
+		bm_ip4_config_set_never_default (ip4_config, TRUE);
 }
 
 static inline gboolean
@@ -270,104 +270,104 @@ ip6_addresses_equal (const struct in6_addr *a, const struct in6_addr *b)
 	return memcmp (a, b, sizeof (struct in6_addr)) == 0;
 }
 
-/* This is exactly identical to nm_utils_merge_ip4_config, with s/4/6/,
+/* This is exactly identical to bm_utils_merge_ip4_config, with s/4/6/,
  * except that we can't compare addresses with ==.
  */
 void
-nm_utils_merge_ip6_config (NMIP6Config *ip6_config, NMSettingIP6Config *setting)
+bm_utils_merge_ip6_config (NMIP6Config *ip6_config, BMSettingIP6Config *setting)
 {
 	int i, j;
 
 	if (!setting)
 		return; /* Defaults are just fine */
 
-	if (nm_setting_ip6_config_get_ignore_auto_dns (setting)) {
-		nm_ip6_config_reset_nameservers (ip6_config);
-		nm_ip6_config_reset_domains (ip6_config);
-		nm_ip6_config_reset_searches (ip6_config);
+	if (bm_setting_ip6_config_get_ignore_auto_dns (setting)) {
+		bm_ip6_config_reset_nameservers (ip6_config);
+		bm_ip6_config_reset_domains (ip6_config);
+		bm_ip6_config_reset_searches (ip6_config);
 	}
 
-	if (nm_setting_ip6_config_get_ignore_auto_routes (setting))
-		nm_ip6_config_reset_routes (ip6_config);
+	if (bm_setting_ip6_config_get_ignore_auto_routes (setting))
+		bm_ip6_config_reset_routes (ip6_config);
 
-	for (i = 0; i < nm_setting_ip6_config_get_num_dns (setting); i++) {
+	for (i = 0; i < bm_setting_ip6_config_get_num_dns (setting); i++) {
 		const struct in6_addr *ns;
 		gboolean found = FALSE;
 
 		/* Avoid dupes */
-		ns = nm_setting_ip6_config_get_dns (setting, i);
-		for (j = 0; j < nm_ip6_config_get_num_nameservers (ip6_config); j++) {
-			if (ip6_addresses_equal (nm_ip6_config_get_nameserver (ip6_config, j), ns)) {
+		ns = bm_setting_ip6_config_get_dns (setting, i);
+		for (j = 0; j < bm_ip6_config_get_num_nameservers (ip6_config); j++) {
+			if (ip6_addresses_equal (bm_ip6_config_get_nameserver (ip6_config, j), ns)) {
 				found = TRUE;
 				break;
 			}
 		}
 
 		if (!found)
-			nm_ip6_config_add_nameserver (ip6_config, ns);
+			bm_ip6_config_add_nameserver (ip6_config, ns);
 	}
 
 	/* DNS search domains */
-	for (i = 0; i < nm_setting_ip6_config_get_num_dns_searches (setting); i++) {
-		const char *search = nm_setting_ip6_config_get_dns_search (setting, i);
+	for (i = 0; i < bm_setting_ip6_config_get_num_dns_searches (setting); i++) {
+		const char *search = bm_setting_ip6_config_get_dns_search (setting, i);
 		gboolean found = FALSE;
 
 		/* Avoid dupes */
-		for (j = 0; j < nm_ip6_config_get_num_searches (ip6_config); j++) {
-			if (!strcmp (search, nm_ip6_config_get_search (ip6_config, j))) {
+		for (j = 0; j < bm_ip6_config_get_num_searches (ip6_config); j++) {
+			if (!strcmp (search, bm_ip6_config_get_search (ip6_config, j))) {
 				found = TRUE;
 				break;
 			}
 		}
 
 		if (!found)
-			nm_ip6_config_add_search (ip6_config, search);
+			bm_ip6_config_add_search (ip6_config, search);
 	}
 
 	/* IPv6 addresses */
-	for (i = 0; i < nm_setting_ip6_config_get_num_addresses (setting); i++) {
-		NMIP6Address *setting_addr = nm_setting_ip6_config_get_address (setting, i);
+	for (i = 0; i < bm_setting_ip6_config_get_num_addresses (setting); i++) {
+		NMIP6Address *setting_addr = bm_setting_ip6_config_get_address (setting, i);
 		guint32 num;
 
-		num = nm_ip6_config_get_num_addresses (ip6_config);
+		num = bm_ip6_config_get_num_addresses (ip6_config);
 		for (j = 0; j < num; j++) {
-			NMIP6Address *cfg_addr = nm_ip6_config_get_address (ip6_config, j);
+			NMIP6Address *cfg_addr = bm_ip6_config_get_address (ip6_config, j);
 
 			/* Dupe, override with user-specified address */
-			if (ip6_addresses_equal (nm_ip6_address_get_address (cfg_addr), nm_ip6_address_get_address (setting_addr))) {
-				nm_ip6_config_replace_address (ip6_config, j, setting_addr);
+			if (ip6_addresses_equal (bm_ip6_address_get_address (cfg_addr), bm_ip6_address_get_address (setting_addr))) {
+				bm_ip6_config_replace_address (ip6_config, j, setting_addr);
 				break;
 			}
 		}
 
 		if (j == num)
-			nm_ip6_config_add_address (ip6_config, setting_addr);
+			bm_ip6_config_add_address (ip6_config, setting_addr);
 	}
 
 	/* IPv6 routes */
-	for (i = 0; i < nm_setting_ip6_config_get_num_routes (setting); i++) {
-		NMIP6Route *setting_route = nm_setting_ip6_config_get_route (setting, i);
+	for (i = 0; i < bm_setting_ip6_config_get_num_routes (setting); i++) {
+		NMIP6Route *setting_route = bm_setting_ip6_config_get_route (setting, i);
 		guint32 num;
 
-		num = nm_ip6_config_get_num_routes (ip6_config);
+		num = bm_ip6_config_get_num_routes (ip6_config);
 		for (j = 0; j < num; j++) {
-			NMIP6Route *cfg_route = nm_ip6_config_get_route (ip6_config, j);
+			NMIP6Route *cfg_route = bm_ip6_config_get_route (ip6_config, j);
 
 			/* Dupe, override with user-specified route */
-			if (   ip6_addresses_equal (nm_ip6_route_get_dest (cfg_route), nm_ip6_route_get_dest (setting_route))
-			    && (nm_ip6_route_get_prefix (cfg_route) == nm_ip6_route_get_prefix (setting_route))
-				&& ip6_addresses_equal (nm_ip6_route_get_next_hop (cfg_route), nm_ip6_route_get_next_hop (setting_route))) {
-				nm_ip6_config_replace_route (ip6_config, j, setting_route);
+			if (   ip6_addresses_equal (bm_ip6_route_get_dest (cfg_route), bm_ip6_route_get_dest (setting_route))
+			    && (bm_ip6_route_get_prefix (cfg_route) == bm_ip6_route_get_prefix (setting_route))
+				&& ip6_addresses_equal (bm_ip6_route_get_next_hop (cfg_route), bm_ip6_route_get_next_hop (setting_route))) {
+				bm_ip6_config_replace_route (ip6_config, j, setting_route);
 				break;
 			}
 		}
 
 		if (j == num)
-			nm_ip6_config_add_route (ip6_config, setting_route);
+			bm_ip6_config_add_route (ip6_config, setting_route);
 	}
 
-	if (nm_setting_ip6_config_get_never_default (setting))
-		nm_ip6_config_set_never_default (ip6_config, TRUE);
+	if (bm_setting_ip6_config_get_never_default (setting))
+		bm_ip6_config_set_never_default (ip6_config, TRUE);
 }
 
 static void
@@ -378,9 +378,9 @@ dispatcher_done_cb (DBusGProxy *proxy, DBusGProxyCall *call, gpointer user_data)
 }
 
 void
-nm_utils_call_dispatcher (const char *action,
-                          NMConnection *connection,
-                          NMDevice *device,
+bm_utils_call_dispatcher (const char *action,
+                          BMConnection *connection,
+                          BMDevice *device,
                           const char *vpn_iface)
 {
 	NMDBusManager *dbus_mgr;
@@ -394,40 +394,40 @@ nm_utils_call_dispatcher (const char *action,
 
 	/* All actions except 'hostname' require a device */
 	if (strcmp (action, "hostname"))
-		g_return_if_fail (NM_IS_DEVICE (device));
+		g_return_if_fail (BM_IS_DEVICE (device));
 
-	dbus_mgr = nm_dbus_manager_get ();
-	g_connection = nm_dbus_manager_get_connection (dbus_mgr);
+	dbus_mgr = bm_dbus_manager_get ();
+	g_connection = bm_dbus_manager_get_connection (dbus_mgr);
 	proxy = dbus_g_proxy_new_for_name (g_connection,
-	                                   NM_DISPATCHER_DBUS_SERVICE,
-	                                   NM_DISPATCHER_DBUS_PATH,
-	                                   NM_DISPATCHER_DBUS_IFACE);
+	                                   BM_DISPATCHER_DBUS_SERVICE,
+	                                   BM_DISPATCHER_DBUS_PATH,
+	                                   BM_DISPATCHER_DBUS_IFACE);
 	if (!proxy) {
-		nm_log_err (LOGD_CORE, "could not get dispatcher proxy!");
+		bm_log_err (LOGD_CORE, "could not get dispatcher proxy!");
 		g_object_unref (dbus_mgr);
 		return;
 	}
 
 	if (connection) {
-		connection_hash = nm_connection_to_hash (connection);
+		connection_hash = bm_connection_to_hash (connection);
 
 		connection_props = value_hash_create ();
 
 		/* Service name */
-		if (nm_connection_get_scope (connection) == NM_CONNECTION_SCOPE_USER) {
+		if (bm_connection_get_scope (connection) == BM_CONNECTION_SCOPE_USER) {
 			value_hash_add_str (connection_props,
 								NMD_CONNECTION_PROPS_SERVICE_NAME,
-								NM_DBUS_SERVICE_USER_SETTINGS);
-		} else if (nm_connection_get_scope (connection) == NM_CONNECTION_SCOPE_SYSTEM) {
+								BM_DBUS_SERVICE_USER_SETTINGS);
+		} else if (bm_connection_get_scope (connection) == BM_CONNECTION_SCOPE_SYSTEM) {
 			value_hash_add_str (connection_props,
 								NMD_CONNECTION_PROPS_SERVICE_NAME,
-								NM_DBUS_SERVICE_SYSTEM_SETTINGS);
+								BM_DBUS_SERVICE_SYSTEM_SETTINGS);
 		}
 
 		/* path */
 		value_hash_add_object_path (connection_props,
 									NMD_CONNECTION_PROPS_PATH,
-									nm_connection_get_path (connection));
+									bm_connection_get_path (connection));
 	} else {
 		connection_hash = value_hash_create ();
 		connection_props = value_hash_create ();
@@ -438,21 +438,21 @@ nm_utils_call_dispatcher (const char *action,
 	/* Hostname actions do not require a device */
 	if (strcmp (action, "hostname")) {
 		/* interface */
-		value_hash_add_str (device_props, NMD_DEVICE_PROPS_INTERFACE, nm_device_get_iface (device));
+		value_hash_add_str (device_props, NMD_DEVICE_PROPS_INTERFACE, bm_device_get_iface (device));
 
 		/* IP interface */
 		if (vpn_iface) {
 			value_hash_add_str (device_props, NMD_DEVICE_PROPS_IP_INTERFACE, vpn_iface);
-		} else if (nm_device_get_ip_iface (device)) {
-			value_hash_add_str (device_props, NMD_DEVICE_PROPS_IP_INTERFACE, nm_device_get_ip_iface (device));
+		} else if (bm_device_get_ip_iface (device)) {
+			value_hash_add_str (device_props, NMD_DEVICE_PROPS_IP_INTERFACE, bm_device_get_ip_iface (device));
 		}
 
 		/* type */
-		value_hash_add_uint (device_props, NMD_DEVICE_PROPS_TYPE, nm_device_get_device_type (device));
+		value_hash_add_uint (device_props, NMD_DEVICE_PROPS_TYPE, bm_device_get_device_type (device));
 
 		/* state */
-		value_hash_add_uint (device_props, NMD_DEVICE_PROPS_STATE, nm_device_get_state (device));
-		value_hash_add_object_path (device_props, NMD_DEVICE_PROPS_PATH, nm_device_get_path (device));
+		value_hash_add_uint (device_props, NMD_DEVICE_PROPS_STATE, bm_device_get_state (device));
+		value_hash_add_object_path (device_props, NMD_DEVICE_PROPS_PATH, bm_device_get_path (device));
 	}
 
 	/* Do a non-blocking call, but wait for the reply, because dbus-glib
@@ -477,7 +477,7 @@ nm_utils_call_dispatcher (const char *action,
 }
 
 gboolean
-nm_match_spec_hwaddr (const GSList *specs, const char *hwaddr)
+bm_match_spec_hwaddr (const GSList *specs, const char *hwaddr)
 {
 	const GSList *iter;
 	char *hwaddr_match, *p;
@@ -571,7 +571,7 @@ parse_subchannels (const char *subchannels, guint32 *a, guint32 *b, guint32 *c)
 #define SUBCHAN_TAG "s390-subchannels:"
 
 gboolean
-nm_match_spec_s390_subchannels (const GSList *specs, const char *subchannels)
+bm_match_spec_s390_subchannels (const GSList *specs, const char *subchannels)
 {
 	const GSList *iter;
 	guint32 a = 0, b = 0, c = 0;
@@ -600,7 +600,7 @@ nm_match_spec_s390_subchannels (const GSList *specs, const char *subchannels)
 /*********************************/
 
 static void
-nm_gvalue_destroy (gpointer data)
+bm_gvalue_destroy (gpointer data)
 {
 	GValue *value = (GValue *) data;
 
@@ -611,7 +611,7 @@ nm_gvalue_destroy (gpointer data)
 GHashTable *
 value_hash_create (void)
 {
-	return g_hash_table_new_full (g_str_hash, g_str_equal, g_free, nm_gvalue_destroy);
+	return g_hash_table_new_full (g_str_hash, g_str_equal, g_free, bm_gvalue_destroy);
 }
 
 void
@@ -679,7 +679,7 @@ value_hash_add_bool (GHashTable *hash,
 }
 
 gboolean
-nm_utils_do_sysctl (const char *path, const char *value)
+bm_utils_do_sysctl (const char *path, const char *value)
 {
 	int fd, len, nwrote, total;
 
@@ -705,7 +705,7 @@ nm_utils_do_sysctl (const char *path, const char *value)
 }
 
 gboolean
-nm_utils_get_proc_sys_net_value (const char *path,
+bm_utils_get_proc_sys_net_value (const char *path,
                                  const char *iface,
                                  guint32 *out_value)
 {
@@ -715,7 +715,7 @@ nm_utils_get_proc_sys_net_value (const char *path,
 	long int tmp;
 
 	if (!g_file_get_contents (path, &contents, NULL, &error)) {
-		nm_log_dbg (LOGD_DEVICE, "(%s): error reading %s: (%d) %s",
+		bm_log_dbg (LOGD_DEVICE, "(%s): error reading %s: (%d) %s",
 		            iface, path,
 		            error ? error->code : -1,
 		            error && error->message ? error->message : "(unknown)");

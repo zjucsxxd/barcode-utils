@@ -51,14 +51,14 @@
       </tp:docstring>
       <annotation name="org.freedesktop.DBus.GLib.CSymbol" value="impl_settings_get_permissions"/>
       <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <arg name="permissions" type="u" direction="out" tp:type="NM_SETTINGS_SYSTEM_PERMISSIONS">
+      <arg name="permissions" type="u" direction="out" tp:type="BM_SETTINGS_SYSTEM_PERMISSIONS">
         <tp:docstring>
           A bitfield of permitted operations.  Some of these operations may require the user to authorize via password entry or other means.
         </tp:docstring>
       </arg>
     </method>
 
-    <tp:flags name="NM_SETTINGS_SYSTEM_PERMISSIONS" value-prefix="NM_SETTINGS_SYSTEM_PERMISSION" type="u">
+    <tp:flags name="BM_SETTINGS_SYSTEM_PERMISSIONS" value-prefix="BM_SETTINGS_SYSTEM_PERMISSION" type="u">
       <tp:flag suffix="NONE" value="0x0">
         <tp:docstring>No permissions.</tp:docstring>
       </tp:flag>

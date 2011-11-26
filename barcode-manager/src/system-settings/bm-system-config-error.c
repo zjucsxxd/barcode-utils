@@ -22,12 +22,12 @@
 #include "bm-system-config-error.h"
 
 GQuark
-nm_sysconfig_settings_error_quark (void)
+bm_sysconfig_settings_error_quark (void)
 {
 	static GQuark ret = 0;
 
 	if (ret == 0)
-		ret = g_quark_from_static_string ("nm_sysconfig_settings_error");
+		ret = g_quark_from_static_string ("bm_sysconfig_settings_error");
 
 	return ret;
 }
@@ -35,20 +35,20 @@ nm_sysconfig_settings_error_quark (void)
 #define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
 
 GType
-nm_sysconfig_settings_error_get_type (void)
+bm_sysconfig_settings_error_get_type (void)
 {
 	static GType etype = 0;
 
 	if (etype == 0) {
 		static const GEnumValue values[] = {
-			ENUM_ENTRY (NM_SYSCONFIG_SETTINGS_ERROR_GENERAL, "GeneralError"),
-			ENUM_ENTRY (NM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED, "NotPrivileged"),
-			ENUM_ENTRY (NM_SYSCONFIG_SETTINGS_ERROR_ADD_NOT_SUPPORTED, "AddNotSupported"),
-			ENUM_ENTRY (NM_SYSCONFIG_SETTINGS_ERROR_UPDATE_NOT_SUPPORTED, "UpdateNotSupported"),
-			ENUM_ENTRY (NM_SYSCONFIG_SETTINGS_ERROR_DELETE_NOT_SUPPORTED, "DeleteNotSupported"),
-			ENUM_ENTRY (NM_SYSCONFIG_SETTINGS_ERROR_ADD_FAILED, "AddFailed"),
-			ENUM_ENTRY (NM_SYSCONFIG_SETTINGS_ERROR_SAVE_HOSTNAME_NOT_SUPPORTED, "SaveHostnameNotSupported"),
-			ENUM_ENTRY (NM_SYSCONFIG_SETTINGS_ERROR_SAVE_HOSTNAME_FAILED, "SaveHostnameFailed"),
+			ENUM_ENTRY (BM_SYSCONFIG_SETTINGS_ERROR_GENERAL, "GeneralError"),
+			ENUM_ENTRY (BM_SYSCONFIG_SETTINGS_ERROR_NOT_PRIVILEGED, "NotPrivileged"),
+			ENUM_ENTRY (BM_SYSCONFIG_SETTINGS_ERROR_ADD_NOT_SUPPORTED, "AddNotSupported"),
+			ENUM_ENTRY (BM_SYSCONFIG_SETTINGS_ERROR_UPDATE_NOT_SUPPORTED, "UpdateNotSupported"),
+			ENUM_ENTRY (BM_SYSCONFIG_SETTINGS_ERROR_DELETE_NOT_SUPPORTED, "DeleteNotSupported"),
+			ENUM_ENTRY (BM_SYSCONFIG_SETTINGS_ERROR_ADD_FAILED, "AddFailed"),
+			ENUM_ENTRY (BM_SYSCONFIG_SETTINGS_ERROR_SAVE_HOSTNAME_NOT_SUPPORTED, "SaveHostnameNotSupported"),
+			ENUM_ENTRY (BM_SYSCONFIG_SETTINGS_ERROR_SAVE_HOSTNAME_FAILED, "SaveHostnameFailed"),
 			{ 0, 0, 0 }
 		};
 

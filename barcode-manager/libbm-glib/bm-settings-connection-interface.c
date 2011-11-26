@@ -24,8 +24,8 @@
 #include "bm-dbus-glib-types.h"
 
 /**
- * nm_settings_connection_interface_update:
- * @connection: an object implementing #NMSettingsConnectionInterface
+ * bm_settings_connection_interface_update:
+ * @connection: an object implementing #BMSettingsConnectionInterface
  * @callback: a function to be called when the update completes
  * @user_data: caller-specific data to be passed to @callback
  *
@@ -34,16 +34,16 @@
  * Returns: TRUE on success, FALSE on failure
  **/
 gboolean
-nm_settings_connection_interface_update (NMSettingsConnectionInterface *connection,
-                                         NMSettingsConnectionInterfaceUpdateFunc callback,
+bm_settings_connection_interface_update (BMSettingsConnectionInterface *connection,
+                                         BMSettingsConnectionInterfaceUpdateFunc callback,
                                          gpointer user_data)
 {
 	g_return_val_if_fail (connection != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SETTINGS_CONNECTION_INTERFACE (connection), FALSE);
+	g_return_val_if_fail (BM_IS_SETTINGS_CONNECTION_INTERFACE (connection), FALSE);
 	g_return_val_if_fail (callback != NULL, FALSE);
 
-	if (NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->update) {
-		return NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->update (connection,
+	if (BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->update) {
+		return BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->update (connection,
 		                                                                            callback,
 		                                                                            user_data);
 	}
@@ -51,8 +51,8 @@ nm_settings_connection_interface_update (NMSettingsConnectionInterface *connecti
 }
 
 /**
- * nm_settings_connection_interface_delete:
- * @connection: a objecting implementing #NMSettingsConnectionInterface
+ * bm_settings_connection_interface_delete:
+ * @connection: a objecting implementing #BMSettingsConnectionInterface
  * @callback: a function to be called when the delete completes
  * @user_data: caller-specific data to be passed to @callback
  *
@@ -61,16 +61,16 @@ nm_settings_connection_interface_update (NMSettingsConnectionInterface *connecti
  * Returns: TRUE on success, FALSE on failure
  **/
 gboolean
-nm_settings_connection_interface_delete (NMSettingsConnectionInterface *connection,
-                                         NMSettingsConnectionInterfaceDeleteFunc callback,
+bm_settings_connection_interface_delete (BMSettingsConnectionInterface *connection,
+                                         BMSettingsConnectionInterfaceDeleteFunc callback,
                                          gpointer user_data)
 {
 	g_return_val_if_fail (connection != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SETTINGS_CONNECTION_INTERFACE (connection), FALSE);
+	g_return_val_if_fail (BM_IS_SETTINGS_CONNECTION_INTERFACE (connection), FALSE);
 	g_return_val_if_fail (callback != NULL, FALSE);
 
-	if (NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->delete) {
-		return NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->delete (connection,
+	if (BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->delete) {
+		return BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->delete (connection,
 		                                                                            callback,
 		                                                                            user_data);
 	}
@@ -78,10 +78,10 @@ nm_settings_connection_interface_delete (NMSettingsConnectionInterface *connecti
 }
 
 /**
- * nm_settings_connection_interface_get_secrets:
- * @connection: a object implementing #NMSettingsConnectionInterface
- * @setting_name: the #NMSetting object name to get secrets for
- * @hints: #NMSetting key names to get secrets for (optional)
+ * bm_settings_connection_interface_get_secrets:
+ * @connection: a object implementing #BMSettingsConnectionInterface
+ * @setting_name: the #BMSetting object name to get secrets for
+ * @hints: #BMSetting key names to get secrets for (optional)
  * @request_new: hint that new secrets (instead of cached or stored secrets) 
  *  should be returned
  * @callback: a function to be called when the update completes
@@ -92,19 +92,19 @@ nm_settings_connection_interface_delete (NMSettingsConnectionInterface *connecti
  * Returns: TRUE on success, FALSE on failure
  **/
 gboolean
-nm_settings_connection_interface_get_secrets (NMSettingsConnectionInterface *connection,
+bm_settings_connection_interface_get_secrets (BMSettingsConnectionInterface *connection,
                                               const char *setting_name,
                                               const char **hints,
                                               gboolean request_new,
-                                              NMSettingsConnectionInterfaceGetSecretsFunc callback,
+                                              BMSettingsConnectionInterfaceGetSecretsFunc callback,
                                               gpointer user_data)
 {
 	g_return_val_if_fail (connection != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SETTINGS_CONNECTION_INTERFACE (connection), FALSE);
+	g_return_val_if_fail (BM_IS_SETTINGS_CONNECTION_INTERFACE (connection), FALSE);
 	g_return_val_if_fail (callback != NULL, FALSE);
 
-	if (NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->get_secrets) {
-		return NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->get_secrets (connection,
+	if (BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->get_secrets) {
+		return BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->get_secrets (connection,
 		                                                                                 setting_name,
 		                                                                                 hints,
 		                                                                                 request_new,
@@ -115,26 +115,26 @@ nm_settings_connection_interface_get_secrets (NMSettingsConnectionInterface *con
 }
 
 void
-nm_settings_connection_interface_emit_updated (NMSettingsConnectionInterface *connection)
+bm_settings_connection_interface_emit_updated (BMSettingsConnectionInterface *connection)
 {
-	if (NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->emit_updated)
-		NM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->emit_updated (connection);
+	if (BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->emit_updated)
+		BM_SETTINGS_CONNECTION_INTERFACE_GET_INTERFACE (connection)->emit_updated (connection);
 	else {
-		NMConnection *tmp;
+		BMConnection *tmp;
 		GHashTable *settings;
 
-		tmp = nm_connection_duplicate (NM_CONNECTION (connection));
-		nm_connection_clear_secrets (tmp);
-		settings = nm_connection_to_hash (tmp);
+		tmp = bm_connection_duplicate (BM_CONNECTION (connection));
+		bm_connection_clear_secrets (tmp);
+		settings = bm_connection_to_hash (tmp);
 		g_object_unref (tmp);
 
-		g_signal_emit_by_name (connection, NM_SETTINGS_CONNECTION_INTERFACE_UPDATED, settings);
+		g_signal_emit_by_name (connection, BM_SETTINGS_CONNECTION_INTERFACE_UPDATED, settings);
 		g_hash_table_destroy (settings);
 	}
 }
 
 static void
-nm_settings_connection_interface_init (gpointer g_iface)
+bm_settings_connection_interface_init (gpointer g_iface)
 {
 	GType iface_type = G_TYPE_FROM_INTERFACE (g_iface);
 	static gboolean initialized = FALSE;
@@ -143,18 +143,18 @@ nm_settings_connection_interface_init (gpointer g_iface)
 		return;
 
 	/* Signals */
-	g_signal_new (NM_SETTINGS_CONNECTION_INTERFACE_UPDATED,
+	g_signal_new (BM_SETTINGS_CONNECTION_INTERFACE_UPDATED,
 				  iface_type,
 				  G_SIGNAL_RUN_FIRST,
-				  G_STRUCT_OFFSET (NMSettingsConnectionInterface, updated),
+				  G_STRUCT_OFFSET (BMSettingsConnectionInterface, updated),
 				  NULL, NULL,
 				  g_cclosure_marshal_VOID__BOXED,
 				  G_TYPE_NONE, 1, DBUS_TYPE_G_MAP_OF_MAP_OF_VARIANT);
 
-	g_signal_new (NM_SETTINGS_CONNECTION_INTERFACE_REMOVED,
+	g_signal_new (BM_SETTINGS_CONNECTION_INTERFACE_REMOVED,
 				  iface_type,
 				  G_SIGNAL_RUN_FIRST,
-				  G_STRUCT_OFFSET (NMSettingsConnectionInterface, removed),
+				  G_STRUCT_OFFSET (BMSettingsConnectionInterface, removed),
 				  NULL, NULL,
 				  g_cclosure_marshal_VOID__VOID,
 				  G_TYPE_NONE, 0);
@@ -163,14 +163,14 @@ nm_settings_connection_interface_init (gpointer g_iface)
 }
 
 GType
-nm_settings_connection_interface_get_type (void)
+bm_settings_connection_interface_get_type (void)
 {
 	static GType itype = 0;
 
 	if (!itype) {
 		const GTypeInfo iinfo = {
-			sizeof (NMSettingsConnectionInterface), /* class_size */
-			nm_settings_connection_interface_init,   /* base_init */
+			sizeof (BMSettingsConnectionInterface), /* class_size */
+			bm_settings_connection_interface_init,   /* base_init */
 			NULL,		/* base_finalize */
 			NULL,
 			NULL,		/* class_finalize */
@@ -181,10 +181,10 @@ nm_settings_connection_interface_get_type (void)
 		};
 
 		itype = g_type_register_static (G_TYPE_INTERFACE,
-		                                "NMSettingsConnectionInterface",
+		                                "BMSettingsConnectionInterface",
 		                                &iinfo, 0);
 
-		g_type_interface_add_prerequisite (itype, NM_TYPE_CONNECTION);
+		g_type_interface_add_prerequisite (itype, BM_TYPE_CONNECTION);
 	}
 
 	return itype;

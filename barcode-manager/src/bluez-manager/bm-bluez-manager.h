@@ -19,20 +19,20 @@
  * Copyright (C) 2007 - 2009 Red Hat, Inc.
  */
 
-#ifndef NM_BLUEZ_MANAGER_H
-#define NM_BLUEZ_MANAGER_H
+#ifndef BM_BLUEZ_MANAGER_H
+#define BM_BLUEZ_MANAGER_H
 
 #include <glib.h>
 #include <glib-object.h>
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_BLUEZ_MANAGER            (nm_bluez_manager_get_type ())
-#define NM_BLUEZ_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_BLUEZ_MANAGER, NMBluezManager))
-#define NM_BLUEZ_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_BLUEZ_MANAGER, NMBluezManagerClass))
-#define NM_IS_BLUEZ_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_BLUEZ_MANAGER))
-#define NM_IS_BLUEZ_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_BLUEZ_MANAGER))
-#define NM_BLUEZ_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_BLUEZ_MANAGER, NMBluezManagerClass))
+#define BM_TYPE_BLUEZ_MANAGER            (bm_bluez_manager_get_type ())
+#define BM_BLUEZ_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_BLUEZ_MANAGER, NMBluezManager))
+#define BM_BLUEZ_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_BLUEZ_MANAGER, NMBluezManagerClass))
+#define BM_IS_BLUEZ_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_BLUEZ_MANAGER))
+#define BM_IS_BLUEZ_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_BLUEZ_MANAGER))
+#define BM_BLUEZ_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_BLUEZ_MANAGER, NMBluezManagerClass))
 
 typedef struct {
 	GObject parent;
@@ -53,11 +53,11 @@ typedef struct {
 	                        const char *object_path);
 } NMBluezManagerClass;
 
-GType nm_bluez_manager_get_type (void);
+GType bm_bluez_manager_get_type (void);
 
-NMBluezManager *nm_bluez_manager_new (void);
-NMBluezManager *nm_bluez_manager_get (void);
-void nm_bluez_manager_query_devices (NMBluezManager *manager);
+NMBluezManager *bm_bluez_manager_new (void);
+NMBluezManager *bm_bluez_manager_get (void);
+void bm_bluez_manager_query_devices (NMBluezManager *manager);
 
-#endif /* NM_BLUEZ_MANAGER_H */
+#endif /* BM_BLUEZ_MANAGER_H */
 

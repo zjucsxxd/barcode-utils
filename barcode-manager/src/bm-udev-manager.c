@@ -49,9 +49,9 @@ typedef struct {
 	gboolean disposed;
 } NMUdevManagerPrivate;
 
-#define NM_UDEV_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_UDEV_MANAGER, NMUdevManagerPrivate))
+#define BM_UDEV_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_UDEV_MANAGER, NMUdevManagerPrivate))
 
-G_DEFINE_TYPE (NMUdevManager, nm_udev_manager, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NMUdevManager, bm_udev_manager, G_TYPE_OBJECT)
 
 enum {
 	DEVICE_ADDED,
@@ -74,12 +74,12 @@ typedef struct {
 } Killswitch;
 
 RfKillState
-nm_udev_manager_get_rfkill_state (NMUdevManager *self, RfKillType rtype)
+bm_udev_manager_get_rfkill_state (NMUdevManager *self, RfKillType rtype)
 {
 	g_return_val_if_fail (self != NULL, RFKILL_UNBLOCKED);
 	g_return_val_if_fail (rtype < RFKILL_TYPE_MAX, RFKILL_UNBLOCKED);
 
-	return NM_UDEV_MANAGER_GET_PRIVATE (self)->rfkill_states[rtype];
+	return BM_UDEV_MANAGER_GET_PRIVATE (self)->rfkill_states[rtype];
 }
 
 static const char *
@@ -147,13 +147,13 @@ killswitch_destroy (Killswitch *ks)
 }
 
 NMUdevManager *
-nm_udev_manager_new (void)
+bm_udev_manager_new (void)
 {
-	return NM_UDEV_MANAGER (g_object_new (NM_TYPE_UDEV_MANAGER, NULL));
+	return BM_UDEV_MANAGER (g_object_new (BM_TYPE_UDEV_MANAGER, NULL));
 }
 
 static RfKillState
-sysfs_state_to_nm_state (gint sysfs_state)
+sysfs_state_to_bm_state (gint sysfs_state)
 {
 	switch (sysfs_state) {
 	case 0:
@@ -163,7 +163,7 @@ sysfs_state_to_nm_state (gint sysfs_state)
 	case 2:
 		return RFKILL_HARD_BLOCKED;
 	default:
-		nm_log_warn (LOGD_RFKILL, "unhandled rfkill state %d", sysfs_state);
+		bm_log_warn (LOGD_RFKILL, "unhandled rfkill state %d", sysfs_state);
 		break;
 	}
 	return RFKILL_UNBLOCKED;
@@ -172,7 +172,7 @@ sysfs_state_to_nm_state (gint sysfs_state)
 static void
 recheck_killswitches (NMUdevManager *self)
 {
-	NMUdevManagerPrivate *priv = NM_UDEV_MANAGER_GET_PRIVATE (self);
+	NMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 	GSList *iter;
 	RfKillState poll_states[RFKILL_TYPE_MAX];
 	int i;
@@ -190,7 +190,7 @@ recheck_killswitches (NMUdevManager *self)
 		if (!device)
 			continue;
 
-		dev_state = sysfs_state_to_nm_state (g_udev_device_get_property_as_int (device, "RFKILL_STATE"));
+		dev_state = sysfs_state_to_bm_state (g_udev_device_get_property_as_int (device, "RFKILL_STATE"));
 		if (dev_state > poll_states[ks->rtype])
 			poll_states[ks->rtype] = dev_state;
 
@@ -199,7 +199,7 @@ recheck_killswitches (NMUdevManager *self)
 
 	for (i = 0; i < RFKILL_TYPE_MAX; i++) {
 		if (poll_states[i] != priv->rfkill_states[i]) {
-			nm_log_dbg (LOGD_RFKILL, "%s rfkill state now '%s'",
+			bm_log_dbg (LOGD_RFKILL, "%s rfkill state now '%s'",
 			            rfkill_type_to_desc (i),
 			            rfkill_state_to_desc (poll_states[i]));
 
@@ -212,7 +212,7 @@ recheck_killswitches (NMUdevManager *self)
 static Killswitch *
 killswitch_find_by_name (NMUdevManager *self, const char *name)
 {
-	NMUdevManagerPrivate *priv = NM_UDEV_MANAGER_GET_PRIVATE (self);
+	NMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 	GSList *iter;
 
 	g_return_val_if_fail (name != NULL, NULL);
@@ -244,7 +244,7 @@ rfkill_type_to_enum (const char *str)
 static void
 add_one_killswitch (NMUdevManager *self, GUdevDevice *device)
 {
-	NMUdevManagerPrivate *priv = NM_UDEV_MANAGER_GET_PRIVATE (self);
+	NMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 	const char *str_type;
 	RfKillType rtype;
 	Killswitch *ks;
@@ -257,7 +257,7 @@ add_one_killswitch (NMUdevManager *self, GUdevDevice *device)
 	ks = killswitch_new (device, rtype);
 	priv->killswitches = g_slist_prepend (priv->killswitches, ks);
 
-	nm_log_info (LOGD_RFKILL, "found %s radio killswitch %s (at %s) (driver %s)",
+	bm_log_info (LOGD_RFKILL, "found %s radio killswitch %s (at %s) (driver %s)",
 	             rfkill_type_to_desc (rtype),
 	             ks->name,
 	             ks->path,
@@ -281,7 +281,7 @@ static void
 rfkill_remove (NMUdevManager *self,
                GUdevDevice *device)
 {
-	NMUdevManagerPrivate *priv = NM_UDEV_MANAGER_GET_PRIVATE (self);
+	NMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 	GSList *iter;
 	const char *name;
 
@@ -293,7 +293,7 @@ rfkill_remove (NMUdevManager *self,
 		Killswitch *ks = iter->data;
 
 		if (!strcmp (ks->name, name)) {
-			nm_log_info (LOGD_RFKILL, "radio killswitch %s disappeared", ks->path);
+			bm_log_info (LOGD_RFKILL, "radio killswitch %s disappeared", ks->path);
 			priv->killswitches = g_slist_remove (priv->killswitches, ks);
 			killswitch_destroy (ks);
 			break;
@@ -331,7 +331,7 @@ is_wireless (GUdevDevice *device)
 static gboolean
 is_olpc_mesh (GUdevDevice *device)
 {
-	const gchar *prop = g_udev_device_get_property (device, "ID_NM_OLPC_MESH");
+	const gchar *prop = g_udev_device_get_property (device, "ID_BM_OLPC_MESH");
 	return (prop != NULL);
 }
 
@@ -350,7 +350,7 @@ device_creator (NMUdevManager *manager,
 
 	path = g_udev_device_get_sysfs_path (udev_device);
 	if (!path) {
-		nm_log_warn (LOGD_HW, "couldn't determine device path; ignoring...");
+		bm_log_warn (LOGD_HW, "couldn't determine device path; ignoring...");
 		return NULL;
 	}
 
@@ -373,22 +373,22 @@ device_creator (NMUdevManager *manager,
 	}
 
 	if (!driver) {
-		nm_log_warn (LOGD_HW, "%s: couldn't determine device driver; ignoring...", path);
+		bm_log_warn (LOGD_HW, "%s: couldn't determine device driver; ignoring...", path);
 		goto out;
 	}
 
 	ifindex = g_udev_device_get_sysfs_attr_as_int (udev_device, "ifindex");
 	if (ifindex <= 0) {
-		nm_log_warn (LOGD_HW, "%s: device had invalid ifindex %d; ignoring...", path, (guint32) ifindex);
+		bm_log_warn (LOGD_HW, "%s: device had invalid ifindex %d; ignoring...", path, (guint32) ifindex);
 		goto out;
 	}
 
 	if (is_olpc_mesh (udev_device)) /* must be before is_wireless */
-		device = (GObject *) nm_device_olpc_mesh_new (path, ifname, driver);
+		device = (GObject *) bm_device_olpc_mesh_new (path, ifname, driver);
 	else if (is_wireless (udev_device))
-		device = (GObject *) nm_device_wifi_new (path, ifname, driver);
+		device = (GObject *) bm_device_wifi_new (path, ifname, driver);
 	else
-		device = (GObject *) nm_device_ethernet_new (path, ifname, driver);
+		device = (GObject *) bm_device_ethernet_new (path, ifname, driver);
 
 out:
 	if (grandparent)
@@ -409,26 +409,26 @@ net_add (NMUdevManager *self, GUdevDevice *device)
 
 	etype = g_udev_device_get_sysfs_attr_as_int (device, "type");
 	if (etype != 1) {
-		nm_log_dbg (LOGD_HW, "ignoring interface with type %d", etype);
+		bm_log_dbg (LOGD_HW, "ignoring interface with type %d", etype);
 		return; /* Not using ethernet encapsulation, don't care */
 	}
 
 	/* Not all ethernet devices are immediately usable; newer mobile broadband
 	 * devices (Ericsson, Option, Sierra) require setup on the tty before the
 	 * ethernet device is usable.  2.6.33 and later kernels set the 'DEVTYPE'
-	 * uevent variable which we can use to ignore the interface as a NMDevice
+	 * uevent variable which we can use to ignore the interface as a BMDevice
 	 * subclass.  ModemManager will pick it up though and so we'll handle it
 	 * through the mobile broadband stuff.
 	 */
 	devtype = g_udev_device_get_property (device, "DEVTYPE");
 	if (devtype && !strcmp (devtype, "wwan")) {
-		nm_log_dbg (LOGD_HW, "ignoring interface with devtype '%s'", devtype);
+		bm_log_dbg (LOGD_HW, "ignoring interface with devtype '%s'", devtype);
 		return;
 	}
 
 	iface = g_udev_device_get_name (device);
 	if (!iface) {
-		nm_log_dbg (LOGD_HW, "failed to get device's interface");
+		bm_log_dbg (LOGD_HW, "failed to get device's interface");
 		return;
 	}
 
@@ -442,13 +442,13 @@ net_remove (NMUdevManager *self, GUdevDevice *device)
 }
 
 void
-nm_udev_manager_query_devices (NMUdevManager *self)
+bm_udev_manager_query_devices (NMUdevManager *self)
 {
-	NMUdevManagerPrivate *priv = NM_UDEV_MANAGER_GET_PRIVATE (self);
+	NMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 	GList *devices, *iter;
 
 	g_return_if_fail (self != NULL);
-	g_return_if_fail (NM_IS_UDEV_MANAGER (self));
+	g_return_if_fail (BM_IS_UDEV_MANAGER (self));
 
 	devices = g_udev_client_query_by_subsystem (priv->client, "net");
 	for (iter = devices; iter; iter = g_list_next (iter)) {
@@ -464,7 +464,7 @@ handle_uevent (GUdevClient *client,
                GUdevDevice *device,
                gpointer user_data)
 {
-	NMUdevManager *self = NM_UDEV_MANAGER (user_data);
+	NMUdevManager *self = BM_UDEV_MANAGER (user_data);
 	const char *subsys;
 
 	g_return_if_fail (action != NULL);
@@ -473,7 +473,7 @@ handle_uevent (GUdevClient *client,
 	subsys = g_udev_device_get_subsystem (device);
 	g_return_if_fail (subsys != NULL);
 
-	nm_log_dbg (LOGD_HW, "UDEV event: action '%s' subsys '%s' device '%s'",
+	bm_log_dbg (LOGD_HW, "UDEV event: action '%s' subsys '%s' device '%s'",
 	            action, subsys, g_udev_device_get_name (device));
 
 	g_return_if_fail (!strcmp (subsys, "rfkill") || !strcmp (subsys, "net"));
@@ -494,9 +494,9 @@ handle_uevent (GUdevClient *client,
 }
 
 static void
-nm_udev_manager_init (NMUdevManager *self)
+bm_udev_manager_init (NMUdevManager *self)
 {
-	NMUdevManagerPrivate *priv = NM_UDEV_MANAGER_GET_PRIVATE (self);
+	NMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 	const char *subsys[3] = { "rfkill", "net", NULL };
 	GList *switches, *iter;
 	guint32 i;
@@ -520,11 +520,11 @@ nm_udev_manager_init (NMUdevManager *self)
 static void
 dispose (GObject *object)
 {
-	NMUdevManager *self = NM_UDEV_MANAGER (object);
-	NMUdevManagerPrivate *priv = NM_UDEV_MANAGER_GET_PRIVATE (self);
+	NMUdevManager *self = BM_UDEV_MANAGER (object);
+	NMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 
 	if (priv->disposed) {
-		G_OBJECT_CLASS (nm_udev_manager_parent_class)->dispose (object);
+		G_OBJECT_CLASS (bm_udev_manager_parent_class)->dispose (object);
 		return;
 	}
 	priv->disposed = TRUE;
@@ -534,11 +534,11 @@ dispose (GObject *object)
 	g_slist_foreach (priv->killswitches, (GFunc) killswitch_destroy, NULL);
 	g_slist_free (priv->killswitches);
 
-	G_OBJECT_CLASS (nm_udev_manager_parent_class)->dispose (object);	
+	G_OBJECT_CLASS (bm_udev_manager_parent_class)->dispose (object);	
 }
 
 static void
-nm_udev_manager_class_init (NMUdevManagerClass *klass)
+bm_udev_manager_class_init (NMUdevManagerClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
@@ -554,7 +554,7 @@ nm_udev_manager_class_init (NMUdevManagerClass *klass)
 					  G_SIGNAL_RUN_FIRST,
 					  G_STRUCT_OFFSET (NMUdevManagerClass, device_added),
 					  NULL, NULL,
-					  _nm_marshal_VOID__POINTER_POINTER,
+					  _bm_marshal_VOID__POINTER_POINTER,
 					  G_TYPE_NONE, 2, G_TYPE_POINTER, G_TYPE_POINTER);
 
 	signals[DEVICE_REMOVED] =
@@ -572,7 +572,7 @@ nm_udev_manager_class_init (NMUdevManagerClass *klass)
 					  G_SIGNAL_RUN_FIRST,
 					  G_STRUCT_OFFSET (NMUdevManagerClass, rfkill_changed),
 					  NULL, NULL,
-					  _nm_marshal_VOID__UINT_UINT,
+					  _bm_marshal_VOID__UINT_UINT,
 					  G_TYPE_NONE, 2, G_TYPE_UINT, G_TYPE_UINT);
 }
 

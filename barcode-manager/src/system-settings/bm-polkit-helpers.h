@@ -19,16 +19,16 @@
  * (C) Copyright 2008 - 2010 Red Hat, Inc.
  */
 
-#ifndef NM_POLKIT_HELPERS_H
-#define NM_POLKIT_HELPERS_H
+#ifndef BM_POLKIT_HELPERS_H
+#define BM_POLKIT_HELPERS_H
 
 #include <config.h>
 #include <polkit/polkit.h>
 
-#define NM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY    "org.freedesktop.network-manager-settings.system.modify"
-#define NM_SYSCONFIG_POLICY_ACTION_WIFI_SHARE_PROTECTED "org.freedesktop.network-manager-settings.system.wifi.share.protected"
-#define NM_SYSCONFIG_POLICY_ACTION_WIFI_SHARE_OPEN      "org.freedesktop.network-manager-settings.system.wifi.share.open"
-#define NM_SYSCONFIG_POLICY_ACTION_HOSTNAME_MODIFY      "org.freedesktop.network-manager-settings.system.hostname.modify"
+#define BM_SYSCONFIG_POLICY_ACTION_CONNECTION_MODIFY    "org.freedesktop.network-manager-settings.system.modify"
+#define BM_SYSCONFIG_POLICY_ACTION_WIFI_SHARE_PROTECTED "org.freedesktop.network-manager-settings.system.wifi.share.protected"
+#define BM_SYSCONFIG_POLICY_ACTION_WIFI_SHARE_OPEN      "org.freedesktop.network-manager-settings.system.wifi.share.open"
+#define BM_SYSCONFIG_POLICY_ACTION_HOSTNAME_MODIFY      "org.freedesktop.network-manager-settings.system.hostname.modify"
 
 /* Fix for polkit 0.97 and later */
 #if !HAVE_POLKIT_AUTHORITY_GET_SYNC
@@ -44,4 +44,4 @@ polkit_authority_get_sync (GCancellable *cancellable, GError **error)
 }
 #endif
 
-#endif /* NM_POLKIT_HELPERS_H */
+#endif /* BM_POLKIT_HELPERS_H */

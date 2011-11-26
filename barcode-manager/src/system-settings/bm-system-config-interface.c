@@ -33,7 +33,7 @@ interface_init (gpointer g_iface)
 	/* Properties */
 	g_object_interface_install_property
 		(g_iface,
-		 g_param_spec_string (NM_SYSTEM_CONFIG_INTERFACE_NAME,
+		 g_param_spec_string (BM_SYSTEM_CONFIG_INTERFACE_NAME,
 							  "Name",
 							  "Plugin name",
 							  NULL,
@@ -41,7 +41,7 @@ interface_init (gpointer g_iface)
 
 	g_object_interface_install_property
 		(g_iface,
-		 g_param_spec_string (NM_SYSTEM_CONFIG_INTERFACE_INFO,
+		 g_param_spec_string (BM_SYSTEM_CONFIG_INTERFACE_INFO,
 							  "Info",
 							  "Plugin information",
 							  NULL,
@@ -49,34 +49,34 @@ interface_init (gpointer g_iface)
 
 	g_object_interface_install_property
 		(g_iface,
-		 g_param_spec_uint (NM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES,
+		 g_param_spec_uint (BM_SYSTEM_CONFIG_INTERFACE_CAPABILITIES,
 							  "Capabilities",
 							  "Plugin capabilties",
-							  NM_SYSTEM_CONFIG_INTERFACE_CAP_NONE,
-							  (  NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS
-							   | NM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME),
-							  NM_SYSTEM_CONFIG_INTERFACE_CAP_NONE,
+							  BM_SYSTEM_CONFIG_INTERFACE_CAP_NONE,
+							  (  BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_CONNECTIONS
+							   | BM_SYSTEM_CONFIG_INTERFACE_CAP_MODIFY_HOSTNAME),
+							  BM_SYSTEM_CONFIG_INTERFACE_CAP_NONE,
 							  G_PARAM_READABLE));
 
 	g_object_interface_install_property
 		(g_iface,
-		 g_param_spec_string (NM_SYSTEM_CONFIG_INTERFACE_HOSTNAME,
+		 g_param_spec_string (BM_SYSTEM_CONFIG_INTERFACE_HOSTNAME,
 							  "Hostname",
 							  "Configured hostname",
 							  NULL,
 							  G_PARAM_READWRITE));
 
 	/* Signals */
-	g_signal_new (NM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED,
+	g_signal_new (BM_SYSTEM_CONFIG_INTERFACE_CONNECTION_ADDED,
 				  iface_type,
 				  G_SIGNAL_RUN_FIRST,
 				  G_STRUCT_OFFSET (NMSystemConfigInterface, connection_added),
 				  NULL, NULL,
 				  g_cclosure_marshal_VOID__OBJECT,
 				  G_TYPE_NONE, 1,
-				  NM_TYPE_SETTINGS_CONNECTION_INTERFACE);
+				  BM_TYPE_SETTINGS_CONNECTION_INTERFACE);
 
-	g_signal_new (NM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED,
+	g_signal_new (BM_SYSTEM_CONFIG_INTERFACE_UNMANAGED_SPECS_CHANGED,
 				  iface_type,
 				  G_SIGNAL_RUN_FIRST,
 				  G_STRUCT_OFFSET (NMSystemConfigInterface, unmanaged_specs_changed),
@@ -89,7 +89,7 @@ interface_init (gpointer g_iface)
 
 
 GType
-nm_system_config_interface_get_type (void)
+bm_system_config_interface_get_type (void)
 {
 	static GType system_config_interface_type = 0;
 
@@ -118,47 +118,47 @@ nm_system_config_interface_get_type (void)
 }
 
 void
-nm_system_config_interface_init (NMSystemConfigInterface *config,
+bm_system_config_interface_init (NMSystemConfigInterface *config,
                                  gpointer unused)
 {
 	g_return_if_fail (config != NULL);
 
-	if (NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->init)
-		NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->init (config);
+	if (BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->init)
+		BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->init (config);
 }
 
 GSList *
-nm_system_config_interface_get_connections (NMSystemConfigInterface *config)
+bm_system_config_interface_get_connections (NMSystemConfigInterface *config)
 {
 	g_return_val_if_fail (config != NULL, NULL);
 
-	if (NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->get_connections)
-		return NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->get_connections (config);
+	if (BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->get_connections)
+		return BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->get_connections (config);
 	return NULL;
 }
 
 GSList *
-nm_system_config_interface_get_unmanaged_specs (NMSystemConfigInterface *config)
+bm_system_config_interface_get_unmanaged_specs (NMSystemConfigInterface *config)
 {
 	g_return_val_if_fail (config != NULL, NULL);
 
-	if (NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->get_unmanaged_specs)
-		return NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->get_unmanaged_specs (config);
+	if (BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->get_unmanaged_specs)
+		return BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->get_unmanaged_specs (config);
 	return NULL;
 }
 
 gboolean
-nm_system_config_interface_add_connection (NMSystemConfigInterface *config,
-                                           NMConnection *connection,
+bm_system_config_interface_add_connection (NMSystemConfigInterface *config,
+                                           BMConnection *connection,
                                            GError **error)
 {
 	gboolean success = FALSE;
 
 	g_return_val_if_fail (config != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (BM_IS_CONNECTION (connection), FALSE);
 
-	if (NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->add_connection)
-		success = NM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->add_connection (config, connection, error);
+	if (BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->add_connection)
+		success = BM_SYSTEM_CONFIG_INTERFACE_GET_INTERFACE (config)->add_connection (config, connection, error);
 
 	return success;
 }

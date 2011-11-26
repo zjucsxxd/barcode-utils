@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,31 +21,31 @@
  * Copyright (C) 2008 Novell, Inc.
  */
 
-#ifndef NM_DEVICE_BT_H
-#define NM_DEVICE_BT_H
+#ifndef BM_DEVICE_BT_H
+#define BM_DEVICE_BT_H
 
 #include "BarcodeManager.h"
 #include "bm-device.h"
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_DEVICE_BT            (nm_device_bt_get_type ())
-#define NM_DEVICE_BT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE_BT, NMDeviceBt))
-#define NM_DEVICE_BT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_DEVICE_BT, NMDeviceBtClass))
-#define NM_IS_DEVICE_BT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_DEVICE_BT))
-#define NM_IS_DEVICE_BT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_DEVICE_BT))
-#define NM_DEVICE_BT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_DEVICE_BT, NMDeviceBtClass))
+#define BM_TYPE_DEVICE_BT            (bm_device_bt_get_type ())
+#define BM_DEVICE_BT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_DEVICE_BT, BMDeviceBt))
+#define BM_DEVICE_BT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_DEVICE_BT, BMDeviceBtClass))
+#define BM_IS_DEVICE_BT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_DEVICE_BT))
+#define BM_IS_DEVICE_BT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_DEVICE_BT))
+#define BM_DEVICE_BT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_DEVICE_BT, BMDeviceBtClass))
 
-#define NM_DEVICE_BT_HW_ADDRESS   "hw-address"
-#define NM_DEVICE_BT_NAME         "name"
-#define NM_DEVICE_BT_CAPABILITIES "bt-capabilities"
-
-typedef struct {
-	NMDevice parent;
-} NMDeviceBt;
+#define BM_DEVICE_BT_HW_ADDRESS   "hw-address"
+#define BM_DEVICE_BT_NAME         "name"
+#define BM_DEVICE_BT_CAPABILITIES "bt-capabilities"
 
 typedef struct {
-	NMDeviceClass parent;
+	BMDevice parent;
+} BMDeviceBt;
+
+typedef struct {
+	BMDeviceClass parent;
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
@@ -54,18 +54,18 @@ typedef struct {
 	void (*_reserved4) (void);
 	void (*_reserved5) (void);
 	void (*_reserved6) (void);
-} NMDeviceBtClass;
+} BMDeviceBtClass;
 
-GType nm_device_bt_get_type (void);
+GType bm_device_bt_get_type (void);
 
-GObject *nm_device_bt_new (DBusGConnection *connection, const char *path);
+GObject *bm_device_bt_new (DBusGConnection *connection, const char *path);
 
-const char *nm_device_bt_get_hw_address   (NMDeviceBt *device);
+const char *bm_device_bt_get_hw_address   (BMDeviceBt *device);
 
-const char *nm_device_bt_get_name         (NMDeviceBt *device);
+const char *bm_device_bt_get_name         (BMDeviceBt *device);
 
-NMBluetoothCapabilities nm_device_bt_get_capabilities (NMDeviceBt *device);
+BMBluetoothCapabilities bm_device_bt_get_capabilities (BMDeviceBt *device);
 
 G_END_DECLS
 
-#endif /* NM_DEVICE_BT_H */
+#endif /* BM_DEVICE_BT_H */

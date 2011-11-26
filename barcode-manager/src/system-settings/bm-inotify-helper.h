@@ -25,12 +25,12 @@
 #include <glib-object.h>
 #include <sys/inotify.h>
 
-#define NM_TYPE_INOTIFY_HELPER            (nm_inotify_helper_get_type ())
-#define NM_INOTIFY_HELPER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_INOTIFY_HELPER, NMInotifyHelper))
-#define NM_INOTIFY_HELPER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_INOTIFY_HELPER, NMInotifyHelperClass))
-#define NM_IS_INOTIFY_HELPER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_INOTIFY_HELPER))
-#define NM_IS_INOTIFY_HELPER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_INOTIFY_HELPER))
-#define NM_INOTIFY_HELPER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_INOTIFY_HELPER, NMInotifyHelperClass))
+#define BM_TYPE_INOTIFY_HELPER            (bm_inotify_helper_get_type ())
+#define BM_INOTIFY_HELPER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_INOTIFY_HELPER, NMInotifyHelper))
+#define BM_INOTIFY_HELPER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_INOTIFY_HELPER, NMInotifyHelperClass))
+#define BM_IS_INOTIFY_HELPER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_INOTIFY_HELPER))
+#define BM_IS_INOTIFY_HELPER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_INOTIFY_HELPER))
+#define BM_INOTIFY_HELPER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_INOTIFY_HELPER, NMInotifyHelperClass))
 
 typedef struct {
 	GObject parent;
@@ -43,12 +43,12 @@ typedef struct {
 	void (* event) (NMInotifyHelper *helper, struct inotify_event *evt, const char *filename);
 } NMInotifyHelperClass;
 
-GType nm_inotify_helper_get_type (void);
+GType bm_inotify_helper_get_type (void);
 
-NMInotifyHelper * nm_inotify_helper_get (void);
+NMInotifyHelper * bm_inotify_helper_get (void);
 
-int nm_inotify_helper_add_watch (NMInotifyHelper *helper, const char *path);
+int bm_inotify_helper_add_watch (NMInotifyHelper *helper, const char *path);
 
-void nm_inotify_helper_remove_watch (NMInotifyHelper *helper, int wd);
+void bm_inotify_helper_remove_watch (NMInotifyHelper *helper, int wd);
 
 #endif  /* __INOTIFY_HELPER_H__ */

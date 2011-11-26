@@ -27,9 +27,9 @@
 #include "bm-inotify-helper.h"
 #include "bm-logging.h"
 
-G_DEFINE_TYPE (NMInotifyHelper, nm_inotify_helper, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NMInotifyHelper, bm_inotify_helper, G_TYPE_OBJECT)
 
-#define NM_INOTIFY_HELPER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_INOTIFY_HELPER, NMInotifyHelperPrivate))
+#define BM_INOTIFY_HELPER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_INOTIFY_HELPER, NMInotifyHelperPrivate))
 
 typedef struct {
 	int ifd;
@@ -46,9 +46,9 @@ enum {
 static guint signals[LAST_SIGNAL] = { 0 };
 
 int
-nm_inotify_helper_add_watch (NMInotifyHelper *self, const char *path)
+bm_inotify_helper_add_watch (NMInotifyHelper *self, const char *path)
 {
-	NMInotifyHelperPrivate *priv = NM_INOTIFY_HELPER_GET_PRIVATE (self);
+	NMInotifyHelperPrivate *priv = BM_INOTIFY_HELPER_GET_PRIVATE (self);
 	int wd;
 	guint32 refcount;
 
@@ -70,9 +70,9 @@ nm_inotify_helper_add_watch (NMInotifyHelper *self, const char *path)
 }
 
 void
-nm_inotify_helper_remove_watch (NMInotifyHelper *self, int wd)
+bm_inotify_helper_remove_watch (NMInotifyHelper *self, int wd)
 {
-	NMInotifyHelperPrivate *priv = NM_INOTIFY_HELPER_GET_PRIVATE (self);
+	NMInotifyHelperPrivate *priv = BM_INOTIFY_HELPER_GET_PRIVATE (self);
 	guint32 refcount;
 
 	g_return_if_fail (priv->ifd >= 0);
@@ -92,7 +92,7 @@ nm_inotify_helper_remove_watch (NMInotifyHelper *self, int wd)
 static gboolean
 inotify_event_handler (GIOChannel *channel, GIOCondition cond, gpointer user_data)
 {
-	NMInotifyHelper *self = NM_INOTIFY_HELPER (user_data);
+	NMInotifyHelper *self = BM_INOTIFY_HELPER (user_data);
 	struct inotify_event evt;
 
 	/* read the notifications from the watch descriptor */
@@ -117,20 +117,20 @@ inotify_event_handler (GIOChannel *channel, GIOCondition cond, gpointer user_dat
 static gboolean
 init_inotify (NMInotifyHelper *self)
 {
-	NMInotifyHelperPrivate *priv = NM_INOTIFY_HELPER_GET_PRIVATE (self);
+	NMInotifyHelperPrivate *priv = BM_INOTIFY_HELPER_GET_PRIVATE (self);
 	GIOChannel *channel;
 	guint source_id;
 
 	priv->ifd = inotify_init ();
 	if (priv->ifd == -1) {
-		nm_log_warn (LOGD_SYS_SET, "couldn't initialize inotify");
+		bm_log_warn (LOGD_SYS_SET, "couldn't initialize inotify");
 		return FALSE;
 	}
 
 	/* Watch the inotify descriptor for file/directory change events */
 	channel = g_io_channel_unix_new (priv->ifd);
 	if (!channel) {
-		nm_log_warn (LOGD_SYS_SET, "couldn't create new GIOChannel");
+		bm_log_warn (LOGD_SYS_SET, "couldn't create new GIOChannel");
 		close (priv->ifd);
 		priv->ifd = -1;
 		return FALSE;
@@ -148,12 +148,12 @@ init_inotify (NMInotifyHelper *self)
 }
 
 NMInotifyHelper *
-nm_inotify_helper_get (void)
+bm_inotify_helper_get (void)
 {
 	static NMInotifyHelper *singleton = NULL;
 
 	if (!singleton) {
-		singleton = (NMInotifyHelper *) g_object_new (NM_TYPE_INOTIFY_HELPER, NULL);
+		singleton = (NMInotifyHelper *) g_object_new (BM_TYPE_INOTIFY_HELPER, NULL);
 		if (!singleton)
 			return NULL;
 
@@ -169,9 +169,9 @@ nm_inotify_helper_get (void)
 }
 
 static void
-nm_inotify_helper_init (NMInotifyHelper *self)
+bm_inotify_helper_init (NMInotifyHelper *self)
 {
-	NMInotifyHelperPrivate *priv = NM_INOTIFY_HELPER_GET_PRIVATE (self);
+	NMInotifyHelperPrivate *priv = BM_INOTIFY_HELPER_GET_PRIVATE (self);
 
 	priv->wd_refs = g_hash_table_new (g_direct_hash, g_direct_equal);
 }
@@ -179,18 +179,18 @@ nm_inotify_helper_init (NMInotifyHelper *self)
 static void
 finalize (GObject *object)
 {
-	NMInotifyHelperPrivate *priv = NM_INOTIFY_HELPER_GET_PRIVATE (object);
+	NMInotifyHelperPrivate *priv = BM_INOTIFY_HELPER_GET_PRIVATE (object);
 
 	if (priv->ifd >= 0)
 		close (priv->ifd);
 
 	g_hash_table_destroy (priv->wd_refs);
 
-	G_OBJECT_CLASS (nm_inotify_helper_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_inotify_helper_parent_class)->finalize (object);
 }
 
 static void
-nm_inotify_helper_class_init (NMInotifyHelperClass *klass)
+bm_inotify_helper_class_init (NMInotifyHelperClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
@@ -206,7 +206,7 @@ nm_inotify_helper_class_init (NMInotifyHelperClass *klass)
 		              G_SIGNAL_RUN_LAST,
 		              G_STRUCT_OFFSET (NMInotifyHelperClass, event),
 		              NULL, NULL,
-		              _nm_marshal_VOID__POINTER_STRING,
+		              _bm_marshal_VOID__POINTER_STRING,
 		              G_TYPE_NONE, 2, G_TYPE_POINTER, G_TYPE_STRING);
 }
 

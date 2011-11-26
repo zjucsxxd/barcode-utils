@@ -25,7 +25,7 @@
         The driver handling the device.
       </tp:docstring>
     </property>
-    <property name="Capabilities" type="u" access="read" tp:type="NM_DEVICE_CAP">
+    <property name="Capabilities" type="u" access="read" tp:type="BM_DEVICE_CAP">
       <tp:docstring>
         Flags describing the capabilities of the device.
       </tp:docstring>
@@ -35,31 +35,31 @@
         The IPv4 address bound to the device. FIXME: what about devices with >1 IP address?
       </tp:docstring>
     </property>
-    <property name="State" type="u" access="read" tp:type="NM_DEVICE_STATE">
+    <property name="State" type="u" access="read" tp:type="BM_DEVICE_STATE">
       <tp:docstring>
         The current state of the device.
       </tp:docstring>
     </property>
     <property name="Ip4Config" type="o" access="read">
       <tp:docstring>
-        Object path of the Ip4Config object describing the configuration of the device.  Only valid when the device is in the NM_DEVICE_STATE_ACTIVATED state.
+        Object path of the Ip4Config object describing the configuration of the device.  Only valid when the device is in the BM_DEVICE_STATE_ACTIVATED state.
       </tp:docstring>
     </property>
     <property name="Dhcp4Config" type="o" access="read">
       <tp:docstring>
-        Object path of the Dhcp4Config object describing the DHCP options returned by the DHCP server.  Only valid when the device is in the NM_DEVICE_STATE_ACTIVATED state.
+        Object path of the Dhcp4Config object describing the DHCP options returned by the DHCP server.  Only valid when the device is in the BM_DEVICE_STATE_ACTIVATED state.
       </tp:docstring>
     </property>
     <property name="Ip6Config" type="o" access="read">
       <tp:docstring>
-        Object path of the Ip6Config object describing the configuration of the device.  Only valid when the device is in the NM_DEVICE_STATE_ACTIVATED state.
+        Object path of the Ip6Config object describing the configuration of the device.  Only valid when the device is in the BM_DEVICE_STATE_ACTIVATED state.
       </tp:docstring>
     </property>
     <property name="Dhcp6Config" type="o" access="read">
       <tp:docstring>
         Object path of the Dhcp6Config object describing the DHCP options
         returned by the DHCP server.  Only valid when the device is in the
-        NM_DEVICE_STATE_ACTIVATED state.
+        BM_DEVICE_STATE_ACTIVATED state.
       </tp:docstring>
     </property>
     <property name="Managed" type="b" access="read">
@@ -73,7 +73,7 @@
         its operation.
       </tp:docstring>
     </property>
-    <property name="DeviceType" type="u" access="read" tp:type="NM_DEVICE_TYPE">
+    <property name="DeviceType" type="u" access="read" tp:type="BM_DEVICE_TYPE">
       <tp:docstring>
         The general type of the network device; ie Ethernet, WiFi, etc.
       </tp:docstring>
@@ -88,24 +88,24 @@
     </method>
 
     <signal name="StateChanged">
-      <arg name="new_state" type="u" tp:type="NM_DEVICE_STATE">
+      <arg name="new_state" type="u" tp:type="BM_DEVICE_STATE">
         <tp:docstring>
           The new state of the device.
         </tp:docstring>
       </arg>
-      <arg name="old_state" type="u" tp:type="NM_DEVICE_STATE">
+      <arg name="old_state" type="u" tp:type="BM_DEVICE_STATE">
         <tp:docstring>
           The previous state of the device.
         </tp:docstring>
       </arg>
-      <arg name="reason" type="u" tp:type="NM_DEVICE_STATE_REASON">
+      <arg name="reason" type="u" tp:type="BM_DEVICE_STATE_REASON">
         <tp:docstring>
           A reason for the state transition.
         </tp:docstring>
       </arg>
     </signal>
 
-    <tp:enum name="NM_DEVICE_STATE" type="u">
+    <tp:enum name="BM_DEVICE_STATE" type="u">
       <tp:enumvalue suffix="UNKNOWN" value="0">
         <tp:docstring>
           The device is in an unknown state.
@@ -158,7 +158,7 @@
       </tp:enumvalue>
     </tp:enum>
 
-    <tp:enum name="NM_DEVICE_TYPE" type="u">
+    <tp:enum name="BM_DEVICE_TYPE" type="u">
       <tp:enumvalue suffix="UNKNOWN" value="0">
         <tp:docstring>
           The device type is unknown.
@@ -186,11 +186,11 @@
       </tp:enumvalue>
     </tp:enum>
 
-    <tp:flags name="NM_DEVICE_CAP" value-prefix="NM_DEVICE_CAP" type="u">
+    <tp:flags name="BM_DEVICE_CAP" value-prefix="BM_DEVICE_CAP" type="u">
       <tp:flag suffix="NONE" value="0x0">
         <tp:docstring>Null capability.</tp:docstring>
       </tp:flag>
-      <tp:flag suffix="NM_SUPPORTED" value="0x1">
+      <tp:flag suffix="BM_SUPPORTED" value="0x1">
         <tp:docstring>The device is supported by BarcodeManager.</tp:docstring>
       </tp:flag>
       <tp:flag suffix="CARRIER_DETECT" value="0x2">
@@ -198,7 +198,7 @@
       </tp:flag>
     </tp:flags>
 
-    <tp:enum name="NM_DEVICE_STATE_REASON" type="u">
+    <tp:enum name="BM_DEVICE_STATE_REASON" type="u">
       <tp:enumvalue suffix="UNKNOWN" value="0">
         <tp:docstring>
           The reason for the device state change is unknown.

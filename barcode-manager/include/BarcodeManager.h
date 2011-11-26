@@ -46,6 +46,7 @@
 
 #define BM_DBUS_IFACE_SETTINGS_CONNECTION "org.freedesktop.BarcodeManagerSettings.Connection"
 #define BM_DBUS_PATH_SETTINGS_CONNECTION  "/org/freedesktop/BarcodeManagerSettings/Connection"
+#define BM_DBUS_IFACE_SETTINGS_CONNECTION_SECRETS "org.freedesktop.BarcodeManagerSettings.Connection.Secrets"
 
 /*
  * Types of BarcodeManager states
@@ -69,7 +70,7 @@ typedef enum BMDeviceType
 	BM_DEVICE_TYPE_SERIAL,
 	BM_DEVICE_TYPE_USB,
 	BM_DEVICE_TYPE_BT  /* Bluetooth */
-} BNDeviceType;
+} BMDeviceType;
 
 /*
  * General device capability bits

@@ -28,7 +28,7 @@ libbm_glib_la_CFLAGS = \
 libbmincludedir = $(includedir)/libbm-glib
 
 libbminclude_HEADERS = \
-	libnm_glib.h \
+	libbm_glib.h \
 	bm-object.h \
 	bm-client.h \
 	bm-device.h \
@@ -88,31 +88,31 @@ libbm_glib_test_LDADD = libbm-glib.la $(top_builddir)/libbm-util/libbm-util.la $
 
 
 bm-client-bindings.h: $(top_srcdir)/introspection/bm-manager-client.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_client --mode=glib-client --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_client --mode=glib-client --output=$@ $<
 
 bm-device-bindings.h: $(top_srcdir)/introspection/bm-device.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_device --mode=glib-client --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device --mode=glib-client --output=$@ $<
 
 bm-device-bt-bindings.h: $(top_srcdir)/introspection/bm-device-bt.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_device_bt --mode=glib-client --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device_bt --mode=glib-client --output=$@ $<
 
 bm-settings-glue.h: $(top_srcdir)/introspection/bm-settings.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_settings --mode=glib-server --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_settings --mode=glib-server --output=$@ $<
 
 bm-settings-bindings.h: $(top_srcdir)/introspection/bm-settings.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_settings --mode=glib-client --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_settings --mode=glib-client --output=$@ $<
 
 bm-settings-system-bindings.h: $(top_srcdir)/introspection/bm-settings-system.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_settings_system --mode=glib-client --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_settings_system --mode=glib-client --output=$@ $<
 
 bm-exported-connection-glue.h: $(top_srcdir)/introspection/bm-exported-connection.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_exported_connection --mode=glib-server --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_exported_connection --mode=glib-server --output=$@ $<
 
 bm-exported-connection-bindings.h: $(top_srcdir)/introspection/bm-exported-connection.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_exported_connection --mode=glib-client --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_exported_connection --mode=glib-client --output=$@ $<
 
 bm-active-connection-bindings.h: $(top_srcdir)/introspection/bm-active-connection.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_active_connection --mode=glib-client --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_active_connection --mode=glib-client --output=$@ $<
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libbm-glib.pc

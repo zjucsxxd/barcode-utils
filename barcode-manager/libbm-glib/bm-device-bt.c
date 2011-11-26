@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,9 +27,9 @@
 
 #include "bm-device-bt-bindings.h"
 
-G_DEFINE_TYPE (NMDeviceBt, nm_device_bt, NM_TYPE_DEVICE)
+G_DEFINE_TYPE (BMDeviceBt, bm_device_bt, BM_TYPE_DEVICE)
 
-#define NM_DEVICE_BT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DEVICE_BT, NMDeviceBtPrivate))
+#define BM_DEVICE_BT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_DEVICE_BT, BMDeviceBtPrivate))
 
 typedef struct {
 	DBusGProxy *proxy;
@@ -40,7 +40,7 @@ typedef struct {
 	gboolean bt_capabilities_valid;
 
 	gboolean disposed;
-} NMDeviceBtPrivate;
+} BMDeviceBtPrivate;
 
 enum {
 	PROP_0,
@@ -56,46 +56,46 @@ enum {
 #define DBUS_PROP_BT_CAPABILITIES "BtCapabilities"
 
 /**
- * nm_device_bt_new:
+ * bm_device_bt_new:
  * @connection: the #DBusGConnection
  * @path: the DBus object path of the device
  *
- * Creates a new #NMDeviceBt.
+ * Creates a new #BMDeviceBt.
  *
  * Returns: a new device
  **/
 GObject *
-nm_device_bt_new (DBusGConnection *connection, const char *path)
+bm_device_bt_new (DBusGConnection *connection, const char *path)
 {
 	g_return_val_if_fail (connection != NULL, NULL);
 	g_return_val_if_fail (path != NULL, NULL);
 
-	return g_object_new (NM_TYPE_DEVICE_BT,
-	                     NM_OBJECT_DBUS_CONNECTION, connection,
-	                     NM_OBJECT_DBUS_PATH, path,
+	return g_object_new (BM_TYPE_DEVICE_BT,
+	                     BM_OBJECT_DBUS_CONNECTION, connection,
+	                     BM_OBJECT_DBUS_PATH, path,
 	                     NULL);
 }
 
 /**
- * nm_device_bt_get_hw_address:
- * @device: a #NMDeviceBt
+ * bm_device_bt_get_hw_address:
+ * @device: a #BMDeviceBt
  *
- * Gets the hardware (MAC) address of the #NMDeviceBt
+ * Gets the hardware (MAC) address of the #BMDeviceBt
  *
  * Returns: the hardware address. This is the internal string used by the
  * device, and must not be modified.
  **/
 const char *
-nm_device_bt_get_hw_address (NMDeviceBt *device)
+bm_device_bt_get_hw_address (BMDeviceBt *device)
 {
-	NMDeviceBtPrivate *priv;
+	BMDeviceBtPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE_BT (device), NULL);
+	g_return_val_if_fail (BM_IS_DEVICE_BT (device), NULL);
 
-	priv = NM_DEVICE_BT_GET_PRIVATE (device);
+	priv = BM_DEVICE_BT_GET_PRIVATE (device);
 	if (!priv->hw_address) {
-		priv->hw_address = _nm_object_get_string_property (NM_OBJECT (device),
-		                                                   NM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
+		priv->hw_address = _bm_object_get_string_property (BM_OBJECT (device),
+		                                                   BM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
 		                                                   DBUS_PROP_HW_ADDRESS);
 	}
 
@@ -103,24 +103,24 @@ nm_device_bt_get_hw_address (NMDeviceBt *device)
 }
 
 /**
- * nm_device_bt_get_name:
- * @device: a #NMDeviceBt
+ * bm_device_bt_get_name:
+ * @device: a #BMDeviceBt
  *
- * Gets the name of the #NMDeviceBt.
+ * Gets the name of the #BMDeviceBt.
  *
  * Returns: the name of the device
  **/
 const char *
-nm_device_bt_get_name (NMDeviceBt *device)
+bm_device_bt_get_name (BMDeviceBt *device)
 {
-	NMDeviceBtPrivate *priv;
+	BMDeviceBtPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE_BT (device), NULL);
+	g_return_val_if_fail (BM_IS_DEVICE_BT (device), NULL);
 
-	priv = NM_DEVICE_BT_GET_PRIVATE (device);
+	priv = BM_DEVICE_BT_GET_PRIVATE (device);
 	if (!priv->name) {
-		priv->name = _nm_object_get_string_property (NM_OBJECT (device),
-		                                             NM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
+		priv->name = _bm_object_get_string_property (BM_OBJECT (device),
+		                                             BM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
 		                                             DBUS_PROP_NAME);
 	}
 
@@ -128,24 +128,24 @@ nm_device_bt_get_name (NMDeviceBt *device)
 }
 
 /**
- * nm_device_bt_get_capabilities:
- * @device: a #NMDeviceBt
+ * bm_device_bt_get_capabilities:
+ * @device: a #BMDeviceBt
  *
  * Returns the Bluetooth device's usable capabilities.
  *
- * Returns: a combination of #NMBluetoothCapabilities
+ * Returns: a combination of #BMBluetoothCapabilities
  **/
-NMBluetoothCapabilities
-nm_device_bt_get_capabilities (NMDeviceBt *device)
+BMBluetoothCapabilities
+bm_device_bt_get_capabilities (BMDeviceBt *device)
 {
-	NMDeviceBtPrivate *priv;
+	BMDeviceBtPrivate *priv;
 
-	g_return_val_if_fail (NM_IS_DEVICE_BT (device), NM_BT_CAPABILITY_NONE);
+	g_return_val_if_fail (BM_IS_DEVICE_BT (device), BM_BT_CAPABILITY_NONE);
 
-	priv = NM_DEVICE_BT_GET_PRIVATE (device);
+	priv = BM_DEVICE_BT_GET_PRIVATE (device);
 	if (!priv->bt_capabilities_valid) {
-		priv->bt_capabilities = _nm_object_get_uint_property (NM_OBJECT (device),
-		                                                      NM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
+		priv->bt_capabilities = _bm_object_get_uint_property (BM_OBJECT (device),
+		                                                      BM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
 		                                                      DBUS_PROP_BT_CAPABILITIES);
 		priv->bt_capabilities_valid = TRUE;
 	}
@@ -154,22 +154,22 @@ nm_device_bt_get_capabilities (NMDeviceBt *device)
 }
 
 static void
-nm_device_bt_init (NMDeviceBt *device)
+bm_device_bt_init (BMDeviceBt *device)
 {
 }
 
 static void
-register_for_property_changed (NMDeviceBt *device)
+register_for_property_changed (BMDeviceBt *device)
 {
-	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (device);
+	BMDeviceBtPrivate *priv = BM_DEVICE_BT_GET_PRIVATE (device);
 	const NMPropertiesChangedInfo property_changed_info[] = {
-		{ NM_DEVICE_BT_HW_ADDRESS,   _nm_object_demarshal_generic, &priv->hw_address },
-		{ NM_DEVICE_BT_NAME,         _nm_object_demarshal_generic, &priv->name },
-		{ NM_DEVICE_BT_CAPABILITIES, _nm_object_demarshal_generic, &priv->bt_capabilities },
+		{ BM_DEVICE_BT_HW_ADDRESS,   _bm_object_demarshal_generic, &priv->hw_address },
+		{ BM_DEVICE_BT_NAME,         _bm_object_demarshal_generic, &priv->name },
+		{ BM_DEVICE_BT_CAPABILITIES, _bm_object_demarshal_generic, &priv->bt_capabilities },
 		{ NULL },
 	};
 
-	_nm_object_handle_properties_changed (NM_OBJECT (device),
+	_bm_object_handle_properties_changed (BM_OBJECT (device),
 	                                     priv->proxy,
 	                                     property_changed_info);
 }
@@ -181,18 +181,18 @@ constructor (GType type,
 {
 	GObject *object;
 
-	object = G_OBJECT_CLASS (nm_device_bt_parent_class)->constructor (type,
+	object = G_OBJECT_CLASS (bm_device_bt_parent_class)->constructor (type,
 	                                                                  n_construct_params,
 	                                                                  construct_params);
 	if (object) {
-			NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (object);
+			BMDeviceBtPrivate *priv = BM_DEVICE_BT_GET_PRIVATE (object);
 
-		priv->proxy = dbus_g_proxy_new_for_name (nm_object_get_connection (NM_OBJECT (object)),
-		                                         NM_DBUS_SERVICE,
-		                                         nm_object_get_path (NM_OBJECT (object)),
-		                                         NM_DBUS_INTERFACE_DEVICE_BLUETOOTH);
+		priv->proxy = dbus_g_proxy_new_for_name (bm_object_get_connection (BM_OBJECT (object)),
+		                                         BM_DBUS_SERVICE,
+		                                         bm_object_get_path (BM_OBJECT (object)),
+		                                         BM_DBUS_INTERFACE_DEVICE_BLUETOOTH);
 
-		register_for_property_changed (NM_DEVICE_BT (object));
+		register_for_property_changed (BM_DEVICE_BT (object));
 	}
 
 	return object;
@@ -201,28 +201,28 @@ constructor (GType type,
 static void
 dispose (GObject *object)
 {
-	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (object);
+	BMDeviceBtPrivate *priv = BM_DEVICE_BT_GET_PRIVATE (object);
 
 	if (priv->disposed) {
-		G_OBJECT_CLASS (nm_device_bt_parent_class)->dispose (object);
+		G_OBJECT_CLASS (bm_device_bt_parent_class)->dispose (object);
 		return;
 	}
 	priv->disposed = TRUE;
 
 	g_object_unref (priv->proxy);
 
-	G_OBJECT_CLASS (nm_device_bt_parent_class)->dispose (object);
+	G_OBJECT_CLASS (bm_device_bt_parent_class)->dispose (object);
 }
 
 static void
 finalize (GObject *object)
 {
-	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (object);
+	BMDeviceBtPrivate *priv = BM_DEVICE_BT_GET_PRIVATE (object);
 
 	g_free (priv->hw_address);
 	g_free (priv->name);
 
-	G_OBJECT_CLASS (nm_device_bt_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_device_bt_parent_class)->finalize (object);
 }
 
 static void
@@ -231,17 +231,17 @@ get_property (GObject *object,
               GValue *value,
               GParamSpec *pspec)
 {
-	NMDeviceBt *device = NM_DEVICE_BT (object);
+	BMDeviceBt *device = BM_DEVICE_BT (object);
 
 	switch (prop_id) {
 	case PROP_HW_ADDRESS:
-		g_value_set_string (value, nm_device_bt_get_hw_address (device));
+		g_value_set_string (value, bm_device_bt_get_hw_address (device));
 		break;
 	case PROP_NAME:
-		g_value_set_string (value, nm_device_bt_get_name (device));
+		g_value_set_string (value, bm_device_bt_get_name (device));
 		break;
 	case PROP_BT_CAPABILITIES:
-		g_value_set_uint (value, nm_device_bt_get_capabilities (device));
+		g_value_set_uint (value, bm_device_bt_get_capabilities (device));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -250,11 +250,11 @@ get_property (GObject *object,
 }
 
 static void
-nm_device_bt_class_init (NMDeviceBtClass *device_class)
+bm_device_bt_class_init (BMDeviceBtClass *device_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (device_class);
 
-	g_type_class_add_private (device_class, sizeof (NMDeviceBtPrivate));
+	g_type_class_add_private (device_class, sizeof (BMDeviceBtPrivate));
 
 	/* virtual methods */
 	object_class->constructor = constructor;
@@ -265,42 +265,42 @@ nm_device_bt_class_init (NMDeviceBtClass *device_class)
 	/* properties */
 
 	/**
-	 * NMDeviceBt:hw-address:
+	 * BMDeviceBt:hw-address:
 	 *
 	 * The hardware (MAC) address of the device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_HW_ADDRESS,
-		 g_param_spec_string (NM_DEVICE_BT_HW_ADDRESS,
+		 g_param_spec_string (BM_DEVICE_BT_HW_ADDRESS,
 		                      "MAC Address",
 		                      "Hardware MAC address",
 		                      NULL,
 		                      G_PARAM_READABLE));
 
 	/**
-	 * NMDeviceBt:name:
+	 * BMDeviceBt:name:
 	 *
 	 * The name of the bluetooth device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NAME,
-		 g_param_spec_string (NM_DEVICE_BT_NAME,
+		 g_param_spec_string (BM_DEVICE_BT_NAME,
 		                      "Name",
 		                      "Device name",
 		                      NULL,
 		                      G_PARAM_READABLE));
 
 	/**
-	 * NMDeviceBt:bt-capabilities:
+	 * BMDeviceBt:bt-capabilities:
 	 *
-	 * The device's bluetooth capabilities, a combination of #NMBluetoothCapabilities.
+	 * The device's bluetooth capabilities, a combination of #BMBluetoothCapabilities.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_BT_CAPABILITIES,
-		 g_param_spec_uint (NM_DEVICE_BT_CAPABILITIES,
+		 g_param_spec_uint (BM_DEVICE_BT_CAPABILITIES,
 		                    "BtCapabilities",
 		                    "Bluetooth capabilities",
-		                    NM_BT_CAPABILITY_NONE, G_MAXUINT32, NM_BT_CAPABILITY_NONE,
+		                    BM_BT_CAPABILITY_NONE, G_MAXUINT32, BM_BT_CAPABILITY_NONE,
 		                    G_PARAM_READABLE));
 
 }

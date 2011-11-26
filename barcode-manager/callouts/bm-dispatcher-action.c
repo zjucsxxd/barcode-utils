@@ -298,11 +298,11 @@ bm_dispatcher_action (Handler *h,
                       GError **error)
 {
 	Dispatcher *d = g_object_get_data (G_OBJECT (h), "dispatcher");
-	NMConnection *connection;
+	BMConnection *connection;
 	char *iface = NULL, *parent_iface = NULL;
 	const char *uuid = NULL;
-	BMDeviceType type = NM_DEVICE_TYPE_UNKNOWN;
-	BMDeviceState dev_state = NM_DEVICE_STATE_UNKNOWN;
+	BMDeviceType type = BM_DEVICE_TYPE_UNKNOWN;
+	BMDeviceState dev_state = BM_DEVICE_STATE_UNKNOWN;
 	BMDevice *device = NULL;
 	GValue *value;
 
@@ -316,17 +316,17 @@ bm_dispatcher_action (Handler *h,
 	if (!strcmp (action, "hostname"))
 		goto dispatch;
 
-	connection = nm_connection_new_from_hash (connection_hash, error);
+	connection = bm_connection_new_from_hash (connection_hash, error);
 	if (connection) {
-		NMSettingConnection *s_con;
+		BMSettingConnection *s_con;
 
-		s_con = NM_SETTING_CONNECTION (nm_connection_get_setting (connection, NM_TYPE_SETTING_CONNECTION));
+		s_con = BM_SETTING_CONNECTION (bm_connection_get_setting (connection, BM_TYPE_SETTING_CONNECTION));
 		if (s_con)
-			uuid = nm_setting_connection_get_uuid (s_con);
+			uuid = bm_setting_connection_get_uuid (s_con);
 	} else {
 		g_warning ("%s: Invalid connection: '%s' / '%s' invalid: %d",
 		           __func__,
-		           g_type_name (nm_connection_lookup_setting_type_by_quark ((*error)->domain)),
+		           g_type_name (bm_connection_lookup_setting_type_by_quark ((*error)->domain)),
 		           (*error)->message, (*error)->code);
 		/* Don't fail on this error yet */
 		g_error_free (*error);
@@ -374,7 +374,7 @@ bm_dispatcher_action (Handler *h,
 		g_warning ("Missing or invalid required value " NMD_DEVICE_PROPS_PATH "!");
 		goto out;
 	}
-	device = NM_DEVICE (nm_device_new (d->g_connection, (const char *) g_value_get_boxed (value)));
+	device = BM_DEVICE (bm_device_new (d->g_connection, (const char *) g_value_get_boxed (value)));
 
 dispatch:
 	dispatch_scripts (action, iface, parent_iface, type, uuid);
@@ -394,19 +394,19 @@ start_dbus_service (Dispatcher *d)
 	gboolean success = FALSE;
 
 	if (!dbus_g_proxy_call (d->bus_proxy, "RequestName", &err,
-							G_TYPE_STRING, NM_DISPATCHER_DBUS_SERVICE,
+							G_TYPE_STRING, BM_DISPATCHER_DBUS_SERVICE,
 							G_TYPE_UINT, DBUS_NAME_FLAG_DO_NOT_QUEUE,
 							G_TYPE_INVALID,
 							G_TYPE_UINT, &request_name_result,
 							G_TYPE_INVALID)) {
-		g_warning ("Could not acquire the " NM_DISPATCHER_DBUS_SERVICE " service.\n"
+		g_warning ("Could not acquire the " BM_DISPATCHER_DBUS_SERVICE " service.\n"
 		           "  Message: '%s'", err->message);
 		g_error_free (err);
 		goto out;
 	}
 
 	if (request_name_result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER) {
-		g_warning ("Could not acquire the " NM_DISPATCHER_DBUS_SERVICE " service "
+		g_warning ("Could not acquire the " BM_DISPATCHER_DBUS_SERVICE " service "
 		           "as it is already taken.  Return: %d",
 		           request_name_result);
 		goto out;
@@ -562,7 +562,7 @@ main (int argc, char **argv)
 	};
 
 	opt_ctx = g_option_context_new (NULL);
-	g_option_context_set_summary (opt_ctx, "Executes scripts upon actions by NetworkManager.");
+	g_option_context_set_summary (opt_ctx, "Executes scripts upon actions by BarcodeManager.");
 	g_option_context_add_main_entries (opt_ctx, entries, NULL);
 
 	if (!g_option_context_parse (opt_ctx, &argc, &argv, &error)) {
@@ -593,9 +593,9 @@ main (int argc, char **argv)
 		return -1;
 	g_object_set_data (G_OBJECT (d->handler), "dispatcher", d);
 
-	dbus_g_object_type_install_info (HANDLER_TYPE, &dbus_glib_nm_dispatcher_object_info);
+	dbus_g_object_type_install_info (HANDLER_TYPE, &dbus_glib_bm_dispatcher_object_info);
 	dbus_g_connection_register_g_object (d->g_connection,
-	                                     NM_DISPATCHER_DBUS_PATH,
+	                                     BM_DISPATCHER_DBUS_PATH,
 	                                     G_OBJECT (d->handler));
 
 	if (!persist)

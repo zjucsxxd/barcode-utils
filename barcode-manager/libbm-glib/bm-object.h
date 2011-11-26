@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
  * Copyright (C) 2007 - 2008 Red Hat, Inc.
  */
 
-#ifndef NM_OBJECT_H
-#define NM_OBJECT_H
+#ifndef BM_OBJECT_H
+#define BM_OBJECT_H
 
 #include <glib.h>
 #include <glib-object.h>
@@ -30,19 +30,19 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_OBJECT            (nm_object_get_type ())
-#define NM_OBJECT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_OBJECT, NMObject))
-#define NM_OBJECT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_OBJECT, NMObjectClass))
-#define NM_IS_OBJECT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_OBJECT))
-#define NM_IS_OBJECT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_OBJECT))
-#define NM_OBJECT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_OBJECT, NMObjectClass))
+#define BM_TYPE_OBJECT            (bm_object_get_type ())
+#define BM_OBJECT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_OBJECT, BMObject))
+#define BM_OBJECT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_OBJECT, BMObjectClass))
+#define BM_IS_OBJECT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_OBJECT))
+#define BM_IS_OBJECT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_OBJECT))
+#define BM_OBJECT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_OBJECT, BMObjectClass))
 
-#define NM_OBJECT_DBUS_CONNECTION "dbus-connection"
-#define NM_OBJECT_DBUS_PATH "dbus-path"
+#define BM_OBJECT_DBUS_CONNECTION "dbus-connection"
+#define BM_OBJECT_DBUS_PATH "dbus-path"
 
 typedef struct {
 	GObject parent;
-} NMObject;
+} BMObject;
 
 typedef struct {
 	GObjectClass parent;
@@ -54,13 +54,13 @@ typedef struct {
 	void (*_reserved4) (void);
 	void (*_reserved5) (void);
 	void (*_reserved6) (void);
-} NMObjectClass;
+} BMObjectClass;
 
-GType nm_object_get_type (void);
+GType bm_object_get_type (void);
 
-DBusGConnection *nm_object_get_connection (NMObject *object);
-const char      *nm_object_get_path       (NMObject *object);
+DBusGConnection *bm_object_get_connection (BMObject *object);
+const char      *bm_object_get_path       (BMObject *object);
 
 G_END_DECLS
 
-#endif /* NM_OBJECT_H */
+#endif /* BM_OBJECT_H */

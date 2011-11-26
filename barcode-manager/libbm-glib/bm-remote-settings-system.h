@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,8 @@
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
-#ifndef NM_REMOTE_SETTINGS_SYSTEM_H
-#define NM_REMOTE_SETTINGS_SYSTEM_H
+#ifndef BM_REMOTE_SETTINGS_SYSTEM_H
+#define BM_REMOTE_SETTINGS_SYSTEM_H
 
 #include <glib.h>
 #include <dbus/dbus-glib.h>
@@ -32,12 +32,12 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_REMOTE_SETTINGS_SYSTEM            (nm_remote_settings_system_get_type ())
-#define NM_REMOTE_SETTINGS_SYSTEM(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystem))
-#define NM_REMOTE_SETTINGS_SYSTEM_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemClass))
-#define NM_IS_REMOTE_SETTINGS_SYSTEM(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_REMOTE_SETTINGS_SYSTEM))
-#define NM_IS_REMOTE_SETTINGS_SYSTEM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_REMOTE_SETTINGS_SYSTEM))
-#define NM_REMOTE_SETTINGS_SYSTEM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemClass))
+#define BM_TYPE_REMOTE_SETTINGS_SYSTEM            (bm_remote_settings_system_get_type ())
+#define BM_REMOTE_SETTINGS_SYSTEM(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystem))
+#define BM_REMOTE_SETTINGS_SYSTEM_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemClass))
+#define BM_IS_REMOTE_SETTINGS_SYSTEM(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM))
+#define BM_IS_REMOTE_SETTINGS_SYSTEM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM))
+#define BM_REMOTE_SETTINGS_SYSTEM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemClass))
 
 typedef struct {
 	NMRemoteSettings parent;
@@ -55,10 +55,10 @@ typedef struct {
 	void (*_reserved6) (void);
 } NMRemoteSettingsSystemClass;
 
-GType nm_remote_settings_system_get_type (void);
+GType bm_remote_settings_system_get_type (void);
 
-NMRemoteSettingsSystem *nm_remote_settings_system_new (DBusGConnection *bus);
+NMRemoteSettingsSystem *bm_remote_settings_system_new (DBusGConnection *bus);
 
 G_END_DECLS
 
-#endif /* NM_REMOTE_SETTINGS_SYSTEM_H */
+#endif /* BM_REMOTE_SETTINGS_SYSTEM_H */

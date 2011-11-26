@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libnm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access network status & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,20 +20,20 @@
  * Copyright (C) 2007 - 2008 Red Hat, Inc.
  */
 
-#ifndef NM_TYPES_PRIVATE_H
-#define NM_TYPES_PRIVATE_H
+#ifndef BM_TYPES_PRIVATE_H
+#define BM_TYPES_PRIVATE_H
 
 #include <dbus/dbus-glib.h>
 #include "bm-types.h"
 #include "bm-object-private.h"
 
-gboolean _nm_ssid_demarshal (GValue *value, GByteArray **dest);
-gboolean _nm_uint_array_demarshal (GValue *value, GArray **dest);
-gboolean _nm_string_array_demarshal (GValue *value, GPtrArray **dest);
-gboolean _nm_object_array_demarshal (GValue *value,
+gboolean _bm_ssid_demarshal (GValue *value, GByteArray **dest);
+gboolean _bm_uint_array_demarshal (GValue *value, GArray **dest);
+gboolean _bm_string_array_demarshal (GValue *value, GPtrArray **dest);
+gboolean _bm_object_array_demarshal (GValue *value,
                                     GPtrArray **dest,
                                     DBusGConnection *connection,
-                                    NMObjectCreatorFunc func);
-gboolean _nm_ip6_address_array_demarshal (GValue *value, GSList **dest);
+                                    BMObjectCreatorFunc func);
+gboolean _bm_ip6_address_array_demarshal (GValue *value, GSList **dest);
 
-#endif /* NM_TYPES_PRIVATE_H */
+#endif /* BM_TYPES_PRIVATE_H */
