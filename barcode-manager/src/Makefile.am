@@ -1,8 +1,7 @@
 SUBDIRS= \
 	logging \
 	system-settings \
-	. \
-	tests
+	.
 
 INCLUDES = -I${top_srcdir}                   \
            -I${top_srcdir}/include           \
@@ -54,16 +53,16 @@ BarcodeManager_SOURCES = \
 		bm-properties-changed-signal.h
 
 bm-manager-glue.h: $(top_srcdir)/introspection/bm-manager.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_manager --mode=glib-server --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_manager --mode=glib-server --output=$@ $<
 
 bm-device-interface-glue.h: $(top_srcdir)/introspection/bm-device.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_device_interface --mode=glib-server --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device_interface --mode=glib-server --output=$@ $<
 
 bm-device-bt-glue.h: $(top_srcdir)/introspection/bm-device-bt.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_device_bt --mode=glib-server --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device_bt --mode=glib-server --output=$@ $<
 
 bm-active-connection-glue.h: $(top_srcdir)/introspection/bm-active-connection.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=nm_active_connection --mode=glib-server --output=$@ $<
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_active_connection --mode=glib-server --output=$@ $<
 
 BUILT_SOURCES = \
 	bm-manager-glue.h \
@@ -83,8 +82,8 @@ BarcodeManager_CPPFLAGS = \
 	-DDATADIR=\"$(datadir)\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLOCALSTATEDIR=\"$(localstatedir)\" \
-	-DNM_RUN_DIR=\"$(rundir)\" \
-	-DNMLOCALEDIR=\"$(datadir)/locale\" \
+	-DBM_RUN_DIR=\"$(rundir)\" \
+	-DBMLOCALEDIR=\"$(datadir)/locale\" \
 	-DARP_DEBUG
 
 BarcodeManager_LDADD = \
@@ -104,8 +103,8 @@ BarcodeManager_LDADD = \
 BarcodeManager_LDFLAGS = -rdynamic
 
 libexec_PROGRAMS = bm-crash-logger
-nm_crash_logger_SOURCES = bm-crash-logger.c
-nm_crash_logger_CPPFLAGS = \
+bm_crash_logger_SOURCES = bm-crash-logger.c
+bm_crash_logger_CPPFLAGS = \
 	$(GLIB_CFLAGS) \
 	-DG_DISABLE_DEPRECATED \
 	-DBINDIR=\"$(bindir)\" \
@@ -113,8 +112,7 @@ nm_crash_logger_CPPFLAGS = \
 	-DDATADIR=\"$(datadir)\" \
 	-DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLOCALSTATEDIR=\"$(localstatedir)\"
-nm_crash_logger_LDADD = $(GLIB_LIBS)
-
+bm_crash_logger_LDADD = $(GLIB_LIBS)
 
 BarcodeManagerdir = $(datadir)/BarcodeManager
 BarcodeManager_DATA = gdb-cmd

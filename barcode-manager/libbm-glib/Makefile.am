@@ -15,39 +15,19 @@ BUILT_SOURCES = \
 	bm-active-connection-bindings.h
 
 #####################################################
-# Deprecated original libnm_glib bits
-#####################################################
-
-noinst_LTLIBRARIES = libdeprecated-bm-glib.la
-
-libdeprecated_nm_glib_la_SOURCES = \
-	libnm_glib.h \
-	libnm_glib.c
-
-libdeprecated_nm_glib_la_CPPFLAGS = \
-	$(DBUS_CFLAGS) \
-	$(GLIB_CFLAGS) \
-	-Wno-deprecated-declarations \
-	-Wno-deprecated
-
-libdeprecated_nm_glib_la_LIBADD = \
-	$(DBUS_LIBS) \
-	$(GLIB_LIBS)
-
-#####################################################
 # Real libbm-glib stuff
 #####################################################
 
 lib_LTLIBRARIES = libbm-glib.la
 
-libnm_glib_la_CFLAGS = \
+libbm_glib_la_CFLAGS = \
 	$(GLIB_CFLAGS) \
 	$(DBUS_CFLAGS) \
 	$(GUDEV_CFLAGS)
 
-libnmincludedir = $(includedir)/libbm-glib
+libbmincludedir = $(includedir)/libbm-glib
 
-libnminclude_HEADERS = \
+libbminclude_HEADERS = \
 	libnm_glib.h \
 	bm-object.h \
 	bm-client.h \
@@ -65,7 +45,7 @@ libnminclude_HEADERS = \
 	bm-exported-connection.h \
 	bm-settings-service.h
 
-libnm_glib_la_SOURCES = \
+libbm_glib_la_SOURCES = \
 	bm-object.c \
 	bm-object-private.h \
 	bm-client.c \
@@ -90,22 +70,21 @@ libnm_glib_la_SOURCES = \
 	bm-exported-connection.c \
 	bm-settings-service.c
 
-libnm_glib_la_LIBADD = \
+libbm_glib_la_LIBADD = \
 	$(top_builddir)/libbm-util/libbm-util.la \
 	$(top_builddir)/marshallers/libmarshallers.la \
-	$(builddir)/libdeprecated-bm-glib.la \
 	$(GLIB_LIBS) \
 	$(DBUS_LIBS) \
 	$(GUDEV_LIBS)
 
-libnm_glib_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libbm-glib.ver \
+libbm_glib_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libbm-glib.ver \
 	-version-info "6:3:4"
 
 noinst_PROGRAMS = libbm-glib-test
 
-libnm_glib_test_SOURCES = libbm-glib-test.c
-libnm_glib_test_CFLAGS = $(GLIB_CFLAGS) $(DBUS_CFLAGS)
-libnm_glib_test_LDADD = libbm-glib.la $(top_builddir)/libbm-util/libbm-util.la $(GLIB_LIBS) $(DBUS_LIBS)
+libbm_glib_test_SOURCES = libbm-glib-test.c
+libbm_glib_test_CFLAGS = $(GLIB_CFLAGS) $(DBUS_CFLAGS)
+libbm_glib_test_LDADD = libbm-glib.la $(top_builddir)/libbm-util/libbm-util.la $(GLIB_LIBS) $(DBUS_LIBS)
 
 
 bm-client-bindings.h: $(top_srcdir)/introspection/bm-manager-client.xml

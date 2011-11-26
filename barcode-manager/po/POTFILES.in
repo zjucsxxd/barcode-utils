@@ -1,0 +1,16 @@
+[encoding: UTF-8]
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+cli/src/connections.c
+cli/src/devices.c
+cli/src/barcode-manager.c
+cli/src/bmcli.c
+cli/src/settings.c
+cli/src/utils.c
+libbm-util/bm-utils.c
+policy/org.freedesktop.barcode-manager-settings.system.policy.in
+policy/org.freedesktop.BarcodeManager.policy.in
+# src/bm-netlink-monitor.c
+src/main.c
+src/logging/bm-logging.c
+

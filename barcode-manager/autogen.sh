@@ -13,6 +13,8 @@ PKG_NAME=BarcodeManager
     exit 1
 }
 
+aclocal
+
 (cd $srcdir;
     gtkdocize || exit 1
     autoreconf --install --symlink &&

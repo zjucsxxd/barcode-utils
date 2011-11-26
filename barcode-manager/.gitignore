@@ -1,4 +1,11 @@
 # generated stuff
+
+/compile
+
+config.h
+
+BarcodeManager.pc
+
 barcode-manager
 barcode-manager.1
 debian/barcode-manager
@@ -12,6 +19,28 @@ debian/autoreconf.before
 debian/debhelper.log
 debian/stamp-copyright-check
 
+gtk-doc.make
+
+include/bm-version.h
+
+initscript/Debian/BarcodeManager
+
+libbm-glib/libbm-glib.pc
+libbm-util/libbm-util.pc
+
+po/POTFILES
+po/stamp-it
+
+stamp-h1
+
+man/BarcodeManager.8
+man/BarcodeManager.conf.5
+
+man/bm-online.1
+man/bm-system-settings.conf.5
+man/bm-tool.1
+man/bmcli.1
+
 # generic files to ignore
 *.lock
 *.DS_Store
@@ -19,6 +48,8 @@ debian/stamp-copyright-check
 *.out
 *~
 *.o
+
+.deps
 
 # ctags etags stuff
 TAGS

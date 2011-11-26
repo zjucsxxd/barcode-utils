@@ -263,7 +263,6 @@ AM_CONDITIONAL(HAVE_SYSTEMD, [test -n "$with_systemdsystemunitdir" -a "x$with_sy
 PKG_CHECK_MODULES(LIBNL, libnl-1 >= 1.0-pre8)
 AC_SUBST(LIBNL_CFLAGS)
 AC_SUBST(LIBNL_LIBS)
-NM_LIBNL_CHECK
 
 PKG_CHECK_MODULES(UUID, uuid)
 AC_SUBST(UUID_CFLAGS)
@@ -314,13 +313,10 @@ Makefile
 include/Makefile
 include/bm-version.h
 src/Makefile
-src/tests/Makefile
 marshallers/Makefile
 src/logging/Makefile
-src/usb-manager/Makefile
 src/bluez-manager/Makefile
 src/system-settings/Makefile
-src/backends/Makefile
 libbm-util/libbm-util.pc
 libbm-util/Makefile
 libbm-glib/libbm-glib.pc
