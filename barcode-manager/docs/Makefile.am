@@ -28,7 +28,6 @@ OTHER_FILES= \
 	$(top_srcdir)/introspection/all.xml \
 	$(top_srcdir)/introspection/generic-types.xml \
 	$(top_srcdir)/introspection/errors.xml \
-	$(top_srcdir)/introspection/vpn-errors.xml \
 	$(top_srcdir)/tools/doc-generator.xsl \
 	$(top_srcdir)/introspection/generic-types.xml
 
