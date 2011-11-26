@@ -10,7 +10,6 @@ The BarcodeManager daemon runs as a privileged service (since it must access and
 
 A variety of other system services are used by BarcodeManager to provide barcode scanning functionality.
 
-
 ## Why doesn't my Barcode Scanner Hardware Just Work?
 
 Driver problems are the #1 cause of why BarcodeManager sometimes fails to connect to barcode scanner hardwares. Often, the driver simply doesn't behave in a consistent manner, or is just plain buggy. BarcodeManager supports _only_ those drivers that are shipped with the upstream Linux kernel, because only those drivers can be easily fixed and debugged.
