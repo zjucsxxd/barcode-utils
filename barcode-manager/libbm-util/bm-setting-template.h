@@ -27,40 +27,40 @@
    remove this comment, and you're almost done.
 */
 
-#ifndef NM_SETTING_TEMPLATE_H
-#define NM_SETTING_TEMPLATE_H
+#ifndef BM_SETTING_TEMPLATE_H
+#define BM_SETTING_TEMPLATE_H
 
 #include <bm-setting.h>
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SETTING_TEMPLATE            (nm_setting_template_get_type ())
-#define NM_SETTING_TEMPLATE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTING_TEMPLATE, NMSettingTemplate))
-#define NM_SETTING_TEMPLATE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_SETTING_TEMPLATE, NMSettingTemplateClass))
-#define NM_IS_SETTING_TEMPLATE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SETTING_TEMPLATE))
-#define NM_IS_SETTING_TEMPLATE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_SETTING_TEMPLATE))
-#define NM_SETTING_TEMPLATE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SETTING_TEMPLATE, NMSettingTemplateClass))
+#define BM_TYPE_SETTING_TEMPLATE            (bm_setting_template_get_type ())
+#define BM_SETTING_TEMPLATE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SETTING_TEMPLATE, BMSettingTemplate))
+#define BM_SETTING_TEMPLATE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_SETTING_TEMPLATE, BMSettingTemplateClass))
+#define BM_IS_SETTING_TEMPLATE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SETTING_TEMPLATE))
+#define BM_IS_SETTING_TEMPLATE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_SETTING_TEMPLATE))
+#define BM_SETTING_TEMPLATE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_SETTING_TEMPLATE, BMSettingTemplateClass))
 
-#define NM_SETTING_TEMPLATE_SETTING_NAME "template"
-
-typedef struct {
-	NMSetting parent;
-} NMSettingTemplate;
+#define BM_SETTING_TEMPLATE_SETTING_NAME "template"
 
 typedef struct {
-	NMSettingClass parent;
+	BMSetting parent;
+} BMSettingTemplate;
+
+typedef struct {
+	BMSettingClass parent;
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
 	void (*_reserved2) (void);
 	void (*_reserved3) (void);
 	void (*_reserved4) (void);
-} NMSettingTemplateClass;
+} BMSettingTemplateClass;
 
-GType nm_setting_template_get_type (void);
+GType bm_setting_template_get_type (void);
 
-NMSetting *nm_setting_template_new (void);
+BMSetting *bm_setting_template_new (void);
 
 G_END_DECLS
 
-#endif /* NM_SETTING_TEMPLATE_H */
+#endif /* BM_SETTING_TEMPLATE_H */

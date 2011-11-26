@@ -28,7 +28,7 @@
 #include "bm-setting-serial.h"
 
 GQuark
-nm_setting_serial_error_quark (void)
+bm_setting_serial_error_quark (void)
 {
 	static GQuark quark;
 
@@ -41,31 +41,31 @@ nm_setting_serial_error_quark (void)
 #define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
 
 GType
-nm_setting_serial_error_get_type (void)
+bm_setting_serial_error_get_type (void)
 {
 	static GType etype = 0;
 
 	if (etype == 0) {
 		static const GEnumValue values[] = {
 			/* Unknown error. */
-			ENUM_ENTRY (NM_SETTING_SERIAL_ERROR_UNKNOWN, "UnknownError"),
+			ENUM_ENTRY (BM_SETTING_SERIAL_ERROR_UNKNOWN, "UnknownError"),
 			/* The specified property was invalid. */
-			ENUM_ENTRY (NM_SETTING_SERIAL_ERROR_INVALID_PROPERTY, "InvalidProperty"),
+			ENUM_ENTRY (BM_SETTING_SERIAL_ERROR_INVALID_PROPERTY, "InvalidProperty"),
 			/* The specified property was missing and is required. */
-			ENUM_ENTRY (NM_SETTING_SERIAL_ERROR_MISSING_PROPERTY, "MissingProperty"),
+			ENUM_ENTRY (BM_SETTING_SERIAL_ERROR_MISSING_PROPERTY, "MissingProperty"),
 			/* The required PPP setting is missing (DEPRECATED) */
-			ENUM_ENTRY (NM_SETTING_SERIAL_ERROR_MISSING_PPP_SETTING, "MissingPPPSetting"),
+			ENUM_ENTRY (BM_SETTING_SERIAL_ERROR_MISSING_PPP_SETTING, "MissingPPPSetting"),
 			{ 0, 0, 0 }
 		};
-		etype = g_enum_register_static ("NMSettingSerialError", values);
+		etype = g_enum_register_static ("BMSettingSerialError", values);
 	}
 	return etype;
 }
 
 
-G_DEFINE_TYPE (NMSettingSerial, nm_setting_serial, NM_TYPE_SETTING)
+G_DEFINE_TYPE (BMSettingSerial, bm_setting_serial, BM_TYPE_SETTING)
 
-#define NM_SETTING_SERIAL_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_SERIAL, NMSettingSerialPrivate))
+#define BM_SETTING_SERIAL_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_SETTING_SERIAL, BMSettingSerialPrivate))
 
 typedef struct {
 	guint baud;
@@ -73,7 +73,7 @@ typedef struct {
 	char parity;
 	guint stopbits;
 	guint64 send_delay;
-} NMSettingSerialPrivate;
+} BMSettingSerialPrivate;
 
 
 enum {
@@ -87,69 +87,69 @@ enum {
 	LAST_PROP
 };
 
-NMSetting *
-nm_setting_serial_new (void)
+BMSetting *
+bm_setting_serial_new (void)
 {
-	return (NMSetting *) g_object_new (NM_TYPE_SETTING_SERIAL, NULL);
+	return (BMSetting *) g_object_new (BM_TYPE_SETTING_SERIAL, NULL);
 }
 
 guint
-nm_setting_serial_get_baud (NMSettingSerial *setting)
+bm_setting_serial_get_baud (BMSettingSerial *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_SERIAL (setting), 0);
+	g_return_val_if_fail (BM_IS_SETTING_SERIAL (setting), 0);
 
-	return NM_SETTING_SERIAL_GET_PRIVATE (setting)->baud;
+	return BM_SETTING_SERIAL_GET_PRIVATE (setting)->baud;
 }
 
 guint
-nm_setting_serial_get_bits (NMSettingSerial *setting)
+bm_setting_serial_get_bits (BMSettingSerial *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_SERIAL (setting), 0);
+	g_return_val_if_fail (BM_IS_SETTING_SERIAL (setting), 0);
 
-	return NM_SETTING_SERIAL_GET_PRIVATE (setting)->bits;
+	return BM_SETTING_SERIAL_GET_PRIVATE (setting)->bits;
 }
 
 char
-nm_setting_serial_get_parity (NMSettingSerial *setting)
+bm_setting_serial_get_parity (BMSettingSerial *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_SERIAL (setting), 0);
+	g_return_val_if_fail (BM_IS_SETTING_SERIAL (setting), 0);
 
-	return NM_SETTING_SERIAL_GET_PRIVATE (setting)->parity;
+	return BM_SETTING_SERIAL_GET_PRIVATE (setting)->parity;
 }
 
 guint
-nm_setting_serial_get_stopbits (NMSettingSerial *setting)
+bm_setting_serial_get_stopbits (BMSettingSerial *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_SERIAL (setting), 0);
+	g_return_val_if_fail (BM_IS_SETTING_SERIAL (setting), 0);
 
-	return NM_SETTING_SERIAL_GET_PRIVATE (setting)->stopbits;
+	return BM_SETTING_SERIAL_GET_PRIVATE (setting)->stopbits;
 }
 
 guint64
-nm_setting_serial_get_send_delay (NMSettingSerial *setting)
+bm_setting_serial_get_send_delay (BMSettingSerial *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_SERIAL (setting), 0);
+	g_return_val_if_fail (BM_IS_SETTING_SERIAL (setting), 0);
 
-	return NM_SETTING_SERIAL_GET_PRIVATE (setting)->send_delay;
+	return BM_SETTING_SERIAL_GET_PRIVATE (setting)->send_delay;
 }
 
 static gboolean
-verify (NMSetting *setting, GSList *all_settings, GError **error)
+verify (BMSetting *setting, GSList *all_settings, GError **error)
 {
 	return TRUE;
 }
 
 static void
-nm_setting_serial_init (NMSettingSerial *setting)
+bm_setting_serial_init (BMSettingSerial *setting)
 {
-	g_object_set (setting, NM_SETTING_NAME, NM_SETTING_SERIAL_SETTING_NAME, NULL);
+	g_object_set (setting, BM_SETTING_NAME, BM_SETTING_SERIAL_SETTING_NAME, NULL);
 }
 
 static void
 set_property (GObject *object, guint prop_id,
 		    const GValue *value, GParamSpec *pspec)
 {
-	NMSettingSerialPrivate *priv = NM_SETTING_SERIAL_GET_PRIVATE (object);
+	BMSettingSerialPrivate *priv = BM_SETTING_SERIAL_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_BAUD:
@@ -177,23 +177,23 @@ static void
 get_property (GObject *object, guint prop_id,
 		    GValue *value, GParamSpec *pspec)
 {
-	NMSettingSerial *setting = NM_SETTING_SERIAL (object);
+	BMSettingSerial *setting = BM_SETTING_SERIAL (object);
 
 	switch (prop_id) {
 	case PROP_BAUD:
-		g_value_set_uint (value, nm_setting_serial_get_baud (setting));
+		g_value_set_uint (value, bm_setting_serial_get_baud (setting));
 		break;
 	case PROP_BITS:
-		g_value_set_uint (value, nm_setting_serial_get_bits (setting));
+		g_value_set_uint (value, bm_setting_serial_get_bits (setting));
 		break;
 	case PROP_PARITY:
-		g_value_set_char (value, nm_setting_serial_get_parity (setting));
+		g_value_set_char (value, bm_setting_serial_get_parity (setting));
 		break;
 	case PROP_STOPBITS:
-		g_value_set_uint (value, nm_setting_serial_get_stopbits (setting));
+		g_value_set_uint (value, bm_setting_serial_get_stopbits (setting));
 		break;
 	case PROP_SEND_DELAY:
-		g_value_set_uint64 (value, nm_setting_serial_get_send_delay (setting));
+		g_value_set_uint64 (value, bm_setting_serial_get_send_delay (setting));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -202,12 +202,12 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_setting_serial_class_init (NMSettingSerialClass *setting_class)
+bm_setting_serial_class_init (BMSettingSerialClass *setting_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
-	NMSettingClass *parent_class = NM_SETTING_CLASS (setting_class);
+	BMSettingClass *parent_class = BM_SETTING_CLASS (setting_class);
 
-	g_type_class_add_private (setting_class, sizeof (NMSettingSerialPrivate));
+	g_type_class_add_private (setting_class, sizeof (BMSettingSerialPrivate));
 
 	/* virtual methods */
 	object_class->set_property = set_property;
@@ -217,7 +217,7 @@ nm_setting_serial_class_init (NMSettingSerialClass *setting_class)
 	/* Properties */
 
 	/**
-	 * NMSettingSerial:baud:
+	 * BMSettingSerial:baud:
 	 *
 	 * Speed to use for communication over the serial port.  Note that this value
 	 * usually has no effect for mobile broadband modems as they generally
@@ -225,70 +225,70 @@ nm_setting_serial_class_init (NMSettingSerialClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_BAUD,
-		 g_param_spec_uint (NM_SETTING_SERIAL_BAUD,
+		 g_param_spec_uint (BM_SETTING_SERIAL_BAUD,
 						"Baud",
 						"Speed to use for communication over the serial port.  "
 						"Note that this value usually has no effect for mobile "
 						"broadband modems as they generally ignore speed "
 						"settings and use the highest available speed.",
 						0, G_MAXUINT, 57600,
-						G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_SERIALIZE));
+						G_PARAM_READWRITE | G_PARAM_CONSTRUCT | BM_SETTING_PARAM_SERIALIZE));
 
 	/**
-	 * NMSettingSerial:bits:
+	 * BMSettingSerial:bits:
 	 *
 	 * Byte-width of the serial communication.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_BITS,
-		 g_param_spec_uint (NM_SETTING_SERIAL_BITS,
+		 g_param_spec_uint (BM_SETTING_SERIAL_BITS,
 						"Bits",
 						"Byte-width of the serial communication.  The 8 in "
 						"'8n1' for example.",
 						5, 8, 8,
-						G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_SERIALIZE));
+						G_PARAM_READWRITE | G_PARAM_CONSTRUCT | BM_SETTING_PARAM_SERIALIZE));
 
 	/**
-	 * NMSettingSerial:parity:
+	 * BMSettingSerial:parity:
 	 *
 	 * Parity setting of the serial port.  Either 'E' for even parity, 'o' for
 	 * odd parity, or 'n' for no parity.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PARITY,
-		 g_param_spec_char (NM_SETTING_SERIAL_PARITY,
+		 g_param_spec_char (BM_SETTING_SERIAL_PARITY,
 						"Parity",
 						"Parity setting of the serial port.  Either 'E' for even "
 						"parity, 'o' for odd parity, or 'n' for no parity.",
 						'E', 'o', 'n',
-						G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_SERIALIZE));
+						G_PARAM_READWRITE | G_PARAM_CONSTRUCT | BM_SETTING_PARAM_SERIALIZE));
 
 	/**
-	 * NMSettingSerial:stopbits:
+	 * BMSettingSerial:stopbits:
 	 *
 	 * Number of stop bits for communication on the serial port.  Either 1 or 2.
 	 * The 1 in '8n1' for example.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_STOPBITS,
-		 g_param_spec_uint (NM_SETTING_SERIAL_STOPBITS,
+		 g_param_spec_uint (BM_SETTING_SERIAL_STOPBITS,
 						"Stopbits",
 						"Number of stop bits for communication on the serial "
 						"port.  Either 1 or 2.  The 1 in '8n1' for example.",
 						1, 2, 1,
-						G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_SERIALIZE));
+						G_PARAM_READWRITE | G_PARAM_CONSTRUCT | BM_SETTING_PARAM_SERIALIZE));
 
 	/**
-	 * NMSettingSerial:send-delay:
+	 * BMSettingSerial:send-delay:
 	 *
 	 * Time to delay between each byte sent to the modem, in microseconds.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SEND_DELAY,
-		 g_param_spec_uint64 (NM_SETTING_SERIAL_SEND_DELAY,
+		 g_param_spec_uint64 (BM_SETTING_SERIAL_SEND_DELAY,
 						  "SendDelay",
 						  "Time to delay between each byte sent to the modem, "
 						  "in microseconds.",
 						  0, G_MAXUINT64, 0,
-						  G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_SERIALIZE));
+						  G_PARAM_READWRITE | G_PARAM_CONSTRUCT | BM_SETTING_PARAM_SERIALIZE));
 }

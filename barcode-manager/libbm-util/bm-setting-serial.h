@@ -23,65 +23,65 @@
  * (C) Copyright 2007 - 2008 Novell, Inc.
  */
 
-#ifndef NM_SETTING_SERIAL_H
-#define NM_SETTING_SERIAL_H
+#ifndef BM_SETTING_SERIAL_H
+#define BM_SETTING_SERIAL_H
 
 #include <bm-setting.h>
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SETTING_SERIAL            (nm_setting_serial_get_type ())
-#define NM_SETTING_SERIAL(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTING_SERIAL, NMSettingSerial))
-#define NM_SETTING_SERIAL_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_SETTING_SERIAL, NMSettingSerialClass))
-#define NM_IS_SETTING_SERIAL(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SETTING_SERIAL))
-#define NM_IS_SETTING_SERIAL_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_SETTING_SERIAL))
-#define NM_SETTING_SERIAL_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SETTING_SERIAL, NMSettingSerialClass))
+#define BM_TYPE_SETTING_SERIAL            (bm_setting_serial_get_type ())
+#define BM_SETTING_SERIAL(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SETTING_SERIAL, BMSettingSerial))
+#define BM_SETTING_SERIAL_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_SETTING_SERIAL, BMSettingSerialClass))
+#define BM_IS_SETTING_SERIAL(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SETTING_SERIAL))
+#define BM_IS_SETTING_SERIAL_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_SETTING_SERIAL))
+#define BM_SETTING_SERIAL_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_SETTING_SERIAL, BMSettingSerialClass))
 
-#define NM_SETTING_SERIAL_SETTING_NAME "serial"
+#define BM_SETTING_SERIAL_SETTING_NAME "serial"
 
 typedef enum
 {
-	NM_SETTING_SERIAL_ERROR_UNKNOWN = 0,
-	NM_SETTING_SERIAL_ERROR_INVALID_PROPERTY,
-	NM_SETTING_SERIAL_ERROR_MISSING_PROPERTY,
-	NM_SETTING_SERIAL_ERROR_MISSING_PPP_SETTING
-} NMSettingSerialError;
+	BM_SETTING_SERIAL_ERROR_UNKNOWN = 0,
+	BM_SETTING_SERIAL_ERROR_INVALID_PROPERTY,
+	BM_SETTING_SERIAL_ERROR_MISSING_PROPERTY,
+	BM_SETTING_SERIAL_ERROR_MISSING_PPP_SETTING
+} BMSettingSerialError;
 
-#define NM_TYPE_SETTING_SERIAL_ERROR (nm_setting_serial_error_get_type ()) 
-GType nm_setting_serial_error_get_type (void);
+#define BM_TYPE_SETTING_SERIAL_ERROR (bm_setting_serial_error_get_type ()) 
+GType bm_setting_serial_error_get_type (void);
 
-#define NM_SETTING_SERIAL_ERROR nm_setting_serial_error_quark ()
-GQuark nm_setting_serial_error_quark (void);
+#define BM_SETTING_SERIAL_ERROR bm_setting_serial_error_quark ()
+GQuark bm_setting_serial_error_quark (void);
 
-#define NM_SETTING_SERIAL_BAUD "baud"
-#define NM_SETTING_SERIAL_BITS "bits"
-#define NM_SETTING_SERIAL_PARITY "parity"
-#define NM_SETTING_SERIAL_STOPBITS "stopbits"
-#define NM_SETTING_SERIAL_SEND_DELAY "send-delay"
-
-typedef struct {
-	NMSetting parent;
-} NMSettingSerial;
+#define BM_SETTING_SERIAL_BAUD "baud"
+#define BM_SETTING_SERIAL_BITS "bits"
+#define BM_SETTING_SERIAL_PARITY "parity"
+#define BM_SETTING_SERIAL_STOPBITS "stopbits"
+#define BM_SETTING_SERIAL_SEND_DELAY "send-delay"
 
 typedef struct {
-	NMSettingClass parent;
+	BMSetting parent;
+} BMSettingSerial;
+
+typedef struct {
+	BMSettingClass parent;
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
 	void (*_reserved2) (void);
 	void (*_reserved3) (void);
 	void (*_reserved4) (void);
-} NMSettingSerialClass;
+} BMSettingSerialClass;
 
-GType nm_setting_serial_get_type (void);
+GType bm_setting_serial_get_type (void);
 
-NMSetting *nm_setting_serial_new            (void);
-guint      nm_setting_serial_get_baud       (NMSettingSerial *setting);
-guint      nm_setting_serial_get_bits       (NMSettingSerial *setting);
-char       nm_setting_serial_get_parity     (NMSettingSerial *setting);
-guint      nm_setting_serial_get_stopbits   (NMSettingSerial *setting);
-guint64    nm_setting_serial_get_send_delay (NMSettingSerial *setting);
+BMSetting *bm_setting_serial_new            (void);
+guint      bm_setting_serial_get_baud       (BMSettingSerial *setting);
+guint      bm_setting_serial_get_bits       (BMSettingSerial *setting);
+char       bm_setting_serial_get_parity     (BMSettingSerial *setting);
+guint      bm_setting_serial_get_stopbits   (BMSettingSerial *setting);
+guint64    bm_setting_serial_get_send_delay (BMSettingSerial *setting);
 
 G_END_DECLS
 
-#endif /* NM_SETTING_SERIAL_H */
+#endif /* BM_SETTING_SERIAL_H */

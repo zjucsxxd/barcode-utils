@@ -32,21 +32,21 @@
  * @short_description: Describes general connection properties
  * @include: bm-setting-connection.h
  *
- * The #NMSettingConnection object is a #NMSetting subclass that describes
- * properties that apply to all #NMConnection objects, regardless of what type
- * of network connection they describe.  Each #NMConnection object must contain
- * a #NMSettingConnection setting.
+ * The #BMSettingConnection object is a #BMSetting subclass that describes
+ * properties that apply to all #BMConnection objects, regardless of what type
+ * of network connection they describe.  Each #BMConnection object must contain
+ * a #BMSettingConnection setting.
  **/
 
 /**
- * nm_setting_connection_error_quark:
+ * bm_setting_connection_error_quark:
  *
- * Registers an error quark for #NMSettingConnection if necessary.
+ * Registers an error quark for #BMSettingConnection if necessary.
  *
- * Returns: the error quark used for #NMSettingConnection errors.
+ * Returns: the error quark used for #BMSettingConnection errors.
  **/
 GQuark
-nm_setting_connection_error_quark (void)
+bm_setting_connection_error_quark (void)
 {
 	static GQuark quark;
 
@@ -59,27 +59,27 @@ nm_setting_connection_error_quark (void)
 #define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
 
 GType
-nm_setting_connection_error_get_type (void)
+bm_setting_connection_error_get_type (void)
 {
 	static GType etype = 0;
 
 	if (etype == 0) {
 		static const GEnumValue values[] = {
-			ENUM_ENTRY (NM_SETTING_CONNECTION_ERROR_UNKNOWN, "UnknownError"),
-			ENUM_ENTRY (NM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY, "InvalidProperty"),
-			ENUM_ENTRY (NM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY, "MissingProperty"),
-			ENUM_ENTRY (NM_SETTING_CONNECTION_ERROR_TYPE_SETTING_NOT_FOUND, "TypeSettingNotFound"),
+			ENUM_ENTRY (BM_SETTING_CONNECTION_ERROR_UNKNOWN, "UnknownError"),
+			ENUM_ENTRY (BM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY, "InvalidProperty"),
+			ENUM_ENTRY (BM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY, "MissingProperty"),
+			ENUM_ENTRY (BM_SETTING_CONNECTION_ERROR_TYPE_SETTING_NOT_FOUND, "TypeSettingNotFound"),
 			{ 0, 0, 0 }
 		};
-		etype = g_enum_register_static ("NMSettingConnectionError", values);
+		etype = g_enum_register_static ("BMSettingConnectionError", values);
 	}
 	return etype;
 }
 
 
-G_DEFINE_TYPE (NMSettingConnection, nm_setting_connection, NM_TYPE_SETTING)
+G_DEFINE_TYPE (BMSettingConnection, bm_setting_connection, BM_TYPE_SETTING)
 
-#define NM_SETTING_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_CONNECTION, NMSettingConnectionPrivate))
+#define BM_SETTING_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_SETTING_CONNECTION, BMSettingConnectionPrivate))
 
 typedef struct {
 	char *id;
@@ -88,7 +88,7 @@ typedef struct {
 	gboolean autoconnect;
 	guint64 timestamp;
 	gboolean read_only;
-} NMSettingConnectionPrivate;
+} BMSettingConnectionPrivate;
 
 enum {
 	PROP_0,
@@ -103,120 +103,120 @@ enum {
 };
 
 /**
- * nm_setting_connection_new:
+ * bm_setting_connection_new:
  *
- * Creates a new #NMSettingConnection object with default values.
+ * Creates a new #BMSettingConnection object with default values.
  *
- * Returns: the new empty #NMSettingConnection object
+ * Returns: the new empty #BMSettingConnection object
  **/
-NMSetting *nm_setting_connection_new (void)
+BMSetting *bm_setting_connection_new (void)
 {
-	return (NMSetting *) g_object_new (NM_TYPE_SETTING_CONNECTION, NULL);
+	return (BMSetting *) g_object_new (BM_TYPE_SETTING_CONNECTION, NULL);
 }
 
 /**
- * nm_setting_connection_get_id:
- * @setting: the #NMSettingConnection
+ * bm_setting_connection_get_id:
+ * @setting: the #BMSettingConnection
  *
- * Returns the #NMSettingConnection:id property of the connection.
+ * Returns the #BMSettingConnection:id property of the connection.
  *
  * Returns: the connection ID
  **/
 const char *
-nm_setting_connection_get_id (NMSettingConnection *setting)
+bm_setting_connection_get_id (BMSettingConnection *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), NULL);
+	g_return_val_if_fail (BM_IS_SETTING_CONNECTION (setting), NULL);
 
-	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->id;
+	return BM_SETTING_CONNECTION_GET_PRIVATE (setting)->id;
 }
 
 /**
- * nm_setting_connection_get_uuid:
- * @setting: the #NMSettingConnection
+ * bm_setting_connection_get_uuid:
+ * @setting: the #BMSettingConnection
  *
- * Returns the #NMSettingConnection:uuid property of the connection.
+ * Returns the #BMSettingConnection:uuid property of the connection.
  *
  * Returns: the connection UUID
  **/
 const char *
-nm_setting_connection_get_uuid (NMSettingConnection *setting)
+bm_setting_connection_get_uuid (BMSettingConnection *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), NULL);
+	g_return_val_if_fail (BM_IS_SETTING_CONNECTION (setting), NULL);
 
-	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->uuid;
+	return BM_SETTING_CONNECTION_GET_PRIVATE (setting)->uuid;
 }
 
 /**
- * nm_setting_connection_get_connection_type:
- * @setting: the #NMSettingConnection
+ * bm_setting_connection_get_connection_type:
+ * @setting: the #BMSettingConnection
  *
- * Returns the #NMSettingConnection:type property of the connection.
+ * Returns the #BMSettingConnection:type property of the connection.
  *
  * Returns: the connection type
  **/
 const char *
-nm_setting_connection_get_connection_type (NMSettingConnection *setting)
+bm_setting_connection_get_connection_type (BMSettingConnection *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), NULL);
+	g_return_val_if_fail (BM_IS_SETTING_CONNECTION (setting), NULL);
 
-	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->type;
+	return BM_SETTING_CONNECTION_GET_PRIVATE (setting)->type;
 }
 
 /**
- * nm_setting_connection_get_autoconnect:
- * @setting: the #NMSettingConnection
+ * bm_setting_connection_get_autoconnect:
+ * @setting: the #BMSettingConnection
  *
- * Returns the #NMSettingConnection:autoconnect property of the connection.
+ * Returns the #BMSettingConnection:autoconnect property of the connection.
  *
  * Returns: the connection's autoconnect behavior
  **/
 gboolean
-nm_setting_connection_get_autoconnect (NMSettingConnection *setting)
+bm_setting_connection_get_autoconnect (BMSettingConnection *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), FALSE);
+	g_return_val_if_fail (BM_IS_SETTING_CONNECTION (setting), FALSE);
 
-	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->autoconnect;
+	return BM_SETTING_CONNECTION_GET_PRIVATE (setting)->autoconnect;
 }
 
 /**
- * nm_setting_connection_get_timestamp:
- * @setting: the #NMSettingConnection
+ * bm_setting_connection_get_timestamp:
+ * @setting: the #BMSettingConnection
  *
- * Returns the #NMSettingConnection:timestamp property of the connection.
+ * Returns the #BMSettingConnection:timestamp property of the connection.
  *
  * Returns: the connection's timestamp
  **/
 guint64
-nm_setting_connection_get_timestamp (NMSettingConnection *setting)
+bm_setting_connection_get_timestamp (BMSettingConnection *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), 0);
+	g_return_val_if_fail (BM_IS_SETTING_CONNECTION (setting), 0);
 
-	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->timestamp;
+	return BM_SETTING_CONNECTION_GET_PRIVATE (setting)->timestamp;
 }
 
 /**
- * nm_setting_connection_get_read_only:
- * @setting: the #NMSettingConnection
+ * bm_setting_connection_get_read_only:
+ * @setting: the #BMSettingConnection
  *
- * Returns the #NMSettingConnection:read-only property of the connection.
+ * Returns the #BMSettingConnection:read-only property of the connection.
  *
  * Returns: %TRUE if the connection is read-only, %FALSE if it is not
  **/
 gboolean
-nm_setting_connection_get_read_only (NMSettingConnection *setting)
+bm_setting_connection_get_read_only (BMSettingConnection *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), TRUE);
+	g_return_val_if_fail (BM_IS_SETTING_CONNECTION (setting), TRUE);
 
-	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->read_only;
+	return BM_SETTING_CONNECTION_GET_PRIVATE (setting)->read_only;
 }
 
 static gint
 find_setting_by_name (gconstpointer a, gconstpointer b)
 {
-	NMSetting *setting = NM_SETTING (a);
+	BMSetting *setting = BM_SETTING (a);
 	const char *str = (const char *) b;
 
-	return strcmp (nm_setting_get_name (setting), str);
+	return strcmp (bm_setting_get_name (setting), str);
 }
 
 static gboolean
@@ -236,58 +236,58 @@ validate_uuid (const char *uuid)
 }
 
 static gboolean
-verify (NMSetting *setting, GSList *all_settings, GError **error)
+verify (BMSetting *setting, GSList *all_settings, GError **error)
 {
-	NMSettingConnectionPrivate *priv = NM_SETTING_CONNECTION_GET_PRIVATE (setting);
+	BMSettingConnectionPrivate *priv = BM_SETTING_CONNECTION_GET_PRIVATE (setting);
 
 	if (!priv->id) {
 		g_set_error (error,
-		             NM_SETTING_CONNECTION_ERROR,
-		             NM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
-		             NM_SETTING_CONNECTION_ID);
+		             BM_SETTING_CONNECTION_ERROR,
+		             BM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
+		             BM_SETTING_CONNECTION_ID);
 		return FALSE;
 	} else if (!strlen (priv->id)) {
 		g_set_error (error,
-		             NM_SETTING_CONNECTION_ERROR,
-		             NM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
-		             NM_SETTING_CONNECTION_ID);
+		             BM_SETTING_CONNECTION_ERROR,
+		             BM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
+		             BM_SETTING_CONNECTION_ID);
 		return FALSE;
 	}
 
 	if (!priv->uuid) {
 		g_set_error (error,
-		             NM_SETTING_CONNECTION_ERROR,
-		             NM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
-		             NM_SETTING_CONNECTION_UUID);
+		             BM_SETTING_CONNECTION_ERROR,
+		             BM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
+		             BM_SETTING_CONNECTION_UUID);
 		return FALSE;
 	} else if (!validate_uuid (priv->uuid)) {
 		g_set_error (error,
-		             NM_SETTING_CONNECTION_ERROR,
-		             NM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
-		             NM_SETTING_CONNECTION_UUID);
+		             BM_SETTING_CONNECTION_ERROR,
+		             BM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
+		             BM_SETTING_CONNECTION_UUID);
 		return FALSE;
 	}
 
 	if (!priv->type) {
 		g_set_error (error,
-		             NM_SETTING_CONNECTION_ERROR,
-		             NM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
-		             NM_SETTING_CONNECTION_TYPE);
+		             BM_SETTING_CONNECTION_ERROR,
+		             BM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
+		             BM_SETTING_CONNECTION_TYPE);
 		return FALSE;
 	} else if (!strlen (priv->type)) {
 		g_set_error (error,
-		             NM_SETTING_CONNECTION_ERROR,
-		             NM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
-		             NM_SETTING_CONNECTION_TYPE);
+		             BM_SETTING_CONNECTION_ERROR,
+		             BM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
+		             BM_SETTING_CONNECTION_TYPE);
 		return FALSE;
 	}
 
 	/* Make sure the corresponding 'type' item is present */
 	if (all_settings && !g_slist_find_custom (all_settings, priv->type, find_setting_by_name)) {
 		g_set_error (error,
-		             NM_SETTING_CONNECTION_ERROR,
-		             NM_SETTING_CONNECTION_ERROR_TYPE_SETTING_NOT_FOUND,
-		             NM_SETTING_CONNECTION_TYPE);
+		             BM_SETTING_CONNECTION_ERROR,
+		             BM_SETTING_CONNECTION_ERROR_TYPE_SETTING_NOT_FOUND,
+		             BM_SETTING_CONNECTION_TYPE);
 		return FALSE;
 	}
 
@@ -295,28 +295,28 @@ verify (NMSetting *setting, GSList *all_settings, GError **error)
 }
 
 static void
-nm_setting_connection_init (NMSettingConnection *setting)
+bm_setting_connection_init (BMSettingConnection *setting)
 {
-	g_object_set (setting, NM_SETTING_NAME, NM_SETTING_CONNECTION_SETTING_NAME, NULL);
+	g_object_set (setting, BM_SETTING_NAME, BM_SETTING_CONNECTION_SETTING_NAME, NULL);
 }
 
 static void
 finalize (GObject *object)
 {
-	NMSettingConnectionPrivate *priv = NM_SETTING_CONNECTION_GET_PRIVATE (object);
+	BMSettingConnectionPrivate *priv = BM_SETTING_CONNECTION_GET_PRIVATE (object);
 
 	g_free (priv->id);
 	g_free (priv->uuid);
 	g_free (priv->type);
 
-	G_OBJECT_CLASS (nm_setting_connection_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_setting_connection_parent_class)->finalize (object);
 }
 
 static void
 set_property (GObject *object, guint prop_id,
 		    const GValue *value, GParamSpec *pspec)
 {
-	NMSettingConnectionPrivate *priv = NM_SETTING_CONNECTION_GET_PRIVATE (object);
+	BMSettingConnectionPrivate *priv = BM_SETTING_CONNECTION_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_ID:
@@ -350,26 +350,26 @@ static void
 get_property (GObject *object, guint prop_id,
 		    GValue *value, GParamSpec *pspec)
 {
-	NMSettingConnection *setting = NM_SETTING_CONNECTION (object);
+	BMSettingConnection *setting = BM_SETTING_CONNECTION (object);
 
 	switch (prop_id) {
 	case PROP_ID:
-		g_value_set_string (value, nm_setting_connection_get_id (setting));
+		g_value_set_string (value, bm_setting_connection_get_id (setting));
 		break;
 	case PROP_UUID:
-		g_value_set_string (value, nm_setting_connection_get_uuid (setting));
+		g_value_set_string (value, bm_setting_connection_get_uuid (setting));
 		break;
 	case PROP_TYPE:
-		g_value_set_string (value, nm_setting_connection_get_connection_type (setting));
+		g_value_set_string (value, bm_setting_connection_get_connection_type (setting));
 		break;
 	case PROP_AUTOCONNECT:
-		g_value_set_boolean (value, nm_setting_connection_get_autoconnect (setting));
+		g_value_set_boolean (value, bm_setting_connection_get_autoconnect (setting));
 		break;
 	case PROP_TIMESTAMP:
-		g_value_set_uint64 (value, nm_setting_connection_get_timestamp (setting));
+		g_value_set_uint64 (value, bm_setting_connection_get_timestamp (setting));
 		break;
 	case PROP_READ_ONLY:
-		g_value_set_boolean (value, nm_setting_connection_get_read_only (setting));
+		g_value_set_boolean (value, bm_setting_connection_get_read_only (setting));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -378,12 +378,12 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
+bm_setting_connection_class_init (BMSettingConnectionClass *setting_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
-	NMSettingClass *parent_class = NM_SETTING_CLASS (setting_class);
+	BMSettingClass *parent_class = BM_SETTING_CLASS (setting_class);
 
-	g_type_class_add_private (setting_class, sizeof (NMSettingConnectionPrivate));
+	g_type_class_add_private (setting_class, sizeof (BMSettingConnectionPrivate));
 
 	/* virtual methods */
 	object_class->set_property = set_property;
@@ -394,40 +394,40 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 	/* Properties */
 
 	/**
-	 * NMSettingConnection:id:
+	 * BMSettingConnection:id:
 	 *
 	 * A human readable unique idenfier for the connection, like "Work WiFi" or
 	 * "T-Mobile 3G".
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ID,
-		 g_param_spec_string (NM_SETTING_CONNECTION_ID,
+		 g_param_spec_string (BM_SETTING_CONNECTION_ID,
 						  "ID",
 						  "User-readable connection identifier/name.  Must be "
 						  "one or more characters and may change over the lifetime "
 						  "of the connection if the user decides to rename it.",
 						  NULL,
-						  G_PARAM_READWRITE | NM_SETTING_PARAM_SERIALIZE | NM_SETTING_PARAM_FUZZY_IGNORE));
+						  G_PARAM_READWRITE | BM_SETTING_PARAM_SERIALIZE | BM_SETTING_PARAM_FUZZY_IGNORE));
 
 	/**
-	 * NMSettingConnection:uuid:
+	 * BMSettingConnection:uuid:
 	 *
 	 * A universally unique idenfier for the connection, for example generated
 	 * with libuuid.  Should be assigned when the connection is created, and
 	 * never changed as long as the connection still applies to the same
 	 * network.  For example, should not be changed when the
-	 * #NMSettingConnection:id or #NMSettingIP4Config changes, but might need
+	 * #BMSettingConnection:id or #BMSettingIP4Config changes, but might need
 	 * to be re-created when the WiFi SSID, mobile broadband network provider,
-	 * or #NMSettingConnection:type changes.
+	 * or #BMSettingConnection:type changes.
 	 *
 	 * The UUID must be in the format '2815492f-7e56-435e-b2e9-246bd7cdc664'
 	 * (ie, contains only hexadecimal characters and '-').  A suitable UUID may
-	 * be generated by nm_utils_uuid_generate() or
-	 * nm_utils_uuid_generate_from_string().
+	 * be generated by bm_utils_uuid_generate() or
+	 * bm_utils_uuid_generate_from_string().
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_UUID,
-		 g_param_spec_string (NM_SETTING_CONNECTION_UUID,
+		 g_param_spec_string (BM_SETTING_CONNECTION_UUID,
 						  "UUID",
 						  "Universally unique connection identifier.  Must be "
 						  "in the format '2815492f-7e56-435e-b2e9-246bd7cdc664' "
@@ -440,19 +440,19 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 						  "WiFi SSID, mobile broadband network provider, or the "
 						  "connection type changes.",
 						  NULL,
-						  G_PARAM_READWRITE | NM_SETTING_PARAM_SERIALIZE | NM_SETTING_PARAM_FUZZY_IGNORE));
+						  G_PARAM_READWRITE | BM_SETTING_PARAM_SERIALIZE | BM_SETTING_PARAM_FUZZY_IGNORE));
 
 	/**
-	 * NMSettingConnection:type:
+	 * BMSettingConnection:type:
 	 *
 	 * The general hardware type of the device used for the network connection,
-	 * contains the name of the #NMSetting object that describes that hardware
+	 * contains the name of the #BMSetting object that describes that hardware
 	 * type's parameters.  For example, for WiFi devices, the name of the
-	 * #NMSettingWireless setting.
+	 * #BMSettingWireless setting.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_TYPE,
-		 g_param_spec_string (NM_SETTING_CONNECTION_TYPE,
+		 g_param_spec_string (BM_SETTING_CONNECTION_TYPE,
 						  "Type",
 						  "Base type of the connection.  For hardware-dependent "
 						  "connections, should contain the setting name of the "
@@ -462,10 +462,10 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 						  "otherwise, should contain the setting name of that "
 						  "setting type (ie, 'vpn' or 'bridge', etc).",
 						  NULL,
-						  G_PARAM_READWRITE | NM_SETTING_PARAM_SERIALIZE));
+						  G_PARAM_READWRITE | BM_SETTING_PARAM_SERIALIZE));
 
 	/**
-	 * NMSettingConnection:autoconnect:
+	 * BMSettingConnection:autoconnect:
 	 *
 	 * Whether or not the connection should be automatically connected by
 	 * BarcodeManager when the resources for the connection are available.
@@ -474,24 +474,24 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_AUTOCONNECT,
-		 g_param_spec_boolean (NM_SETTING_CONNECTION_AUTOCONNECT,
+		 g_param_spec_boolean (BM_SETTING_CONNECTION_AUTOCONNECT,
 						   "Autoconnect",
 						   "If TRUE, BarcodeManager will activate this connection "
 						   "when its network resources are available.  If FALSE, "
 						   "the connection must be manually activated by the user "
 						   "or some other mechanism.",
 						   TRUE,
-						   G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_SERIALIZE | NM_SETTING_PARAM_FUZZY_IGNORE));
+						   G_PARAM_READWRITE | G_PARAM_CONSTRUCT | BM_SETTING_PARAM_SERIALIZE | BM_SETTING_PARAM_FUZZY_IGNORE));
 
 	/**
-	 * NMSettingConnection:timestamp:
+	 * BMSettingConnection:timestamp:
 	 *
 	 * The time, in seconds since the Unix Epoch, that the connection was last
 	 * _successfully_ fully activated.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_TIMESTAMP,
-		 g_param_spec_uint64 (NM_SETTING_CONNECTION_TIMESTAMP,
+		 g_param_spec_uint64 (BM_SETTING_CONNECTION_TIMESTAMP,
 						  "Timestamp",
 						  "Timestamp (in seconds since the Unix Epoch) that the "
 						  "connection was last successfully activated.  Settings "
@@ -499,10 +499,10 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 						  "periodically when the connection is active to ensure "
 						  "that an active connection has the latest timestamp.",
 						  0, G_MAXUINT64, 0,
-						  G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_SERIALIZE | NM_SETTING_PARAM_FUZZY_IGNORE));
+						  G_PARAM_READWRITE | G_PARAM_CONSTRUCT | BM_SETTING_PARAM_SERIALIZE | BM_SETTING_PARAM_FUZZY_IGNORE));
 
 	/**
-	 * NMSettingConnection:read-only:
+	 * BMSettingConnection:read-only:
 	 *
 	 * %TRUE if the connection can be modified using the providing settings
 	 * service's D-Bus interface with the right privileges, or %FALSE
@@ -510,12 +510,12 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 	 **/
 	g_object_class_install_property
 	    (object_class, PROP_READ_ONLY,
-	     g_param_spec_boolean (NM_SETTING_CONNECTION_READ_ONLY,
+	     g_param_spec_boolean (BM_SETTING_CONNECTION_READ_ONLY,
 	                      "Read-Only",
 	                      "If TRUE, the connection is read-only and cannot be "
 	                      "changed by the user or any other mechanism.  This is "
 	                      "normally set for system connections whose plugin "
 	                      "cannot yet write updated connections back out.",
 	                      FALSE,
-	                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT | NM_SETTING_PARAM_SERIALIZE | NM_SETTING_PARAM_FUZZY_IGNORE));
+	                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT | BM_SETTING_PARAM_SERIALIZE | BM_SETTING_PARAM_FUZZY_IGNORE));
 }

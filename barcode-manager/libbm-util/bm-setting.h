@@ -23,87 +23,87 @@
  * (C) Copyright 2007 - 2008 Novell, Inc.
  */
 
-#ifndef NM_SETTING_H
-#define NM_SETTING_H
+#ifndef BM_SETTING_H
+#define BM_SETTING_H
 
 #include <glib.h>
 #include <glib-object.h>
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SETTING            (nm_setting_get_type ())
-#define NM_SETTING(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTING, NMSetting))
-#define NM_SETTING_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_SETTING, NMSettingClass))
-#define NM_IS_SETTING(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SETTING))
-#define NM_IS_SETTING_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_SETTING))
-#define NM_SETTING_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SETTING, NMSettingClass))
+#define BM_TYPE_SETTING            (bm_setting_get_type ())
+#define BM_SETTING(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SETTING, BMSetting))
+#define BM_SETTING_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_SETTING, BMSettingClass))
+#define BM_IS_SETTING(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SETTING))
+#define BM_IS_SETTING_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_SETTING))
+#define BM_SETTING_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_SETTING, BMSettingClass))
 
 /**
- * NMSettingError:
- * @NM_SETTING_ERROR_UNKNOWN: unknown or unclassified error
- * @NM_SETTING_ERROR_PROPERTY_NOT_FOUND: a property required by the operation
+ * BMSettingError:
+ * @BM_SETTING_ERROR_UNKNOWN: unknown or unclassified error
+ * @BM_SETTING_ERROR_PROPERTY_NOT_FOUND: a property required by the operation
  *   was not found; for example, an attempt to update an invalid secret
- * @NM_SETTING_ERROR_PROPERTY_NOT_SECRET: an operation which requires a secret
+ * @BM_SETTING_ERROR_PROPERTY_NOT_SECRET: an operation which requires a secret
  *   was attempted on a non-secret property
- * @NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH: the operation requires a property
+ * @BM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH: the operation requires a property
  *   of a specific type, or the value couldn't be transformed to the same type
  *   as the property being acted upon
  *
- * Describes errors that may result from operations involving a #NMSetting.
+ * Describes errors that may result from operations involving a #BMSetting.
  *
  **/
 typedef enum
 {
-	NM_SETTING_ERROR_UNKNOWN = 0,
-	NM_SETTING_ERROR_PROPERTY_NOT_FOUND,
-	NM_SETTING_ERROR_PROPERTY_NOT_SECRET,
-	NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH
-} NMSettingError;
+	BM_SETTING_ERROR_UNKNOWN = 0,
+	BM_SETTING_ERROR_PROPERTY_NOT_FOUND,
+	BM_SETTING_ERROR_PROPERTY_NOT_SECRET,
+	BM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH
+} BMSettingError;
 
-#define NM_TYPE_SETTING_ERROR (nm_setting_error_get_type ()) 
-GType nm_setting_error_get_type (void);
+#define BM_TYPE_SETTING_ERROR (bm_setting_error_get_type ()) 
+GType bm_setting_error_get_type (void);
 
-#define NM_SETTING_ERROR nm_setting_error_quark ()
-GQuark nm_setting_error_quark (void);
+#define BM_SETTING_ERROR bm_setting_error_quark ()
+GQuark bm_setting_error_quark (void);
 
 
-/* The property of the #NMSetting should be serialized */
-#define NM_SETTING_PARAM_SERIALIZE    (1 << (0 + G_PARAM_USER_SHIFT))
+/* The property of the #BMSetting should be serialized */
+#define BM_SETTING_PARAM_SERIALIZE    (1 << (0 + G_PARAM_USER_SHIFT))
 
-/* The property of the #NMSetting is required for the setting to be valid */
-#define NM_SETTING_PARAM_REQUIRED     (1 << (1 + G_PARAM_USER_SHIFT))
+/* The property of the #BMSetting is required for the setting to be valid */
+#define BM_SETTING_PARAM_REQUIRED     (1 << (1 + G_PARAM_USER_SHIFT))
 
-/* The property of the #NMSetting is a secret */
-#define NM_SETTING_PARAM_SECRET       (1 << (2 + G_PARAM_USER_SHIFT))
+/* The property of the #BMSetting is a secret */
+#define BM_SETTING_PARAM_SECRET       (1 << (2 + G_PARAM_USER_SHIFT))
 
-/* The property of the #NMSetting should be ignored during comparisons that
- * use the %NM_SETTING_COMPARE_FLAG_FUZZY flag.
+/* The property of the #BMSetting should be ignored during comparisons that
+ * use the %BM_SETTING_COMPARE_FLAG_FUZZY flag.
  */
-#define NM_SETTING_PARAM_FUZZY_IGNORE (1 << (3 + G_PARAM_USER_SHIFT))
+#define BM_SETTING_PARAM_FUZZY_IGNORE (1 << (3 + G_PARAM_USER_SHIFT))
 
-#define NM_SETTING_NAME "name"
+#define BM_SETTING_NAME "name"
 
 /**
- * NMSetting:
+ * BMSetting:
  *
- * The NMSetting struct contains only private data.
+ * The BMSetting struct contains only private data.
  * It should only be accessed through the functions described below.
  */
 typedef struct {
 	GObject parent;
-} NMSetting;
+} BMSetting;
 
 typedef struct {
 	GObjectClass parent;
 
 	/* Virtual functions */
-	gboolean    (*verify)            (NMSetting  *setting,
+	gboolean    (*verify)            (BMSetting  *setting,
 	                                  GSList     *all_settings,
 	                                  GError     **error);
 
-	GPtrArray  *(*need_secrets)      (NMSetting  *setting);
+	GPtrArray  *(*need_secrets)      (BMSetting  *setting);
 
-	gboolean    (*update_one_secret) (NMSetting  *setting,
+	gboolean    (*update_one_secret) (BMSetting  *setting,
 	                                  const char *key,
 	                                  GValue     *value,
 	                                  GError    **error);
@@ -113,87 +113,87 @@ typedef struct {
 	void (*_reserved2) (void);
 	void (*_reserved3) (void);
 	void (*_reserved4) (void);
-} NMSettingClass;
+} BMSettingClass;
 
-typedef void (*NMSettingValueIterFn) (NMSetting *setting,
+typedef void (*BMSettingValueIterFn) (BMSetting *setting,
                                       const char *key,
                                       const GValue *value,
                                       GParamFlags flags,
                                       gpointer user_data);
 
 
-GType nm_setting_get_type (void);
+GType bm_setting_get_type (void);
 
-GHashTable *nm_setting_to_hash       (NMSetting *setting);
-NMSetting  *nm_setting_new_from_hash (GType setting_type,
+GHashTable *bm_setting_to_hash       (BMSetting *setting);
+BMSetting  *bm_setting_new_from_hash (GType setting_type,
                                       GHashTable *hash);
 
-NMSetting *nm_setting_duplicate      (NMSetting *setting);
+BMSetting *bm_setting_duplicate      (BMSetting *setting);
 
-const char *nm_setting_get_name      (NMSetting *setting);
+const char *bm_setting_get_name      (BMSetting *setting);
 
-gboolean    nm_setting_verify        (NMSetting *setting,
+gboolean    bm_setting_verify        (BMSetting *setting,
                                       GSList    *all_settings,
                                       GError    **error);
 
 /**
- * NMSettingCompareFlags:
- * @NM_SETTING_COMPARE_FLAG_EXACT: match all properties exactly
- * @NM_SETTING_COMPARE_FLAG_FUZZY: match only important attributes, like SSID,
+ * BMSettingCompareFlags:
+ * @BM_SETTING_COMPARE_FLAG_EXACT: match all properties exactly
+ * @BM_SETTING_COMPARE_FLAG_FUZZY: match only important attributes, like SSID,
  *   type, security settings, etc.  Does not match, for example, connection ID
  *   or UUID.
- * @NM_SETTING_COMPARE_FLAG_IGNORE_ID: ignore the connection's ID
- * @NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS: ignore secrets
+ * @BM_SETTING_COMPARE_FLAG_IGNORE_ID: ignore the connection's ID
+ * @BM_SETTING_COMPARE_FLAG_IGNORE_SECRETS: ignore secrets
  *
  * These flags modify the comparison behavior when comparing two settings or
  * two connections.
  *
  **/
 typedef enum {
-	NM_SETTING_COMPARE_FLAG_EXACT = 0x00000000,
-	NM_SETTING_COMPARE_FLAG_FUZZY = 0x00000001,
-	NM_SETTING_COMPARE_FLAG_IGNORE_ID = 0x00000002,
-	NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS = 0x00000004
-} NMSettingCompareFlags;
+	BM_SETTING_COMPARE_FLAG_EXACT = 0x00000000,
+	BM_SETTING_COMPARE_FLAG_FUZZY = 0x00000001,
+	BM_SETTING_COMPARE_FLAG_IGNORE_ID = 0x00000002,
+	BM_SETTING_COMPARE_FLAG_IGNORE_SECRETS = 0x00000004
+} BMSettingCompareFlags;
 
-gboolean    nm_setting_compare       (NMSetting *a,
-                                      NMSetting *b,
-                                      NMSettingCompareFlags flags);
+gboolean    bm_setting_compare       (BMSetting *a,
+                                      BMSetting *b,
+                                      BMSettingCompareFlags flags);
 
 /**
- * NMSettingDiffResult:
- * @NM_SETTING_DIFF_RESULT_UNKNOWN: unknown result
- * @NM_SETTING_DIFF_RESULT_IN_A: the property is present in setting A
- * @NM_SETTING_DIFF_RESULT_IN_B: the property is present in setting B
+ * BMSettingDiffResult:
+ * @BM_SETTING_DIFF_RESULT_UNKNOWN: unknown result
+ * @BM_SETTING_DIFF_RESULT_IN_A: the property is present in setting A
+ * @BM_SETTING_DIFF_RESULT_IN_B: the property is present in setting B
  *
  * These values indicate the result of a setting difference operation.
  **/
 typedef enum {
-	NM_SETTING_DIFF_RESULT_UNKNOWN = 0x00000000,
-	NM_SETTING_DIFF_RESULT_IN_A =    0x00000001,
-	NM_SETTING_DIFF_RESULT_IN_B =    0x00000002,
-} NMSettingDiffResult;
+	BM_SETTING_DIFF_RESULT_UNKNOWN = 0x00000000,
+	BM_SETTING_DIFF_RESULT_IN_A =    0x00000001,
+	BM_SETTING_DIFF_RESULT_IN_B =    0x00000002,
+} BMSettingDiffResult;
 
-gboolean    nm_setting_diff          (NMSetting *a,
-                                      NMSetting *b,
-                                      NMSettingCompareFlags flags,
+gboolean    bm_setting_diff          (BMSetting *a,
+                                      BMSetting *b,
+                                      BMSettingCompareFlags flags,
                                       gboolean invert_results,
                                       GHashTable **results);
 
-void        nm_setting_enumerate_values (NMSetting *setting,
-                                         NMSettingValueIterFn func,
+void        bm_setting_enumerate_values (BMSetting *setting,
+                                         BMSettingValueIterFn func,
                                          gpointer user_data);
 
-char       *nm_setting_to_string      (NMSetting *setting);
+char       *bm_setting_to_string      (BMSetting *setting);
 
 /* Secrets */
-void        nm_setting_clear_secrets  (NMSetting *setting);
-GPtrArray  *nm_setting_need_secrets   (NMSetting *setting);
-gboolean    nm_setting_update_secrets (NMSetting *setting,
+void        bm_setting_clear_secrets  (BMSetting *setting);
+GPtrArray  *bm_setting_need_secrets   (BMSetting *setting);
+gboolean    bm_setting_update_secrets (BMSetting *setting,
                                        GHashTable *secrets,
                                        GError **error);
 
 G_END_DECLS
 
-#endif /* NM_SETTING_H */
+#endif /* BM_SETTING_H */
 

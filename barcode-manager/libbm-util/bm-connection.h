@@ -1,8 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
 /*
- * Dan Williams <dcbw@redhat.com>
- * Tambet Ingo <tambet@gmail.com>
+ * Jakob Flierl
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,12 +18,11 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2007 - 2008 Red Hat, Inc.
- * (C) Copyright 2007 - 2008 Novell, Inc.
+ * (C) Copyright 2011 Jakob Flierl
  */
 
-#ifndef NM_CONNECTION_H
-#define NM_CONNECTION_H
+#ifndef BM_CONNECTION_H
+#define BM_CONNECTION_H
 
 #include <glib.h>
 #include <glib-object.h>
@@ -32,141 +30,141 @@
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_CONNECTION            (nm_connection_get_type ())
-#define NM_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_CONNECTION, NMConnection))
-#define NM_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_CONNECTION, NMConnectionClass))
-#define NM_IS_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_CONNECTION))
-#define NM_IS_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_CONNECTION))
-#define NM_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_CONNECTION, NMConnectionClass))
+#define BM_TYPE_CONNECTION            (bm_connection_get_type ())
+#define BM_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_CONNECTION, BMConnection))
+#define BM_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_CONNECTION, BMConnectionClass))
+#define BM_IS_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_CONNECTION))
+#define BM_IS_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_CONNECTION))
+#define BM_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_CONNECTION, BMConnectionClass))
 
 /**
- * NMConnectionScope:
- * @NM_CONNECTION_SCOPE_UNKNOWN: scope not known or not yet set
- * @NM_CONNECTION_SCOPE_SYSTEM: connection is provided by the system settings
+ * BMConnectionScope:
+ * @BM_CONNECTION_SCOPE_UNKNOWN: scope not known or not yet set
+ * @BM_CONNECTION_SCOPE_SYSTEM: connection is provided by the system settings
  *   service
- * @NM_CONNECTION_SCOPE_USER: connection is provided by a user settings service
+ * @BM_CONNECTION_SCOPE_USER: connection is provided by a user settings service
  *
  * Connection scope indicated what settings service, if any, provides the
  * connection.
  *
  **/
 typedef enum {
-	NM_CONNECTION_SCOPE_UNKNOWN = 0,
-	NM_CONNECTION_SCOPE_SYSTEM,
-	NM_CONNECTION_SCOPE_USER
-} NMConnectionScope;
+	BM_CONNECTION_SCOPE_UNKNOWN = 0,
+	BM_CONNECTION_SCOPE_SYSTEM,
+	BM_CONNECTION_SCOPE_USER
+} BMConnectionScope;
 
 
 /**
- * NMConnectionError:
- * @NM_CONNECTION_ERROR_UNKNOWN: unknown or unclassified error
- * @NM_CONNECTION_ERROR_CONNECTION_SETTING_NOT_FOUND: the #NMConnection object
- *   did not contain the required #NMSettingConnection object, which must be
+ * BMConnectionError:
+ * @BM_CONNECTION_ERROR_UNKNOWN: unknown or unclassified error
+ * @BM_CONNECTION_ERROR_CONNECTION_SETTING_NOT_FOUND: the #BMConnection object
+ *   did not contain the required #BMSettingConnection object, which must be
  *   present for all connections
  *
- * Describes errors that may result from operations involving a #NMConnection.
+ * Describes errors that may result from operations involving a #BMConnection.
  *
  **/
 typedef enum
 {
-	NM_CONNECTION_ERROR_UNKNOWN = 0,
-	NM_CONNECTION_ERROR_CONNECTION_SETTING_NOT_FOUND
-} NMConnectionError;
+	BM_CONNECTION_ERROR_UNKNOWN = 0,
+	BM_CONNECTION_ERROR_CONNECTION_SETTING_NOT_FOUND
+} BMConnectionError;
 
-#define NM_TYPE_CONNECTION_ERROR (nm_connection_error_get_type ()) 
-GType nm_connection_error_get_type (void);
+#define BM_TYPE_CONNECTION_ERROR (bm_connection_error_get_type ()) 
+GType bm_connection_error_get_type (void);
 
-#define NM_CONNECTION_ERROR nm_connection_error_quark ()
-GQuark nm_connection_error_quark (void);
+#define BM_CONNECTION_ERROR bm_connection_error_quark ()
+GQuark bm_connection_error_quark (void);
 
-#define NM_CONNECTION_SCOPE "scope"
-#define NM_CONNECTION_PATH "path"
+#define BM_CONNECTION_SCOPE "scope"
+#define BM_CONNECTION_PATH "path"
 
 /**
- * NMConnection:
+ * BMConnection:
  *
- * The NMConnection struct contains only private data.
+ * The BMConnection struct contains only private data.
  * It should only be accessed through the functions described below.
  */
 typedef struct {
 	GObject parent;
-} NMConnection;
+} BMConnection;
 
 typedef struct {
 	GObjectClass parent;
 
 	/* Signals */
-	void (*secrets_updated) (NMConnection *connection, const char * setting);
-} NMConnectionClass;
+	void (*secrets_updated) (BMConnection *connection, const char * setting);
+} BMConnectionClass;
 
-GType nm_connection_get_type (void);
+GType bm_connection_get_type (void);
 
-NMConnection *nm_connection_new           (void);
+BMConnection *bm_connection_new           (void);
 
-NMConnection *nm_connection_new_from_hash (GHashTable *hash, GError **error);
+BMConnection *bm_connection_new_from_hash (GHashTable *hash, GError **error);
 
-NMConnection *nm_connection_duplicate     (NMConnection *connection);
+BMConnection *bm_connection_duplicate     (BMConnection *connection);
 
-void          nm_connection_add_setting   (NMConnection *connection,
-								   NMSetting    *setting);
+void          bm_connection_add_setting   (BMConnection *connection,
+								   BMSetting    *setting);
 
-void          nm_connection_remove_setting (NMConnection *connection,
+void          bm_connection_remove_setting (BMConnection *connection,
                                             GType         setting_type);
 
-NMSetting    *nm_connection_get_setting   (NMConnection *connection,
+BMSetting    *bm_connection_get_setting   (BMConnection *connection,
                                            GType         setting_type);
 
-NMSetting    *nm_connection_get_setting_by_name (NMConnection *connection,
+BMSetting    *bm_connection_get_setting_by_name (BMConnection *connection,
 									    const char *name);
 
-gboolean      nm_connection_replace_settings (NMConnection *connection,
+gboolean      bm_connection_replace_settings (BMConnection *connection,
                                               GHashTable *new_settings,
                                               GError **error);
 
-gboolean      nm_connection_compare       (NMConnection *a,
-                                           NMConnection *b,
-                                           NMSettingCompareFlags flags);
+gboolean      bm_connection_compare       (BMConnection *a,
+                                           BMConnection *b,
+                                           BMSettingCompareFlags flags);
 
-gboolean      nm_connection_diff          (NMConnection *a,
-                                           NMConnection *b,
-                                           NMSettingCompareFlags flags,
+gboolean      bm_connection_diff          (BMConnection *a,
+                                           BMConnection *b,
+                                           BMSettingCompareFlags flags,
                                            GHashTable **out_settings);
 
-gboolean      nm_connection_verify        (NMConnection *connection, GError **error);
+gboolean      bm_connection_verify        (BMConnection *connection, GError **error);
 
-const char *  nm_connection_need_secrets  (NMConnection *connection,
+const char *  bm_connection_need_secrets  (BMConnection *connection,
                                            GPtrArray **hints);
 
-void          nm_connection_clear_secrets (NMConnection *connection);
+void          bm_connection_clear_secrets (BMConnection *connection);
 
-gboolean      nm_connection_update_secrets (NMConnection *connection,
+gboolean      bm_connection_update_secrets (BMConnection *connection,
                                             const char *setting_name,
                                             GHashTable *setting_secrets,
                                             GError **error);
 
-void             nm_connection_set_scope (NMConnection *connection,
-                                                 NMConnectionScope scope);
+void             bm_connection_set_scope (BMConnection *connection,
+                                                 BMConnectionScope scope);
 
-NMConnectionScope nm_connection_get_scope (NMConnection *connection);
+BMConnectionScope bm_connection_get_scope (BMConnection *connection);
 
-void             nm_connection_set_path (NMConnection *connection,
+void             bm_connection_set_path (BMConnection *connection,
                                          const char *path);
 
-const char *     nm_connection_get_path (NMConnection *connection);
+const char *     bm_connection_get_path (BMConnection *connection);
 
-void          nm_connection_for_each_setting_value (NMConnection *connection,
-										  NMSettingValueIterFn func,
+void          bm_connection_for_each_setting_value (BMConnection *connection,
+										  BMSettingValueIterFn func,
 										  gpointer user_data);
 
-GHashTable   *nm_connection_to_hash       (NMConnection *connection);
-void          nm_connection_dump          (NMConnection *connection);
+GHashTable   *bm_connection_to_hash       (BMConnection *connection);
+void          bm_connection_dump          (BMConnection *connection);
 
-NMSetting    *nm_connection_create_setting (const char *name);
+BMSetting    *bm_connection_create_setting (const char *name);
 
-GType nm_connection_lookup_setting_type (const char *name);
+GType bm_connection_lookup_setting_type (const char *name);
 
-GType nm_connection_lookup_setting_type_by_quark (GQuark error_quark);
+GType bm_connection_lookup_setting_type_by_quark (GQuark error_quark);
 
 G_END_DECLS
 
-#endif /* NM_CONNECTION_H */
+#endif /* BM_CONNECTION_H */

@@ -23,24 +23,24 @@
  * (C) Copyright 2007 - 2008 Novell, Inc.
  */
 
-#ifndef NM_PARAM_SPEC_SPECIALIZED_H
-#define NM_PARAM_SPEC_SPECIALIZED_H
+#ifndef BM_PARAM_SPEC_SPECIALIZED_H
+#define BM_PARAM_SPEC_SPECIALIZED_H
 
 #include <glib-object.h>
 
 typedef struct _NMParamSpecSpecialized NMParamSpecSpecialized;
 
-#define NM_TYPE_PARAM_SPEC_SPECIALIZED (_nm_param_spec_specialized_get_type ())
+#define BM_TYPE_PARAM_SPEC_SPECIALIZED (_bm_param_spec_specialized_get_type ())
 
-#define NM_IS_PARAM_SPEC_SPECIALIZED(pspec) (G_TYPE_CHECK_INSTANCE_TYPE ((pspec), NM_TYPE_PARAM_SPEC_SPECIALIZED))
-#define NM_PARAM_SPEC_SPECIALIZED(pspec)    (G_TYPE_CHECK_INSTANCE_CAST ((pspec), NM_TYPE_PARAM_SPEC_SPECIALIZED, NMParamSpecSpecialized))
+#define BM_IS_PARAM_SPEC_SPECIALIZED(pspec) (G_TYPE_CHECK_INSTANCE_TYPE ((pspec), BM_TYPE_PARAM_SPEC_SPECIALIZED))
+#define BM_PARAM_SPEC_SPECIALIZED(pspec)    (G_TYPE_CHECK_INSTANCE_CAST ((pspec), BM_TYPE_PARAM_SPEC_SPECIALIZED, NMParamSpecSpecialized))
 
-GType _nm_param_spec_specialized_get_type (void);
+GType _bm_param_spec_specialized_get_type (void);
 
-GParamSpec *_nm_param_spec_specialized (const char *name,
+GParamSpec *_bm_param_spec_specialized (const char *name,
 							    const char *nick,
 							    const char *blurb,
 							    GType specialized_type,
 							    GParamFlags flags);
 
-#endif /* NM_PARAM_SPEC_SPECIALIZED_H */
+#endif /* BM_PARAM_SPEC_SPECIALIZED_H */

@@ -23,8 +23,8 @@
  * (C) Copyright 2005 - 2010 Red Hat, Inc.
  */
 
-#ifndef NM_UTILS_H
-#define NM_UTILS_H
+#ifndef BM_UTILS_H
+#define BM_UTILS_H
 
 #include <glib.h>
 #include <execinfo.h>
@@ -38,11 +38,11 @@ G_BEGIN_DECLS
 /*********************************************************/
 
 /**
- * nm_print_backtrace:
+ * bm_print_backtrace:
  *
  * Prints a backtrace of the calling process to the logging location.
  */
-#define nm_print_backtrace()						\
+#define bm_print_backtrace()						\
 G_STMT_START								\
 {									\
 	void *_call_stack[512];						\
@@ -67,12 +67,12 @@ G_STMT_START								\
 G_STMT_END
 
 /**
- * nm_get_timestamp:
+ * bm_get_timestamp:
  * @timestamp: location in which to place the current timestamp
  *
  * For debugging only.
  */
-#define nm_get_timestamp(timestamp)					\
+#define bm_get_timestamp(timestamp)					\
 G_STMT_START								\
 {									\
 	GTimeVal _tv;							\
@@ -82,88 +82,88 @@ G_STMT_START								\
 }									\
 G_STMT_END
 
-#define nm_info(fmt, args...)						\
+#define bm_info(fmt, args...)						\
 G_STMT_START								\
 {									\
 	g_message ("<info>  " fmt "\n", ##args);			\
 } G_STMT_END
 
-#define nm_info_str(fmt_str, args...)						\
+#define bm_info_str(fmt_str, args...)						\
 G_STMT_START								\
 {									\
 	g_message ("<info>  %s\n", fmt_str, ##args);			\
 } G_STMT_END
 
-#define nm_debug(fmt, args...)						\
+#define bm_debug(fmt, args...)						\
 G_STMT_START								\
 {									\
 	gdouble _timestamp;						\
-	nm_get_timestamp (&_timestamp);					\
+	bm_get_timestamp (&_timestamp);					\
 	g_debug ("<debug> [%f] %s(): " fmt "\n", _timestamp,	\
 		 G_STRFUNC, ##args);				\
 } G_STMT_END
 
-#define nm_debug_str(fmt_str, args...)						\
+#define bm_debug_str(fmt_str, args...)						\
 G_STMT_START								\
 {									\
 	gdouble _timestamp;						\
-	nm_get_timestamp (&_timestamp);					\
+	bm_get_timestamp (&_timestamp);					\
 	g_debug ("<debug> [%f] %s(): %s\n", _timestamp,	\
 		 G_STRFUNC, fmt_str, ##args);				\
 } G_STMT_END
 
-#define nm_warning(fmt, args...)					\
+#define bm_warning(fmt, args...)					\
 G_STMT_START								\
 {									\
 	g_warning ("<WARN>  %s(): " fmt "\n", 			\
 		   G_STRFUNC, ##args);			\
 } G_STMT_END
 
-#define nm_warning_str(fmt_str, args...)					\
+#define bm_warning_str(fmt_str, args...)					\
 G_STMT_START								\
 {									\
 	g_warning ("<WARN>  %s(): %s\n", 			\
 		   G_STRFUNC, fmt_str, ##args);			\
 } G_STMT_END
 
-#define nm_error(fmt, args...)						\
+#define bm_error(fmt, args...)						\
 G_STMT_START								\
 {									\
 	gdouble _timestamp;						\
-	nm_get_timestamp (&_timestamp);					\
+	bm_get_timestamp (&_timestamp);					\
 	g_critical ("<ERROR>\t[%f] %s (): " fmt "\n", _timestamp,	\
 		    G_STRFUNC, ##args);			\
-	nm_print_backtrace ();						\
+	bm_print_backtrace ();						\
 	G_BREAKPOINT ();						\
 } G_STMT_END
 
-#define nm_error_str(fmt_str, args...)						\
+#define bm_error_str(fmt_str, args...)						\
 G_STMT_START								\
 {									\
 	gdouble _timestamp;						\
-	nm_get_timestamp (&_timestamp);					\
+	bm_get_timestamp (&_timestamp);					\
 	g_critical ("<ERROR>\t[%f] %s (): %s\n", _timestamp,	\
 		    G_STRFUNC, fmt_str, ##args);			\
-	nm_print_backtrace ();						\
+	bm_print_backtrace ();						\
 	G_BREAKPOINT ();						\
 } G_STMT_END
 
-/* init, deinit nm_utils */
-gboolean nm_utils_init (GError **error);
-void     nm_utils_deinit (void);
+/* init, deinit bm_utils */
+gboolean bm_utils_init (GError **error);
+void     bm_utils_deinit (void);
 
 /* SSID helpers */
-gboolean    nm_utils_is_empty_ssid    (const guint8 * ssid, int len);
-const char *nm_utils_escape_ssid      (const guint8 *ssid, guint32 len);
-gboolean    nm_utils_same_ssid        (const GByteArray * ssid1,
+gboolean    bm_utils_is_empty_ssid    (const guint8 * ssid, int len);
+const char *bm_utils_escape_ssid      (const guint8 *ssid, guint32 len);
+gboolean    bm_utils_same_ssid        (const GByteArray * ssid1,
 							    const GByteArray * ssid2,
 							    gboolean ignore_trailing_null);
 
-char *nm_utils_ssid_to_utf8 (const char *ssid, guint32 len);
+char *bm_utils_ssid_to_utf8 (const char *ssid, guint32 len);
 
-GHashTable *nm_utils_gvalue_hash_dup  (GHashTable *hash);
+GHashTable *bm_utils_gvalue_hash_dup  (GHashTable *hash);
 
-void        nm_utils_slist_free       (GSList *list,
+void        bm_utils_slist_free       (GSList *list,
 							    GDestroyNotify elem_destroy_fn);
 
 typedef enum {
@@ -178,7 +178,7 @@ typedef enum {
 	NMU_SEC_WPA2_ENTERPRISE
 } NMUtilsSecurityType;
 
-gboolean nm_utils_security_valid (NMUtilsSecurityType type,
+gboolean bm_utils_security_valid (NMUtilsSecurityType type,
                                   guint32 wifi_caps,
                                   gboolean have_ap,
                                   gboolean adhoc,
@@ -186,38 +186,38 @@ gboolean nm_utils_security_valid (NMUtilsSecurityType type,
                                   guint32 ap_wpa,
                                   guint32 ap_rsn);
 
-GSList *nm_utils_ip4_addresses_from_gvalue (const GValue *value);
-void nm_utils_ip4_addresses_to_gvalue (GSList *list, GValue *value);
+GSList *bm_utils_ip4_addresses_from_gvalue (const GValue *value);
+void bm_utils_ip4_addresses_to_gvalue (GSList *list, GValue *value);
 
-GSList *nm_utils_ip4_routes_from_gvalue (const GValue *value);
-void nm_utils_ip4_routes_to_gvalue (GSList *list, GValue *value);
+GSList *bm_utils_ip4_routes_from_gvalue (const GValue *value);
+void bm_utils_ip4_routes_to_gvalue (GSList *list, GValue *value);
 
-guint32 nm_utils_ip4_netmask_to_prefix (guint32 netmask);
-guint32 nm_utils_ip4_prefix_to_netmask (guint32 prefix);
-guint32 nm_utils_ip4_get_default_prefix (guint32 ip);
+guint32 bm_utils_ip4_netmask_to_prefix (guint32 netmask);
+guint32 bm_utils_ip4_prefix_to_netmask (guint32 prefix);
+guint32 bm_utils_ip4_get_default_prefix (guint32 ip);
 
-GSList *nm_utils_ip6_addresses_from_gvalue (const GValue *value);
-void nm_utils_ip6_addresses_to_gvalue (GSList *list, GValue *value);
+GSList *bm_utils_ip6_addresses_from_gvalue (const GValue *value);
+void bm_utils_ip6_addresses_to_gvalue (GSList *list, GValue *value);
 
-GSList *nm_utils_ip6_routes_from_gvalue (const GValue *value);
-void nm_utils_ip6_routes_to_gvalue (GSList *list, GValue *value);
+GSList *bm_utils_ip6_routes_from_gvalue (const GValue *value);
+void bm_utils_ip6_routes_to_gvalue (GSList *list, GValue *value);
 
-GSList *nm_utils_ip6_dns_from_gvalue (const GValue *value);
-void nm_utils_ip6_dns_to_gvalue (GSList *list, GValue *value);
+GSList *bm_utils_ip6_dns_from_gvalue (const GValue *value);
+void bm_utils_ip6_dns_to_gvalue (GSList *list, GValue *value);
 
-char *nm_utils_uuid_generate (void);
-char *nm_utils_uuid_generate_from_string (const char *s);
+char *bm_utils_uuid_generate (void);
+char *bm_utils_uuid_generate_from_string (const char *s);
 
-GByteArray *nm_utils_rsa_key_encrypt (const GByteArray *data,
+GByteArray *bm_utils_rsa_key_encrypt (const GByteArray *data,
                                       const char *in_password,
                                       char **out_password,
                                       GError **error);
 
 G_END_DECLS
 
-guint32 nm_utils_wifi_freq_to_channel (guint32 freq);
-guint32 nm_utils_wifi_channel_to_freq (guint32 channel, const char *band);
-guint32 nm_utils_wifi_find_next_channel (guint32 channel, int direction, char *band);
-gboolean nm_utils_wifi_is_channel_valid (guint32 channel, const char *band);
+guint32 bm_utils_wifi_freq_to_channel (guint32 freq);
+guint32 bm_utils_wifi_channel_to_freq (guint32 channel, const char *band);
+guint32 bm_utils_wifi_find_next_channel (guint32 channel, int direction, char *band);
+gboolean bm_utils_wifi_is_channel_valid (guint32 channel, const char *band);
 
-#endif /* NM_UTILS_H */
+#endif /* BM_UTILS_H */

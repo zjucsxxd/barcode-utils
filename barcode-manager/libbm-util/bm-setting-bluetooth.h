@@ -24,62 +24,62 @@
  * (C) Copyright 2007 - 2008 Novell, Inc.
  */
 
-#ifndef NM_SETTING_BLUETOOTH_H
-#define NM_SETTING_BLUETOOTH_H
+#ifndef BM_SETTING_BLUETOOTH_H
+#define BM_SETTING_BLUETOOTH_H
 
 #include "bm-setting.h"
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SETTING_BLUETOOTH            (nm_setting_bluetooth_get_type ())
-#define NM_SETTING_BLUETOOTH(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTING_BLUETOOTH, NMSettingBluetooth))
-#define NM_SETTING_BLUETOOTH_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_SETTING_BLUETOOTH, NMSettingBluetoothClass))
-#define NM_IS_SETTING_BLUETOOTH(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SETTING_BLUETOOTH))
-#define NM_IS_SETTING_BLUETOOTH_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_SETTING_BLUETOOTH))
-#define NM_SETTING_BLUETOOTH_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SETTING_BLUETOOTH, NMSettingBluetoothClass))
+#define BM_TYPE_SETTING_BLUETOOTH            (bm_setting_bluetooth_get_type ())
+#define BM_SETTING_BLUETOOTH(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SETTING_BLUETOOTH, BMSettingBluetooth))
+#define BM_SETTING_BLUETOOTH_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_SETTING_BLUETOOTH, BMSettingBluetoothClass))
+#define BM_IS_SETTING_BLUETOOTH(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SETTING_BLUETOOTH))
+#define BM_IS_SETTING_BLUETOOTH_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_SETTING_BLUETOOTH))
+#define BM_SETTING_BLUETOOTH_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_SETTING_BLUETOOTH, BMSettingBluetoothClass))
 
-#define NM_SETTING_BLUETOOTH_SETTING_NAME "bluetooth"
+#define BM_SETTING_BLUETOOTH_SETTING_NAME "bluetooth"
 
 typedef enum
 {
-	NM_SETTING_BLUETOOTH_ERROR_UNKNOWN = 0,
-	NM_SETTING_BLUETOOTH_ERROR_INVALID_PROPERTY,
-	NM_SETTING_BLUETOOTH_ERROR_MISSING_PROPERTY,
-	NM_SETTING_BLUETOOTH_ERROR_TYPE_SETTING_NOT_FOUND,
-} NMSettingBluetoothError;
+	BM_SETTING_BLUETOOTH_ERROR_UNKNOWN = 0,
+	BM_SETTING_BLUETOOTH_ERROR_INVALID_PROPERTY,
+	BM_SETTING_BLUETOOTH_ERROR_MISSING_PROPERTY,
+	BM_SETTING_BLUETOOTH_ERROR_TYPE_SETTING_NOT_FOUND,
+} BMSettingBluetoothError;
 
-#define NM_TYPE_SETTING_BLUETOOTH_ERROR (nm_setting_bluetooth_error_get_type ()) 
-GType nm_setting_bluetooth_error_get_type (void);
+#define BM_TYPE_SETTING_BLUETOOTH_ERROR (bm_setting_bluetooth_error_get_type ()) 
+GType bm_setting_bluetooth_error_get_type (void);
 
-#define NM_SETTING_BLUETOOTH_ERROR nm_setting_bluetooth_error_quark ()
-GQuark nm_setting_bluetooth_error_quark (void);
+#define BM_SETTING_BLUETOOTH_ERROR bm_setting_bluetooth_error_quark ()
+GQuark bm_setting_bluetooth_error_quark (void);
 
-#define NM_SETTING_BLUETOOTH_BDADDR    "bdaddr"
-#define NM_SETTING_BLUETOOTH_TYPE      "type"
+#define BM_SETTING_BLUETOOTH_BDADDR    "bdaddr"
+#define BM_SETTING_BLUETOOTH_TYPE      "type"
 
-#define NM_SETTING_BLUETOOTH_TYPE_DUN  "dun"
-#define NM_SETTING_BLUETOOTH_TYPE_PANU "panu"
-
-typedef struct {
-	NMSetting parent;
-} NMSettingBluetooth;
+#define BM_SETTING_BLUETOOTH_TYPE_DUN  "dun"
+#define BM_SETTING_BLUETOOTH_TYPE_PANU "panu"
 
 typedef struct {
-	NMSettingClass parent;
+	BMSetting parent;
+} BMSettingBluetooth;
+
+typedef struct {
+	BMSettingClass parent;
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
 	void (*_reserved2) (void);
 	void (*_reserved3) (void);
 	void (*_reserved4) (void);
-} NMSettingBluetoothClass;
+} BMSettingBluetoothClass;
 
-GType nm_setting_bluetooth_get_type (void);
+GType bm_setting_bluetooth_get_type (void);
 
-NMSetting *       nm_setting_bluetooth_new                 (void);
-const GByteArray *nm_setting_bluetooth_get_bdaddr          (NMSettingBluetooth *setting);
-const char *      nm_setting_bluetooth_get_connection_type (NMSettingBluetooth *setting);
+BMSetting *       bm_setting_bluetooth_new                 (void);
+const GByteArray *bm_setting_bluetooth_get_bdaddr          (BMSettingBluetooth *setting);
+const char *      bm_setting_bluetooth_get_connection_type (BMSettingBluetooth *setting);
 
 G_END_DECLS
 
-#endif /* NM_SETTING_BLUETOOTH_H */
+#endif /* BM_SETTING_BLUETOOTH_H */

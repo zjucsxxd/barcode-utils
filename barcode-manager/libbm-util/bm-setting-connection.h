@@ -23,88 +23,88 @@
  * (C) Copyright 2007 - 2008 Novell, Inc.
  */
 
-#ifndef NM_SETTING_CONNECTION_H
-#define NM_SETTING_CONNECTION_H
+#ifndef BM_SETTING_CONNECTION_H
+#define BM_SETTING_CONNECTION_H
 
 #include "bm-setting.h"
 
 G_BEGIN_DECLS
 
-#define NM_TYPE_SETTING_CONNECTION            (nm_setting_connection_get_type ())
-#define NM_SETTING_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_SETTING_CONNECTION, NMSettingConnection))
-#define NM_SETTING_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_SETTING_CONNECTION, NMSettingConnectionClass))
-#define NM_IS_SETTING_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NM_TYPE_SETTING_CONNECTION))
-#define NM_IS_SETTING_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), NM_TYPE_SETTING_CONNECTION))
-#define NM_SETTING_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_SETTING_CONNECTION, NMSettingConnectionClass))
+#define BM_TYPE_SETTING_CONNECTION            (bm_setting_connection_get_type ())
+#define BM_SETTING_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SETTING_CONNECTION, BMSettingConnection))
+#define BM_SETTING_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_SETTING_CONNECTION, BMSettingConnectionClass))
+#define BM_IS_SETTING_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SETTING_CONNECTION))
+#define BM_IS_SETTING_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_SETTING_CONNECTION))
+#define BM_SETTING_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_SETTING_CONNECTION, BMSettingConnectionClass))
 
-#define NM_SETTING_CONNECTION_SETTING_NAME "connection"
+#define BM_SETTING_CONNECTION_SETTING_NAME "connection"
 
 /**
- * NMSettingConnectionError:
- * @NM_SETTING_CONNECTION_ERROR_UNKNOWN: unknown or unclassified error
- * @NM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY: the property's value is
+ * BMSettingConnectionError:
+ * @BM_SETTING_CONNECTION_ERROR_UNKNOWN: unknown or unclassified error
+ * @BM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY: the property's value is
  *   invalid
- * @NM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY: a required property is not
+ * @BM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY: a required property is not
  *   present
- * @NM_SETTING_CONNECTION_ERROR_TYPE_SETTING_NOT_FOUND: the #NMSetting object
+ * @BM_SETTING_CONNECTION_ERROR_TYPE_SETTING_NOT_FOUND: the #BMSetting object
  *   referenced by the setting name contained in the
- *   #NMSettingConnection:type property was not present in the #NMConnection
+ *   #BMSettingConnection:type property was not present in the #BMConnection
  *
  * Describes errors that may result from operations involving a
- * #NMSettingConnection.
+ * #BMSettingConnection.
  *
  **/
 typedef enum
 {
-	NM_SETTING_CONNECTION_ERROR_UNKNOWN = 0,
-	NM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
-	NM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
-	NM_SETTING_CONNECTION_ERROR_TYPE_SETTING_NOT_FOUND
-} NMSettingConnectionError;
+	BM_SETTING_CONNECTION_ERROR_UNKNOWN = 0,
+	BM_SETTING_CONNECTION_ERROR_INVALID_PROPERTY,
+	BM_SETTING_CONNECTION_ERROR_MISSING_PROPERTY,
+	BM_SETTING_CONNECTION_ERROR_TYPE_SETTING_NOT_FOUND
+} BMSettingConnectionError;
 
-#define NM_TYPE_SETTING_CONNECTION_ERROR (nm_setting_connection_error_get_type ()) 
-GType nm_setting_connection_error_get_type (void);
+#define BM_TYPE_SETTING_CONNECTION_ERROR (bm_setting_connection_error_get_type ()) 
+GType bm_setting_connection_error_get_type (void);
 
-#define NM_SETTING_CONNECTION_ERROR nm_setting_connection_error_quark ()
-GQuark nm_setting_connection_error_quark (void);
+#define BM_SETTING_CONNECTION_ERROR bm_setting_connection_error_quark ()
+GQuark bm_setting_connection_error_quark (void);
 
-#define NM_SETTING_CONNECTION_ID          "id"
-#define NM_SETTING_CONNECTION_UUID        "uuid"
-#define NM_SETTING_CONNECTION_TYPE        "type"
-#define NM_SETTING_CONNECTION_AUTOCONNECT "autoconnect"
-#define NM_SETTING_CONNECTION_TIMESTAMP   "timestamp"
-#define NM_SETTING_CONNECTION_READ_ONLY   "read-only"
+#define BM_SETTING_CONNECTION_ID          "id"
+#define BM_SETTING_CONNECTION_UUID        "uuid"
+#define BM_SETTING_CONNECTION_TYPE        "type"
+#define BM_SETTING_CONNECTION_AUTOCONNECT "autoconnect"
+#define BM_SETTING_CONNECTION_TIMESTAMP   "timestamp"
+#define BM_SETTING_CONNECTION_READ_ONLY   "read-only"
 
 /**
- * NMSettingConnection:
+ * BMSettingConnection:
  *
- * The NMSettingConnection struct contains only private data.
+ * The BMSettingConnection struct contains only private data.
  * It should only be accessed through the functions described below.
  */
 typedef struct {
-	NMSetting parent;
-} NMSettingConnection;
+	BMSetting parent;
+} BMSettingConnection;
 
 typedef struct {
-	NMSettingClass parent;
+	BMSettingClass parent;
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
 	void (*_reserved2) (void);
 	void (*_reserved3) (void);
 	void (*_reserved4) (void);
-} NMSettingConnectionClass;
+} BMSettingConnectionClass;
 
-GType nm_setting_connection_get_type (void);
+GType bm_setting_connection_get_type (void);
 
-NMSetting * nm_setting_connection_new                 (void);
-const char *nm_setting_connection_get_id              (NMSettingConnection *setting);
-const char *nm_setting_connection_get_uuid            (NMSettingConnection *setting);
-const char *nm_setting_connection_get_connection_type (NMSettingConnection *setting);
-gboolean    nm_setting_connection_get_autoconnect     (NMSettingConnection *setting);
-guint64     nm_setting_connection_get_timestamp       (NMSettingConnection *setting);
-gboolean    nm_setting_connection_get_read_only       (NMSettingConnection *setting);
+BMSetting * bm_setting_connection_new                 (void);
+const char *bm_setting_connection_get_id              (BMSettingConnection *setting);
+const char *bm_setting_connection_get_uuid            (BMSettingConnection *setting);
+const char *bm_setting_connection_get_connection_type (BMSettingConnection *setting);
+gboolean    bm_setting_connection_get_autoconnect     (BMSettingConnection *setting);
+guint64     bm_setting_connection_get_timestamp       (BMSettingConnection *setting);
+gboolean    bm_setting_connection_get_read_only       (BMSettingConnection *setting);
 
 G_END_DECLS
 
-#endif /* NM_SETTING_CONNECTION_H */
+#endif /* BM_SETTING_CONNECTION_H */

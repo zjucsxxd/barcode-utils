@@ -34,23 +34,23 @@
  * @short_description: Describes related configuration information
  * @include: bm-setting.h
  *
- * Each #NMSetting contains properties that describe configuration that applies
+ * Each #BMSetting contains properties that describe configuration that applies
  * to a specific network layer (like IPv4 or IPv6 configuration) or device type
  * (like Ethernet, or WiFi).  A collection of individual settings together
- * make up an #NMConnection. Each property is strongly typed and usually has
- * a number of allowed values.  See each #NMSetting subclass for a description
+ * make up an #BMConnection. Each property is strongly typed and usually has
+ * a number of allowed values.  See each #BMSetting subclass for a description
  * of properties and allowed values.
  */
 
 /**
- * nm_setting_error_quark:
+ * bm_setting_error_quark:
  *
- * Registers an error quark for #NMSetting if necessary.
+ * Registers an error quark for #BMSetting if necessary.
  *
- * Returns: the error quark used for NMSetting errors.
+ * Returns: the error quark used for BMSetting errors.
  **/
 GQuark
-nm_setting_error_quark (void)
+bm_setting_error_quark (void)
 {
 	static GQuark quark;
 
@@ -63,30 +63,30 @@ nm_setting_error_quark (void)
 #define ENUM_ENTRY(NAME, DESC) { NAME, "" #NAME "", DESC }
 
 GType
-nm_setting_error_get_type (void)
+bm_setting_error_get_type (void)
 {
 	static GType etype = 0;
 
 	if (etype == 0) {
 		static const GEnumValue values[] = {
-			ENUM_ENTRY (NM_SETTING_ERROR_UNKNOWN, "UnknownError"),
-			ENUM_ENTRY (NM_SETTING_ERROR_PROPERTY_NOT_FOUND, "PropertyNotFound"),
-			ENUM_ENTRY (NM_SETTING_ERROR_PROPERTY_NOT_SECRET, "PropertyNotSecret"),
-			ENUM_ENTRY (NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH, "PropertyTypeMismatch"),
+			ENUM_ENTRY (BM_SETTING_ERROR_UNKNOWN, "UnknownError"),
+			ENUM_ENTRY (BM_SETTING_ERROR_PROPERTY_NOT_FOUND, "PropertyNotFound"),
+			ENUM_ENTRY (BM_SETTING_ERROR_PROPERTY_NOT_SECRET, "PropertyNotSecret"),
+			ENUM_ENTRY (BM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH, "PropertyTypeMismatch"),
 			{ 0, 0, 0 }
 		};
-		etype = g_enum_register_static ("NMSettingError", values);
+		etype = g_enum_register_static ("BMSettingError", values);
 	}
 	return etype;
 }
 
-G_DEFINE_ABSTRACT_TYPE (NMSetting, nm_setting, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE (BMSetting, bm_setting, G_TYPE_OBJECT)
 
-#define NM_SETTING_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING, NMSettingPrivate))
+#define BM_SETTING_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_SETTING, BMSettingPrivate))
 
 typedef struct {
 	char *name;
-} NMSettingPrivate;
+} BMSettingPrivate;
 
 enum {
 	PROP_0,
@@ -105,24 +105,24 @@ destroy_gvalue (gpointer data)
 }
 
 /**
- * nm_setting_to_hash:
- * @setting: the #NMSetting
+ * bm_setting_to_hash:
+ * @setting: the #BMSetting
  *
- * Converts the #NMSetting into a #GHashTable mapping each setting property
+ * Converts the #BMSetting into a #GHashTable mapping each setting property
  * name to a GValue describing that property, suitable for marshalling over
  * D-Bus or serializing.  The mapping is string:GValue.
  * 
  * Returns: a new #GHashTable describing the setting's properties
  **/
 GHashTable *
-nm_setting_to_hash (NMSetting *setting)
+bm_setting_to_hash (BMSetting *setting)
 {
 	GHashTable *hash;
 	GParamSpec **property_specs;
 	guint n_property_specs;
 	guint i;
 
-	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
+	g_return_val_if_fail (BM_IS_SETTING (setting), NULL);
 
 	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
 	if (!property_specs) {
@@ -138,7 +138,7 @@ nm_setting_to_hash (NMSetting *setting)
 	for (i = 0; i < n_property_specs; i++) {
 		GParamSpec *prop_spec = property_specs[i];
 
-		if (prop_spec->flags & NM_SETTING_PARAM_SERIALIZE) {
+		if (prop_spec->flags & BM_SETTING_PARAM_SERIALIZE) {
 			GValue *value;
 
 			value = g_slice_new0 (GValue);
@@ -162,21 +162,21 @@ typedef struct {
 	GObjectClass *class;
 	guint n_params;
 	GParameter *params;
-} NMSettingFromHashInfo;
+} BMSettingFromHashInfo;
 
 static void
 one_property_cb (gpointer key, gpointer val, gpointer user_data)
 {
 	const char *prop_name = (char *) key;
 	GValue *src_value = (GValue *) val;
-	NMSettingFromHashInfo *info = (NMSettingFromHashInfo *) user_data;
+	BMSettingFromHashInfo *info = (BMSettingFromHashInfo *) user_data;
 	GValue *dst_value = &info->params[info->n_params].value;
 	GParamSpec *param_spec;
 
 	param_spec = g_object_class_find_property (info->class, prop_name);
-	if (!param_spec || !(param_spec->flags & NM_SETTING_PARAM_SERIALIZE)) {
+	if (!param_spec || !(param_spec->flags & BM_SETTING_PARAM_SERIALIZE)) {
 		/* Oh, we're so nice and only warn, maybe it should be a fatal error? */
-		nm_warning ("Ignoring invalid property '%s'", prop_name);
+		bm_warning ("Ignoring invalid property '%s'", prop_name);
 		return;
 	}
 
@@ -185,34 +185,34 @@ one_property_cb (gpointer key, gpointer val, gpointer user_data)
 		info->params[info->n_params].name = prop_name;
 		info->n_params++;
 	} else {
-		nm_warning ("Ignoring property '%s' with invalid type (%s)",
+		bm_warning ("Ignoring property '%s' with invalid type (%s)",
 				  prop_name, G_VALUE_TYPE_NAME (src_value));
 		g_value_unset (dst_value);
 	}
 }
 
 /**
- * nm_setting_new_from_hash:
- * @setting_type: the #NMSetting type which the hash contains properties for
+ * bm_setting_new_from_hash:
+ * @setting_type: the #BMSetting type which the hash contains properties for
  * @hash: the #GHashTable containing a string:GValue mapping of properties
  * that apply to the setting
  *
- * Creates a new #NMSetting object and populates that object with the properties
+ * Creates a new #BMSetting object and populates that object with the properties
  * contained in the hash table, using each hash key as the property to set,
  * and each hash value as the value to set that property to.  Setting properties
  * are strongly typed, thus the GValue type of the hash value must be correct.
- * See the documentation on each #NMSetting object subclass for the correct
+ * See the documentation on each #BMSetting object subclass for the correct
  * property names and value types.
  * 
- * Returns: a new #NMSetting object populated with the properties from the
+ * Returns: a new #BMSetting object populated with the properties from the
  * hash table, or NULL on failure
  **/
-NMSetting *
-nm_setting_new_from_hash (GType setting_type,
+BMSetting *
+bm_setting_new_from_hash (GType setting_type,
                           GHashTable *hash)
 {
-	NMSetting *setting;
-	NMSettingFromHashInfo info;
+	BMSetting *setting;
+	BMSettingFromHashInfo info;
 	int i;
 
 	g_return_val_if_fail (G_TYPE_IS_INSTANTIATABLE (setting_type), NULL);
@@ -224,7 +224,7 @@ nm_setting_new_from_hash (GType setting_type,
 
 	g_hash_table_foreach (hash, one_property_cb, &info);
 
-	setting = (NMSetting *) g_object_newv (setting_type, info.n_params, info.params);
+	setting = (BMSetting *) g_object_newv (setting_type, info.n_params, info.params);
 
 	for (i = 0; i < info.n_params; i++) {
 		GValue *v = &info.params[i].value;
@@ -238,7 +238,7 @@ nm_setting_new_from_hash (GType setting_type,
 }
 
 static void
-duplicate_setting (NMSetting *setting,
+duplicate_setting (BMSetting *setting,
                    const char *name,
                    const GValue *value,
                    GParamFlags flags,
@@ -249,50 +249,50 @@ duplicate_setting (NMSetting *setting,
 }
 
 /**
- * nm_setting_duplicate:
- * @setting: the #NMSetting to duplicate
+ * bm_setting_duplicate:
+ * @setting: the #BMSetting to duplicate
  *
- * Duplicates a #NMSetting.
+ * Duplicates a #BMSetting.
  *
- * Returns: a new #NMSetting containing the same properties and values as the
- * source #NMSetting
+ * Returns: a new #BMSetting containing the same properties and values as the
+ * source #BMSetting
  **/
-NMSetting *
-nm_setting_duplicate (NMSetting *setting)
+BMSetting *
+bm_setting_duplicate (BMSetting *setting)
 {
 	GObject *dup;
 
-	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
+	g_return_val_if_fail (BM_IS_SETTING (setting), NULL);
 
 	dup = g_object_new (G_OBJECT_TYPE (setting), NULL);
 
 	g_object_freeze_notify (dup);
-	nm_setting_enumerate_values (setting, duplicate_setting, dup);
+	bm_setting_enumerate_values (setting, duplicate_setting, dup);
 	g_object_thaw_notify (dup);
 
-	return NM_SETTING (dup);
+	return BM_SETTING (dup);
 }
 
 /**
- * nm_setting_get_name:
- * @setting: the #NMSetting
+ * bm_setting_get_name:
+ * @setting: the #BMSetting
  *
- * Returns the type name of the #NMSetting object
+ * Returns the type name of the #BMSetting object
  *
- * Returns: a string containing the type name of the #NMSetting object,
+ * Returns: a string containing the type name of the #BMSetting object,
  * like 'ppp' or 'wireless' or 'wired'.
  **/
 const char *
-nm_setting_get_name (NMSetting *setting)
+bm_setting_get_name (BMSetting *setting)
 {
-	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
+	g_return_val_if_fail (BM_IS_SETTING (setting), NULL);
 
-	return NM_SETTING_GET_PRIVATE (setting)->name;
+	return BM_SETTING_GET_PRIVATE (setting)->name;
 }
 
 /**
- * nm_setting_verify:
- * @setting: the #NMSetting to verify
+ * bm_setting_verify:
+ * @setting: the #BMSetting to verify
  * @all_settings: a #GSList of all settings in the connection from which @setting
  * came
  * @error: location to store error, or %NULL
@@ -305,65 +305,65 @@ nm_setting_get_name (NMSetting *setting)
  * Returns: %TRUE if the setting is valid, %FALSE if it is not
  **/
 gboolean
-nm_setting_verify (NMSetting *setting, GSList *all_settings, GError **error)
+bm_setting_verify (BMSetting *setting, GSList *all_settings, GError **error)
 {
-	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
+	g_return_val_if_fail (BM_IS_SETTING (setting), FALSE);
 	if (error)
 		g_return_val_if_fail (*error == NULL, FALSE);
 
-	if (NM_SETTING_GET_CLASS (setting)->verify)
-		return NM_SETTING_GET_CLASS (setting)->verify (setting, all_settings, error);
+	if (BM_SETTING_GET_CLASS (setting)->verify)
+		return BM_SETTING_GET_CLASS (setting)->verify (setting, all_settings, error);
 
 	return TRUE;
 }
 
 static inline gboolean
-should_compare_prop (NMSetting *setting,
+should_compare_prop (BMSetting *setting,
                      const char *prop_name,
-                     NMSettingCompareFlags comp_flags,
+                     BMSettingCompareFlags comp_flags,
                      GParamFlags prop_flags)
 {
 	/* Fuzzy compare ignores secrets and properties defined with the FUZZY_IGNORE flag */
-	if (   (comp_flags & NM_SETTING_COMPARE_FLAG_FUZZY)
-	    && (prop_flags & (NM_SETTING_PARAM_FUZZY_IGNORE | NM_SETTING_PARAM_SECRET)))
+	if (   (comp_flags & BM_SETTING_COMPARE_FLAG_FUZZY)
+	    && (prop_flags & (BM_SETTING_PARAM_FUZZY_IGNORE | BM_SETTING_PARAM_SECRET)))
 		return FALSE;
 
-	if (   (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS)
-	    && (prop_flags & NM_SETTING_PARAM_SECRET))
+	if (   (comp_flags & BM_SETTING_COMPARE_FLAG_IGNORE_SECRETS)
+	    && (prop_flags & BM_SETTING_PARAM_SECRET))
 		return FALSE;
 
-	if (   (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_ID)
-	    && NM_IS_SETTING_CONNECTION (setting)
-	    && !strcmp (prop_name, NM_SETTING_CONNECTION_ID))
+	if (   (comp_flags & BM_SETTING_COMPARE_FLAG_IGNORE_ID)
+	    && BM_IS_SETTING_CONNECTION (setting)
+	    && !strcmp (prop_name, BM_SETTING_CONNECTION_ID))
 		return FALSE;
 
 	return TRUE;
 }
 
 /**
- * nm_setting_compare:
- * @a: a #NMSetting
- * @b: a second #NMSetting to compare with the first
- * @flags: compare flags, e.g. %NM_SETTING_COMPARE_FLAG_EXACT
+ * bm_setting_compare:
+ * @a: a #BMSetting
+ * @b: a second #BMSetting to compare with the first
+ * @flags: compare flags, e.g. %BM_SETTING_COMPARE_FLAG_EXACT
  *
- * Compares two #NMSetting objects for similarity, with comparison behavior
- * modified by a set of flags.  See the documentation for #NMSettingCompareFlags
+ * Compares two #BMSetting objects for similarity, with comparison behavior
+ * modified by a set of flags.  See the documentation for #BMSettingCompareFlags
  * for a description of each flag's behavior.
  *
  * Returns: %TRUE if the comparison succeeds, %FALSE if it does not
  **/
 gboolean
-nm_setting_compare (NMSetting *a,
-                    NMSetting *b,
-                    NMSettingCompareFlags flags)
+bm_setting_compare (BMSetting *a,
+                    BMSetting *b,
+                    BMSettingCompareFlags flags)
 {
 	GParamSpec **property_specs;
 	guint n_property_specs;
 	gint different;
 	guint i;
 
-	g_return_val_if_fail (NM_IS_SETTING (a), FALSE);
-	g_return_val_if_fail (NM_IS_SETTING (b), FALSE);
+	g_return_val_if_fail (BM_IS_SETTING (a), FALSE);
+	g_return_val_if_fail (BM_IS_SETTING (b), FALSE);
 
 	/* First check that both have the same type */
 	if (G_OBJECT_TYPE (a) != G_OBJECT_TYPE (b))
@@ -400,59 +400,59 @@ nm_setting_compare (NMSetting *a,
 }
 
 /**
- * nm_setting_diff:
- * @a: a #NMSetting
- * @b: a second #NMSetting to compare with the first
- * @flags: compare flags, e.g. %NM_SETTING_COMPARE_FLAG_EXACT
+ * bm_setting_diff:
+ * @a: a #BMSetting
+ * @b: a second #BMSetting to compare with the first
+ * @flags: compare flags, e.g. %BM_SETTING_COMPARE_FLAG_EXACT
  * @invert_results: this parameter is used internally by libbm-util and should
- * be set to %FALSE.  If %TRUE inverts the meaning of the #NMSettingDiffResult.
+ * be set to %FALSE.  If %TRUE inverts the meaning of the #BMSettingDiffResult.
  * @results: (element-type utf8 guint32): if the settings differ, on return a
- * hash table mapping the differing keys to one or more #NMSettingDiffResult
+ * hash table mapping the differing keys to one or more #BMSettingDiffResult
  * values OR-ed together.  If the settings do not differ, any hash table passed
  * in is unmodified.  If no hash table is passed in, a new one is created.
  *
- * Compares two #NMSetting objects for similarity, with comparison behavior
- * modified by a set of flags.  See the documentation for #NMSettingCompareFlags
+ * Compares two #BMSetting objects for similarity, with comparison behavior
+ * modified by a set of flags.  See the documentation for #BMSettingCompareFlags
  * for a description of each flag's behavior.  If the settings differ, the keys
  * of each setting that differ from the other are added to @results, mapped to
- * one or more #NMSettingDiffResult values.
+ * one or more #BMSettingDiffResult values.
  *
  * Returns: %TRUE if the settings contain the same values, %FALSE if they do not
  **/
 gboolean
-nm_setting_diff (NMSetting *a,
-                 NMSetting *b,
-                 NMSettingCompareFlags flags,
+bm_setting_diff (BMSetting *a,
+                 BMSetting *b,
+                 BMSettingCompareFlags flags,
                  gboolean invert_results,
                  GHashTable **results)
 {
 	GParamSpec **property_specs;
 	guint n_property_specs;
 	guint i;
-	NMSettingDiffResult a_result = NM_SETTING_DIFF_RESULT_IN_A;
-	NMSettingDiffResult b_result = NM_SETTING_DIFF_RESULT_IN_B;
+	BMSettingDiffResult a_result = BM_SETTING_DIFF_RESULT_IN_A;
+	BMSettingDiffResult b_result = BM_SETTING_DIFF_RESULT_IN_B;
 	gboolean results_created = FALSE;
 
 	g_return_val_if_fail (results != NULL, FALSE);
 	g_return_val_if_fail (a != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SETTING (a), FALSE);
+	g_return_val_if_fail (BM_IS_SETTING (a), FALSE);
 	if (b) {
-		g_return_val_if_fail (NM_IS_SETTING (b), FALSE);
+		g_return_val_if_fail (BM_IS_SETTING (b), FALSE);
 		g_return_val_if_fail (G_OBJECT_TYPE (a) == G_OBJECT_TYPE (b), FALSE);
 	}
 
 	/* If the caller is calling this function in a pattern like this to get
 	 * complete diffs:
 	 *
-	 * nm_setting_diff (A, B, FALSE, &results);
-	 * nm_setting_diff (B, A, TRUE, &results);
+	 * bm_setting_diff (A, B, FALSE, &results);
+	 * bm_setting_diff (B, A, TRUE, &results);
 	 *
 	 * and wants us to invert the results so that the second invocation comes
 	 * out correctly, do that here.
 	 */
 	if (invert_results) {
-		a_result = NM_SETTING_DIFF_RESULT_IN_B;
-		b_result = NM_SETTING_DIFF_RESULT_IN_A;
+		a_result = BM_SETTING_DIFF_RESULT_IN_B;
+		b_result = BM_SETTING_DIFF_RESULT_IN_A;
 	}
 
 	if (*results == NULL) {
@@ -466,13 +466,13 @@ nm_setting_diff (NMSetting *a,
 	for (i = 0; i < n_property_specs; i++) {
 		GParamSpec *prop_spec = property_specs[i];
 		GValue a_value = { 0 }, b_value = { 0 };
-		NMSettingDiffResult r = NM_SETTING_DIFF_RESULT_UNKNOWN, tmp;
+		BMSettingDiffResult r = BM_SETTING_DIFF_RESULT_UNKNOWN, tmp;
 		gboolean different = TRUE;
 
 		/* Handle compare flags */
 		if (!should_compare_prop (a, prop_spec->name, flags, prop_spec->flags))
 			continue;
-		if (strcmp (prop_spec->name, NM_SETTING_NAME) == 0)
+		if (strcmp (prop_spec->name, BM_SETTING_NAME) == 0)
 			continue;
 
 		if (b) {
@@ -512,24 +512,24 @@ nm_setting_diff (NMSetting *a,
 }
 
 /**
- * nm_setting_enumerate_values:
- * @setting: the #NMSetting
+ * bm_setting_enumerate_values:
+ * @setting: the #BMSetting
  * @func: user-supplied function called for each property of the setting
  * @user_data: user data passed to @func at each invocation
  *
- * Iterates over each property of the #NMSetting object, calling the supplied
+ * Iterates over each property of the #BMSetting object, calling the supplied
  * user function for each property.
  **/
 void
-nm_setting_enumerate_values (NMSetting *setting,
-					    NMSettingValueIterFn func,
+bm_setting_enumerate_values (BMSetting *setting,
+					    BMSettingValueIterFn func,
 					    gpointer user_data)
 {
 	GParamSpec **property_specs;
 	guint n_property_specs;
 	int i;
 
-	g_return_if_fail (NM_IS_SETTING (setting));
+	g_return_if_fail (BM_IS_SETTING (setting));
 	g_return_if_fail (func != NULL);
 
 	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
@@ -547,21 +547,21 @@ nm_setting_enumerate_values (NMSetting *setting,
 }
 
 /**
- * nm_setting_clear_secrets:
- * @setting: the #NMSetting
+ * bm_setting_clear_secrets:
+ * @setting: the #BMSetting
  *
  * Resets and clears any secrets in the setting.  Secrets should be added to the
  * setting only when needed, and cleared immediately after use to prevent
  * leakage of information.
  **/
 void
-nm_setting_clear_secrets (NMSetting *setting)
+bm_setting_clear_secrets (BMSetting *setting)
 {
 	GParamSpec **property_specs;
 	guint n_property_specs;
 	guint i;
 
-	g_return_if_fail (NM_IS_SETTING (setting));
+	g_return_if_fail (BM_IS_SETTING (setting));
 
 	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
 
@@ -569,7 +569,7 @@ nm_setting_clear_secrets (NMSetting *setting)
 		GParamSpec *prop_spec = property_specs[i];
 		GValue value = { 0 };
 
-		if (prop_spec->flags & NM_SETTING_PARAM_SECRET) {
+		if (prop_spec->flags & BM_SETTING_PARAM_SECRET) {
 			g_value_init (&value, prop_spec->value_type);
 			g_param_value_set_default (prop_spec, &value);
 			g_object_set_property (G_OBJECT (setting), prop_spec->name, &value);
@@ -581,8 +581,8 @@ nm_setting_clear_secrets (NMSetting *setting)
 }
 
 /**
- * nm_setting_need_secrets:
- * @setting: the #NMSetting
+ * bm_setting_need_secrets:
+ * @setting: the #BMSetting
  *
  * Returns an array of property names for each secret which may be required
  * to make a successful connection.  The returned hints are only intended as a
@@ -590,25 +590,25 @@ nm_setting_clear_secrets (NMSetting *setting)
  * is no way to conclusively determine exactly which secrets are needed.
  *
  * Returns: a #GPtrArray containing the property names of secrets of the
- * #NMSetting which may be required; the caller owns the array
+ * #BMSetting which may be required; the caller owns the array
  * and must free the each array element with g_free(), as well as the array
  * itself with g_ptr_array_free()
  **/
 GPtrArray *
-nm_setting_need_secrets (NMSetting *setting)
+bm_setting_need_secrets (BMSetting *setting)
 {
 	GPtrArray *secrets = NULL;
 
-	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
+	g_return_val_if_fail (BM_IS_SETTING (setting), NULL);
 
-	if (NM_SETTING_GET_CLASS (setting)->need_secrets)
-		secrets = NM_SETTING_GET_CLASS (setting)->need_secrets (setting);
+	if (BM_SETTING_GET_CLASS (setting)->need_secrets)
+		secrets = BM_SETTING_GET_CLASS (setting)->need_secrets (setting);
 
 	return secrets;
 }
 
 static gboolean
-update_one_secret (NMSetting *setting, const char *key, GValue *value, GError **error)
+update_one_secret (BMSetting *setting, const char *key, GValue *value, GError **error)
 {
 	GParamSpec *prop_spec;
 	GValue transformed_value = { 0 };
@@ -617,14 +617,14 @@ update_one_secret (NMSetting *setting, const char *key, GValue *value, GError **
 	prop_spec = g_object_class_find_property (G_OBJECT_GET_CLASS (setting), key);
 	if (!prop_spec) {
 		g_set_error (error,
-		             NM_SETTING_ERROR,
-		             NM_SETTING_ERROR_PROPERTY_NOT_FOUND,
+		             BM_SETTING_ERROR,
+		             BM_SETTING_ERROR_PROPERTY_NOT_FOUND,
 		             "%s", key);
 		return FALSE;
 	}
 
 	/* Silently ignore non-secrets */
-	if (!(prop_spec->flags & NM_SETTING_PARAM_SECRET))
+	if (!(prop_spec->flags & BM_SETTING_PARAM_SECRET))
 		return TRUE;
 
 	if (g_value_type_compatible (G_VALUE_TYPE (value), G_PARAM_SPEC_VALUE_TYPE (prop_spec))) {
@@ -636,16 +636,16 @@ update_one_secret (NMSetting *setting, const char *key, GValue *value, GError **
 		success = TRUE;
 	} else {
 		g_set_error (error,
-		             NM_SETTING_ERROR,
-		             NM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH,
+		             BM_SETTING_ERROR,
+		             BM_SETTING_ERROR_PROPERTY_TYPE_MISMATCH,
 		             "%s", key);
 	}
 	return success;
 }
 
 /**
- * nm_setting_update_secrets:
- * @setting: the #NMSetting
+ * bm_setting_update_secrets:
+ * @setting: the #BMSetting
  * @secrets: a #GHashTable mapping string:#GValue of setting property names and
  * secrets
  * @error: location to store error, or %NULL
@@ -657,14 +657,14 @@ update_one_secret (NMSetting *setting, const char *key, GValue *value, GError **
  * is valid, %FALSE on failure or if the setting was never added to the connection
  **/
 gboolean
-nm_setting_update_secrets (NMSetting *setting, GHashTable *secrets, GError **error)
+bm_setting_update_secrets (BMSetting *setting, GHashTable *secrets, GError **error)
 {
 	GHashTableIter iter;
 	gpointer key, data;
 	GError *tmp_error = NULL;
 
 	g_return_val_if_fail (setting != NULL, FALSE);
-	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
+	g_return_val_if_fail (BM_IS_SETTING (setting), FALSE);
 	g_return_val_if_fail (secrets != NULL, FALSE);
 	if (error)
 		g_return_val_if_fail (*error == NULL, FALSE);
@@ -674,7 +674,7 @@ nm_setting_update_secrets (NMSetting *setting, GHashTable *secrets, GError **err
 		const char *secret_key = (const char *) key;
 		GValue *secret_value = (GValue *) data;
 
-		NM_SETTING_GET_CLASS (setting)->update_one_secret (setting, secret_key, secret_value, &tmp_error);
+		BM_SETTING_GET_CLASS (setting)->update_one_secret (setting, secret_key, secret_value, &tmp_error);
 		if (tmp_error) {
 			g_propagate_error (error, tmp_error);
 			return FALSE;
@@ -685,8 +685,8 @@ nm_setting_update_secrets (NMSetting *setting, GHashTable *secrets, GError **err
 }
 
 /**
- * nm_setting_to_string:
- * @setting: the #NMSetting
+ * bm_setting_to_string:
+ * @setting: the #BMSetting
  *
  * Convert the setting into a string.  For debugging purposes ONLY, should NOT
  * be used for serialization of the setting, or machine-parsed in any way. The
@@ -697,20 +697,20 @@ nm_setting_update_secrets (NMSetting *setting, GHashTable *secrets, GError **err
  * free with g_free()
  **/
 char *
-nm_setting_to_string (NMSetting *setting)
+bm_setting_to_string (BMSetting *setting)
 {
 	GString *string;
 	GParamSpec **property_specs;
 	guint n_property_specs;
 	guint i;
 
-	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
+	g_return_val_if_fail (BM_IS_SETTING (setting), NULL);
 
 	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
 	if (!property_specs)
 		return NULL;
 
-	string = g_string_new (nm_setting_get_name (setting));
+	string = g_string_new (bm_setting_get_name (setting));
 	g_string_append_c (string, '\n');
 
 	for (i = 0; i < n_property_specs; i++) {
@@ -727,7 +727,7 @@ nm_setting_to_string (NMSetting *setting)
 		g_string_append_printf (string, "\t%s : %s", prop_spec->name, value_str);
 		g_free (value_str);
 
-		is_serializable = prop_spec->flags & NM_SETTING_PARAM_SERIALIZE;
+		is_serializable = prop_spec->flags & BM_SETTING_PARAM_SERIALIZE;
 		is_default = g_param_value_defaults (prop_spec, &value);
 
 		g_value_unset (&value);
@@ -755,7 +755,7 @@ nm_setting_to_string (NMSetting *setting)
 /*****************************************************************************/
 
 static void
-nm_setting_init (NMSetting *setting)
+bm_setting_init (BMSetting *setting)
 {
 }
 
@@ -765,17 +765,17 @@ constructor (GType type,
 		   GObjectConstructParam *construct_params)
 {
 	GObject *object;
-	NMSettingPrivate *priv;
+	BMSettingPrivate *priv;
 
-	object = G_OBJECT_CLASS (nm_setting_parent_class)->constructor (type,
+	object = G_OBJECT_CLASS (bm_setting_parent_class)->constructor (type,
 													    n_construct_params,
 													    construct_params);
 	if (!object)
 		return NULL;
 
-	priv = NM_SETTING_GET_PRIVATE (object);
+	priv = BM_SETTING_GET_PRIVATE (object);
 	if (!priv->name) {
-		nm_warning ("Setting name is not set.");
+		bm_warning ("Setting name is not set.");
 		g_object_unref (object);
 		object = NULL;
 	}
@@ -786,18 +786,18 @@ constructor (GType type,
 static void
 finalize (GObject *object)
 {
-	NMSettingPrivate *priv = NM_SETTING_GET_PRIVATE (object);
+	BMSettingPrivate *priv = BM_SETTING_GET_PRIVATE (object);
 
 	g_free (priv->name);
 
-	G_OBJECT_CLASS (nm_setting_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_setting_parent_class)->finalize (object);
 }
 
 static void
 set_property (GObject *object, guint prop_id,
 		    const GValue *value, GParamSpec *pspec)
 {
-	NMSettingPrivate *priv = NM_SETTING_GET_PRIVATE (object);
+	BMSettingPrivate *priv = BM_SETTING_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_NAME:
@@ -814,11 +814,11 @@ static void
 get_property (GObject *object, guint prop_id,
 		    GValue *value, GParamSpec *pspec)
 {
-	NMSetting *setting = NM_SETTING (object);
+	BMSetting *setting = BM_SETTING (object);
 
 	switch (prop_id) {
 	case PROP_NAME:
-		g_value_set_string (value, nm_setting_get_name (setting));
+		g_value_set_string (value, bm_setting_get_name (setting));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -827,11 +827,11 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_setting_class_init (NMSettingClass *setting_class)
+bm_setting_class_init (BMSettingClass *setting_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
 
-	g_type_class_add_private (setting_class, sizeof (NMSettingPrivate));
+	g_type_class_add_private (setting_class, sizeof (BMSettingPrivate));
 
 	/* virtual methods */
 	object_class->constructor  = constructor;
@@ -844,7 +844,7 @@ nm_setting_class_init (NMSettingClass *setting_class)
 	/* Properties */
 
 	/**
-	 * NMSetting:name:
+	 * BMSetting:name:
 	 *
 	 * The setting's name, which uniquely identifies the setting within the
 	 * connection.  Each setting type has a name unique to that type, for
@@ -852,7 +852,7 @@ nm_setting_class_init (NMSettingClass *setting_class)
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NAME,
-		 g_param_spec_string (NM_SETTING_NAME,
+		 g_param_spec_string (BM_SETTING_NAME,
 						  "Name",
 						  "The setting's name; these names are defined by the "
 						  "specification and cannot be changed after the object "

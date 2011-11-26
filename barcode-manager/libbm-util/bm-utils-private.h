@@ -23,15 +23,15 @@
  * (C) Copyright 2005 - 2008 Red Hat, Inc.
  */
 
-#ifndef __NM_UTILS_PRIVATE_H__
-#define __NM_UTILS_PRIVATE_H__
+#ifndef __BM_UTILS_PRIVATE_H__
+#define __BM_UTILS_PRIVATE_H__
 
-gboolean    _nm_utils_string_in_list   (const char *str,
+gboolean    _bm_utils_string_in_list   (const char *str,
                                         const char **valid_strings);
 
-gboolean    _nm_utils_string_slist_validate (GSList *list,
+gboolean    _bm_utils_string_slist_validate (GSList *list,
                                              const char **valid_values);
 
-void        _nm_utils_register_value_transformations (void);
+void        _bm_utils_register_value_transformations (void);
 
 #endif

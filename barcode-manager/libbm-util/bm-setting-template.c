@@ -29,7 +29,7 @@
 
 #include "bm-setting-template.h"
 
-G_DEFINE_TYPE (NMSettingTemplate, nm_setting_template, NM_TYPE_SETTING)
+G_DEFINE_TYPE (BMSettingTemplate, bm_setting_template, BM_TYPE_SETTING)
 
 enum {
 	PROP_0,
@@ -37,37 +37,37 @@ enum {
 	LAST_PROP
 };
 
-NMSetting *
-nm_setting_template_new (void)
+BMSetting *
+bm_setting_template_new (void)
 {
-	return (NMSetting *) g_object_new (NM_TYPE_SETTING_TEMPLATE, NULL);
+	return (BMSetting *) g_object_new (BM_TYPE_SETTING_TEMPLATE, NULL);
 }
 
 static gboolean
-verify (NMSetting *setting, GSList *all_settings)
+verify (BMSetting *setting, GSList *all_settings)
 {
-	NMSettingTemplate *self = NM_SETTING_TEMPLATE (setting);
+	BMSettingTemplate *self = BM_SETTING_TEMPLATE (setting);
 }
 
 static void
-nm_setting_template_init (NMSettingTemplate *setting)
+bm_setting_template_init (BMSettingTemplate *setting)
 {
-	g_object_set (setting, NM_SETTING_NAME, NM_SETTING_TEMPLATE_SETTING_NAME, NULL);
+	g_object_set (setting, BM_SETTING_NAME, BM_SETTING_TEMPLATE_SETTING_NAME, NULL);
 }
 
 static void
 finalize (GObject *object)
 {
-	NMSettingTemplate *self = NM_SETTING_TEMPLATE (object);
+	BMSettingTemplate *self = BM_SETTING_TEMPLATE (object);
 
-	G_OBJECT_CLASS (nm_setting_template_parent_class)->finalize (object);
+	G_OBJECT_CLASS (bm_setting_template_parent_class)->finalize (object);
 }
 
 static void
 set_property (GObject *object, guint prop_id,
 		    const GValue *value, GParamSpec *pspec)
 {
-	NMSettingTemplate *setting = NM_SETTING_TEMPLATE (object);
+	BMSettingTemplate *setting = BM_SETTING_TEMPLATE (object);
 
 	switch (prop_id) {
 	default:
@@ -80,7 +80,7 @@ static void
 get_property (GObject *object, guint prop_id,
 		    GValue *value, GParamSpec *pspec)
 {
-	NMSettingTemplate *setting = NM_SETTING_TEMPLATE (object);
+	BMSettingTemplate *setting = BM_SETTING_TEMPLATE (object);
 
 	switch (prop_id) {
 	default:
@@ -90,10 +90,10 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_setting_template_class_init (NMSettingTemplateClass *setting_class)
+bm_setting_template_class_init (BMSettingTemplateClass *setting_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
-	NMSettingClass *parent_class = NM_SETTING_CLASS (setting_class);
+	BMSettingClass *parent_class = BM_SETTING_CLASS (setting_class);
 
 	/* virtual methods */
 	object_class->set_property = set_property;
