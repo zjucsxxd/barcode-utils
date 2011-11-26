@@ -17,7 +17,7 @@ EXTRA_DIST = bm-marshal.list
 CLEANFILES = $(BUILT_SOURCES)
 
 bm-marshal.h: bm-marshal.list
-	$(GLIB_GENMARSHAL) $< --prefix=_nm_marshal --header > $@
+	$(GLIB_GENMARSHAL) $< --prefix=_bm_marshal --header > $@
 
 bm-marshal.c: bm-marshal.list
 	$(GLIB_GENMARSHAL) $< --prefix=_nm_marshal --body > $@
