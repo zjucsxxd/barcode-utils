@@ -24,6 +24,10 @@ debian/stamp-copyright-check
 TAGS
 
 # autoconf stuff
+m4
+mkinstalldirs
+depcomp
+config.h.in
 autom4te.cache
 Makefile
 Makefile.in

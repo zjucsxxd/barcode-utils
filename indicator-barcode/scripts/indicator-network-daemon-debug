@@ -1,0 +1,74 @@
+#!/bin/sh
+
+usage() {
+    echo "Usage: indicator-barcode-daemon-debug start|stop"
+    exit 1
+}
+
+run() {
+    cmd=$1; shift
+    args=$@
+
+    if [ -x $cmd ]; then
+	$cmd $args
+    fi
+}
+
+start_all() {
+    stop --quiet barman
+    stop --quiet ofono
+    killall -q wpa_supplicant
+
+    sleep 3
+
+    # just to be sure
+    killall -q barmand ofonod wpa_supplicant
+
+    run /sbin/wpa_supplicant -B -u -s -ddd
+
+    export OFONO_AT_DEBUG=1
+    run /usr/sbin/ofonod -d
+
+    export BARMAN_WEB_DEBUG=1
+    export BARMAN_SUPPLICANT_DEBUG=1
+    export BARMAN_DHCP_DEBUG=1
+    export BARMAN_RESOLV_DEBUG=1
+    run /usr/sbin/barmand -d
+}
+
+stop_all() {
+    killall -q barmand ofonod wpa_supplicant
+
+    sleep 3
+
+    # just to be sure
+    killall -q barmand ofonod wpa_supplicant
+
+    start --quiet ofono
+    start --quiet barman
+
+    # wpasupplicant is started with dbus activation
+}
+
+if [ "$#" != 1 ]; then
+    usage
+fi
+
+if [ `id -u` != 0 ]; then
+    echo "Must be root."
+    exit 3
+fi
+
+case $1 in
+    start)
+	start_all
+	;;
+    stop)
+	stop_all
+	;;
+    *)
+	echo "Invalid commmand"
+	usage
+	exit 2
+	;;
+esac

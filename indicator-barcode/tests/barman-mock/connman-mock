@@ -1,0 +1,480 @@
+#!/usr/bin/python
+#
+# barman-mock - barman dbus mock
+#
+# Copyright 2010 Canonical Ltd.
+#
+# Authors:
+# Kalle Valo <kalle.valo@canonical.com>
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3, as published
+# by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranties of
+# MERCHANTABILITY, SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Description:
+# This is a mock object faking being barman running on dbus
+# system bus and can be used to test UI. It fakes all the most important
+# methods, properties and signals used by indicator-barcode.
+#
+# Usage:
+# sudo stop barman
+# sudo ./barman-mock
+#
+
+import dbus, dbus.service
+import gobject
+from dbus.mainloop.glib import DBusGMainLoop
+
+def create_service(typeid):
+      service_classes = [
+            EthernetService,
+            WifiService,
+            WpaService,
+            InprogressService,
+            DelayedInprogressService,
+            SlowService
+            ]
+
+ 
+      for c in service_classes:
+            if typeid == c.get_service_id():
+                  return c
+
+      return None
+
+class Service(dbus.service.Object):
+      service_id = "service"
+      path = ""
+
+      def set_property(self, property, value):
+            self.properties[property] = value
+            self.PropertyChanged(property, value)
+
+      def set_state(self, state):
+            self.set_property("State", state)
+            self.manager.update_services()
+
+      def get_state(self):
+            self.properties["State"]
+
+      def get_path(self):
+            return self.path
+
+      @classmethod
+      def get_service_id(cls):
+            return cls.service_id
+
+      def __init__(self, bus_name, path, manager):
+            self.path = path
+            self.properties = {}
+            self.manager = manager
+
+            # general properties
+            self.properties["State"] = "idle"
+            self.properties["Error"] = ""
+            self.properties["Name"] = self.path
+            self.properties["LoginRequired"] = False
+            self.properties["Favorite"] = False
+            self.properties["Immutable"] = False
+            self.properties["AutoConnect"] = False
+
+            self.properties["Nameservers"] = [ "127.0.0.1" ]
+            self.properties["Nameservers.Configuration"] = [ "127.0.0.1" ]
+            self.properties["Domains"] = [ "example.com" ]
+            self.properties["Domains.Configuration"] = [ "example.com" ]
+            self.properties["IPv4"] =  dbus.Dictionary({
+                  "Method" : "dhcp",
+                  "Address" : "192.168.1.2",
+                  "Netmask" : "255.255.255.0",
+                  "Gateway" : "192.168.1.1"  },
+                                                       signature='sv')
+            self.properties["IPv4.Configuration"] = dbus.Dictionary(
+                  { "Method" : "dhcp" }, signature='sv')
+            self.properties["IPv6"] = dbus.Dictionary({ "Method" : "off" },
+                                                      signature='sv')
+            self.properties["IPv6.Configuration"] = dbus.Dictionary(
+                  { "Method" : "off" }, signature='sv')
+            self.properties["Proxy"] = { "Method" : "direct" }
+            self.properties["Provider"] = dbus.Dictionary(signature='sv')
+            self.properties["Ethernet"] =  {
+                  "Interface" : "wlan0",
+                  "Method" : "auto",
+                  "Address" : "00:11:22:33:44:55" }
+
+            dbus.service.Object.__init__(self, bus_name, self.path)
+
+      @dbus.service.method("net.barman.Service", in_signature="sv")
+      def SetProperty(self, prop, value):
+            rw = [ "Passphrase", "AutoConnect", "APN",
+                   "Nameservers.Configuration", "Domains.Configuration",
+                   "IPv4.Configuration", "IPv6.Configuration",
+                   "Proxy.Configuration" ]
+
+            if prop not in rw:
+                  raise dbus.DBusException("Can't change property: " + prop)
+
+            self.set_property(prop, value)
+
+            if prop == "Passphrase" and len(value) > 0 \
+                      and self.properties["PassphraseRequired"] == True:
+                  self.set_property("PassphraseRequired", False)
+
+      @dbus.service.method("net.barman.Service", out_signature="a{sv}")
+      def GetProperties(self):
+            return self.properties
+
+      def timeout_cb(self):
+            state = self.get_state()
+            if state == "association":
+                  self.set_state("configuration")
+                  gobject.timeout_add(4000, self.timeout_cb)
+            elif state == "configuration":
+                  self.set_state("ready")
+                  gobject.timeout_add(1000, self.timeout_cb)
+            else:
+                  self.set_state("online")
+
+      @dbus.service.method("net.barman.Service")
+      def Connect(self):
+            self.set_state("association")
+            gobject.timeout_add(4000, self.timeout_cb)
+
+      @dbus.service.method("net.barman.Service")
+      def Disconnect(self):
+            self.set_state("idle")
+
+      @dbus.service.signal("net.barman.Service", signature="sv")
+      def PropertyChanged(self, prop, val):
+            pass
+
+class EthernetService(Service):
+      service_id = "ethernet"
+
+      def __init__(self, bus_name, path, manager):
+            super(EthernetService, self).__init__(bus_name, path, manager)
+
+            self.properties["Type"] = "ethernet"
+
+class WifiService(Service):
+      service_id = "wifi"
+
+      def __init__(self, bus_name, path, manager):
+            super(WifiService, self).__init__(bus_name, path, manager)
+
+            self.properties["Type"] = "wifi"
+            self.properties["Mode"] = "managed"
+            self.properties["Security"] = [ "none" ]
+            self.properties["Strength"] =  dbus.Byte(50)
+
+class WpaService(WifiService):
+      service_id = "wpa"
+
+      def __init__(self, bus_name, path, manager):
+            super(WpaService, self).__init__(bus_name, path, manager)
+
+            self.properties["Security"] = [ "wpa" ]
+            self.properties["PassphraseRequired"] = True
+            self.properties["Passphrase"] = ""
+         
+
+      @dbus.service.method("net.barman.Service")
+      def Connect(self):
+            if self.properties["PassphraseRequired"]:
+                  self.manager.request_passphrase(self)
+            else:
+                  self.set_state("ready")
+
+class InprogressException(dbus.DBusException):
+    _dbus_error_name = 'net.barman.Error.InProgress'
+
+class InprogressService(WifiService):
+      service_id = "inprogress"
+
+      def __init__(self, bus_name, path, manager):
+            super(InprogressService, self).__init__(bus_name, path, manager)
+
+      @dbus.service.method("net.barman.Service")
+      def Connect(self):
+            raise InprogressException("In progress")
+
+class DelayedInprogressService(WifiService):
+      service_id = "delayed_inprogress"
+
+      def __init__(self, bus_name, path, manager):
+            super(DelayedInprogressService, self).__init__(bus_name, path,
+                                                           manager)
+
+      def timeout_cb(self, callback):
+            self.set_state("idle")
+            callback(InprogressException("In progress"))
+
+      @dbus.service.method("net.barman.Service",
+                           async_callbacks=("return_cb", "error_cb"))
+      def Connect(self, return_cb, error_cb):
+            self.set_state("association")
+            gobject.timeout_add(4000, self.timeout_cb, error_cb)
+
+class SlowService(WifiService):
+      service_id = "slow"
+
+      def __init__(self, bus_name, path, manager):
+            super(SlowService, self).__init__(bus_name, path, manager)
+
+      def timeout_cb(self, return_cb):
+            self.set_state("configuration")
+            self.set_state("ready")
+            self.manager.update_services()
+            return_cb()
+
+      @dbus.service.method("net.barman.Service",
+                           async_callbacks=("return_cb", "error_cb"))
+      def Connect(self, return_cb, error_cb):
+            self.set_state("association")
+            gobject.timeout_add(70000, self.timeout_cb, return_cb)
+
+class ConnManManager(dbus.service.Object):
+      __dbus_object_path__ = "/"
+      services = {}
+      agent_sender = ""
+      agent_path = ""
+
+      def set_property(self, prop, val):
+            self.properties[prop] = val
+            self.PropertyChanged(prop, val)
+
+      def update_services(self):
+            services = dbus.Array(signature="o")
+            unsorted = self.services.values()
+
+            # connected services first in the list
+            for s in unsorted:
+                  tech = s.properties["Type"]
+
+                  if tech not in self.properties["EnabledTechnologies"]:
+                        continue
+
+                  if s.properties["State"] not in ["ready", "online"]:
+                        continue
+
+                  services.append(dbus.ObjectPath(s.path))
+                  unsorted.remove(s)
+
+            for s in unsorted:
+                  tech = s.properties["Type"]
+
+                  if tech not in self.properties["EnabledTechnologies"]:
+                        continue
+
+                  services.append(dbus.ObjectPath(s.path))
+
+            self.set_property("Services", services)
+
+      def request_passphrase_error(self, error):
+            print "request passphrase call failed", str(error)
+
+      def request_passphrase_reply(self, result):
+            if "Passphrase" not in result:
+                  return
+
+            service = self.agent_service
+            service.set_property("Passphrase", result["Passphrase"])
+            service.set_property("PassphraseRequired", False)
+            service.Connect()
+
+      def request_passphrase(self, service):
+            bus = dbus.SystemBus()
+
+            if len(self.agent_sender) == 0 or len(self.agent_path) == 0:
+                  return
+
+            proxy = bus.get_object(self.agent_sender, self.agent_path)
+            self.agent_service = service
+
+            args = {}
+            args["Requirement"] = "Mandatory"
+            args["Type"] = "wpa"
+
+            fields = {}
+            fields["Passphrase"] = args
+
+            proxy.RequestInput(service.get_path(), fields,
+                               reply_handler=self.request_passphrase_reply,
+                               error_handler=self.request_passphrase_error,
+                               dbus_interface='net.barman.Agent')
+
+            raise dbus.DBusException("Add a proper expection here")
+
+      def add_service(self, service):
+            self.services[service.path] = service
+            self.update_services()
+
+      def remove_service(self, path):
+            del self.services[path]
+            self.update_services()
+
+      def create_service_path(self, prefix):
+            self.service_id = self.service_id + 1
+            return "/" + prefix + "_" + str(self.service_id)
+
+      def __init__(self):
+            self.bus = dbus.SystemBus()
+            self.bus_name = dbus.service.BusName("net.barman",
+                                                 bus=self.bus)
+            self.service_id = 0
+
+            self.properties = dbus.Dictionary(signature="sv")
+
+            self.properties["State"] = "offline"
+
+            self.properties["AvailableTechnologies"] = [ "wifi", "ethernet" ]
+            self.properties["EnabledTechnologies"] = dbus.Array(self.properties["AvailableTechnologies"], signature="s")
+            self.properties["ConnectedTechnologies"] = dbus.Array(signature="s")
+            self.properties["DefaultTechnology"] = ""
+
+            self.properties["OfflineMode"] = False
+            self.properties["Tethering"] = False
+            self.properties["ActiveProfile"] = "default"
+            self.properties["Profiles"] = [ dbus.ObjectPath("/fixme") ]
+            self.properties["Technologies"] = [ dbus.ObjectPath("/fixme") ]
+
+            self.properties["Services"] = dbus.Array(signature="o")
+
+            dbus.service.Object.__init__(self, self.bus_name,
+                                         self.__dbus_object_path__)
+
+      @dbus.service.method("net.barman.Manager", out_signature="a{sv}")
+      def GetProperties(self):
+            return self.properties
+
+      @dbus.service.method("net.barman.Manager", in_signature="sv")
+      def SetProperty(self, prop, val):
+            # FIXME: check that property has rw access
+            self.set_property(prop, val)
+            
+      @dbus.service.method("net.barman.Manager", in_signature="s")
+      def RequestScan(self, type):
+            pass
+
+      @dbus.service.method("net.barman.Manager", in_signature="s")
+      def EnableTechnology(self, tech):
+            if tech not in self.properties["AvailableTechnologies"]:
+                  raise dbus.DBusException()
+
+            enabled = self.properties["EnabledTechnologies"]
+
+            if tech in enabled:
+                  # already enabled
+                  return
+
+            enabled.append(tech)
+            self.set_property("EnabledTechnologies", enabled)
+            self.update_services()
+
+      @dbus.service.method("net.barman.Manager", in_signature="s")
+      def DisableTechnology(self, tech):
+            if tech not in self.properties["AvailableTechnologies"]:
+                  raise dbus.DBusException()
+
+            enabled = self.properties["EnabledTechnologies"]
+            
+            if tech not in enabled:
+                  # already disabled
+                  return
+
+            enabled.remove(tech)
+            self.set_property("EnabledTechnologies", enabled)
+            self.update_services()
+
+      @dbus.service.method("net.barman.Manager", in_signature="o",
+                           sender_keyword='sender')
+      def RegisterAgent(self, path, sender):
+            print "RegisterAgent(%s, %s)" % (path, sender)
+            self.agent_sender = sender
+            self.agent_path = path
+
+      @dbus.service.method("net.barman.Manager",
+                           out_signature="a(oa{sv})")
+      def GetServices(self):
+            result = []
+            for path in self.services.keys():
+                  result.append((path, self.services[path].properties))
+
+            return result
+
+      @dbus.service.method("net.barman.Manager", in_signature="a{sv}",
+                           out_signature="o")
+      def ConnectService(self, properties):
+            if "Type" not in properties or properties["Type"] != "wifi":
+                  raise dbus.DBusException("Wrong type")
+            elif "Mode" not in properties or properties["Mode"] != "managed":
+                  raise dbus.DBusException("Wrong mode")
+            elif "Security" not in properties or properties["Security"] != "none":
+                  raise dbus.DBusException("Wrong security")
+            elif "SSID" not in properties or properties["SSID"] != "hiddenssid":
+                  raise dbus.DBusException("Wrong SSID")
+
+            path = self.CreateService("wifi")
+            print "created hidden network", path
+
+            if path not in self.services:
+                  raise dbus.DBusException("Service not found")
+
+            service = self.services[path]
+            service.Connect()
+
+            return path
+
+      @dbus.service.method("net.barman.Manager", in_signature="o")
+      def UnregisterAgent(self, path):
+            None
+
+      @dbus.service.signal("net.barman.Manager", signature="sv")
+      def PropertyChanged(self, prop, val):
+            pass
+
+      @dbus.service.method("com.canonical.barman.mock.Manager",
+                           in_signature="s", out_signature="o")
+      def CreateService(self, servicetype):
+            service_class = create_service(servicetype)
+
+            if service_class == None:
+                  print "Failed to find a class for '%s'" % servicetype
+                  return None
+
+            path = self.create_service_path(service_class.get_service_id())
+            service = service_class(self.bus_name, path, self)
+            self.add_service(service)
+            return service.get_path()
+
+      @dbus.service.method("com.canonical.barman.mock.Manager",
+                           in_signature="o", out_signature="")
+      def RemoveService(self, path):
+            self.remove_service(path)
+
+def main():
+      DBusGMainLoop(set_as_default=True)
+      loop = gobject.MainLoop()
+
+      manager = ConnManManager()
+      manager.CreateService("ethernet")
+      manager.CreateService("wifi")
+      manager.CreateService("wifi")
+      manager.CreateService("inprogress")
+      manager.CreateService("delayed_inprogress")
+      manager.CreateService("slow")
+      manager.CreateService("wpa")
+
+      loop.run()
+
+if __name__ == "__main__":
+    main()
+      
+

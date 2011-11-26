@@ -132,11 +132,11 @@ AC_CHECK_LIB([readline], [readline], [
 )
 AC_SUBST(READLINE_LIBS)
 
-CONNMAN_CFLAGS="-I\$(top_srcdir)/src/libconnman"
-CONNMAN_LIBS="\$(top_builddir)/src/libconnman/libconnman.la"
+BARMAN_CFLAGS="-I\$(top_srcdir)/src/libbarman"
+BARMAN_LIBS="\$(top_builddir)/src/libbarman/libbarman.la"
 
-AC_SUBST(CONNMAN_CFLAGS)
-AC_SUBST(CONNMAN_LIBS)
+AC_SUBST(BARMAN_CFLAGS)
+AC_SUBST(BARMAN_LIBS)
 
 ###########################
 # Internationalization
@@ -158,7 +158,7 @@ Makefile
 src/Makefile
 src/indicator/Makefile
 src/common/Makefile
-src/libconnman/Makefile
+src/libbarman/Makefile
 src/backend/Makefile
 src/agent/Makefile
 src/settings/Makefile
@@ -171,8 +171,8 @@ data/Makefile
 po/Makefile.in
 scripts/Makefile
 tests/Makefile
-tests/connman-mock/Makefile
-tests/libconnman-vala/Makefile
+tests/barman-mock/Makefile
+tests/libbarman-vala/Makefile
 ])
 
 ###########################

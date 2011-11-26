@@ -1,0 +1,14 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node name="/">
+  <interface name="net.barman.Service">
+    <method name="SetProperty">
+      <arg name="name" type="s"/>
+      <arg name="value" type="v"/>
+    </method>
+    <method name="GetProperties">
+      <arg name="properties" type="a{sv}" direction="out"/>
+    </method>
+    <method name="Connect"/>
+    <method name="Disconnect"/>
+  </interface>
+</node>

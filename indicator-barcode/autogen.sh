@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PKG_NAME="indicator-network"
+PKG_NAME="indicator-barcode"
 
 which gnome-autogen.sh || {
 	echo "You need gnome-common from GNOME SVN"
