@@ -21,6 +21,12 @@ sbin_PROGRAMS = BarcodeManager
 BarcodeManager_SOURCES = \
 		bm-call-store.c \
 		bm-call-store.h \
+		bm-policy.c \
+		bm-policy.h \
+		bm-activation-request.h \
+		bm-activation-request.c \
+		bm-secrets-provider-interface.h \
+		bm-secrets-provider-interface.c \
 		bm-device.c \
 		bm-device.h \
 		bm-device-interface.c \

@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* BarcodeManager -- Network link manager
+/* BarcodeManager -- barcode scanner manager
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2006 - 2010 Red Hat, Inc.
- * Copyright (C) 2006 - 2008 Novell, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #include "config.h"
@@ -39,11 +38,11 @@ enum {
 
 static guint signals[NUMBER_OF_SIGNALS];
 
-G_DEFINE_TYPE(NMDBusManager, bm_dbus_manager, G_TYPE_OBJECT)
+G_DEFINE_TYPE(BMDBusManager, bm_dbus_manager, G_TYPE_OBJECT)
 
 #define BM_DBUS_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), \
                                         BM_TYPE_DBUS_MANAGER, \
-                                        NMDBusManagerPrivate))
+                                        BMDBusManagerPrivate))
 
 typedef struct {
 	DBusConnection *connection;
@@ -54,16 +53,16 @@ typedef struct {
 	guint proxy_destroy_id;
 
 	guint reconnect_id;
-} NMDBusManagerPrivate;
+} BMDBusManagerPrivate;
 
-static gboolean bm_dbus_manager_init_bus (NMDBusManager *self);
-static void bm_dbus_manager_cleanup (NMDBusManager *self, gboolean dispose);
-static void start_reconnection_timeout (NMDBusManager *self);
+static gboolean bm_dbus_manager_init_bus (BMDBusManager *self);
+static void bm_dbus_manager_cleanup (BMDBusManager *self, gboolean dispose);
+static void start_reconnection_timeout (BMDBusManager *self);
 
-NMDBusManager *
+BMDBusManager *
 bm_dbus_manager_get (void)
 {
-	static NMDBusManager *singleton = NULL;
+	static BMDBusManager *singleton = NULL;
 
 	if (!singleton) {
 		singleton = BM_DBUS_MANAGER (g_object_new (BM_TYPE_DBUS_MANAGER, NULL));
@@ -78,14 +77,14 @@ bm_dbus_manager_get (void)
 }
 
 static void
-bm_dbus_manager_init (NMDBusManager *self)
+bm_dbus_manager_init (BMDBusManager *self)
 {
 }
 
 static void
 bm_dbus_manager_dispose (GObject *object)
 {
-	NMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (object);
+	BMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (object);
 
 	bm_dbus_manager_cleanup (BM_DBUS_MANAGER (object), TRUE);
 
@@ -98,7 +97,7 @@ bm_dbus_manager_dispose (GObject *object)
 }
 
 static void
-bm_dbus_manager_class_init (NMDBusManagerClass *klass)
+bm_dbus_manager_class_init (BMDBusManagerClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
@@ -108,7 +107,7 @@ bm_dbus_manager_class_init (NMDBusManagerClass *klass)
 		g_signal_new ("dbus-connection-changed",
 		              G_OBJECT_CLASS_TYPE (object_class),
 		              G_SIGNAL_RUN_LAST,
-		              G_STRUCT_OFFSET (NMDBusManagerClass, dbus_connection_changed),
+		              G_STRUCT_OFFSET (BMDBusManagerClass, dbus_connection_changed),
 		              NULL, NULL, _bm_marshal_VOID__POINTER,
 		              G_TYPE_NONE, 1, G_TYPE_POINTER);
 
@@ -116,19 +115,19 @@ bm_dbus_manager_class_init (NMDBusManagerClass *klass)
 		g_signal_new ("name-owner-changed",
 		              G_OBJECT_CLASS_TYPE (object_class),
 		              G_SIGNAL_RUN_LAST,
-		              G_STRUCT_OFFSET (NMDBusManagerClass, name_owner_changed),
+		              G_STRUCT_OFFSET (BMDBusManagerClass, name_owner_changed),
 		              NULL, NULL, _bm_marshal_VOID__STRING_STRING_STRING,
 		              G_TYPE_NONE, 3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 
-	g_type_class_add_private (klass, sizeof (NMDBusManagerPrivate));
+	g_type_class_add_private (klass, sizeof (BMDBusManagerPrivate));
 }
 
 
 /* Only cleanup a specific dbus connection, not all our private data */
 static void
-bm_dbus_manager_cleanup (NMDBusManager *self, gboolean dispose)
+bm_dbus_manager_cleanup (BMDBusManager *self, gboolean dispose)
 {
-	NMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (self);
+	BMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (self);
 
 	if (priv->proxy) {
 		if (dispose) {
@@ -151,8 +150,8 @@ bm_dbus_manager_cleanup (NMDBusManager *self, gboolean dispose)
 static gboolean
 bm_dbus_manager_reconnect (gpointer user_data)
 {
-	NMDBusManager *self = BM_DBUS_MANAGER (user_data);
-	NMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (self);
+	BMDBusManager *self = BM_DBUS_MANAGER (user_data);
+	BMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (self);
 
 	g_assert (self != NULL);
 
@@ -172,9 +171,9 @@ bm_dbus_manager_reconnect (gpointer user_data)
 }
 
 static void
-start_reconnection_timeout (NMDBusManager *self)
+start_reconnection_timeout (BMDBusManager *self)
 {
-	NMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (self);
+	BMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (self);
 
 	if (priv->reconnect_id)
 		g_source_remove (priv->reconnect_id);
@@ -184,7 +183,7 @@ start_reconnection_timeout (NMDBusManager *self)
 }
 
 char *
-bm_dbus_manager_get_name_owner (NMDBusManager *self,
+bm_dbus_manager_get_name_owner (BMDBusManager *self,
                                 const char *name,
                                 GError **error)
 {
@@ -208,7 +207,7 @@ bm_dbus_manager_get_name_owner (NMDBusManager *self,
 }
 
 gboolean
-bm_dbus_manager_name_has_owner (NMDBusManager *self,
+bm_dbus_manager_name_has_owner (BMDBusManager *self,
                                 const char *name)
 {
 	gboolean has_owner = FALSE;
@@ -245,7 +244,7 @@ proxy_name_owner_changed (DBusGProxy *proxy,
 static void
 destroy_cb (DBusGProxy *proxy, gpointer user_data)
 {
-	NMDBusManager *self = BM_DBUS_MANAGER (user_data);
+	BMDBusManager *self = BM_DBUS_MANAGER (user_data);
 
 	/* Clean up existing connection */
 	bm_log_warn (LOGD_CORE, "disconnected by the system bus.");
@@ -259,9 +258,9 @@ destroy_cb (DBusGProxy *proxy, gpointer user_data)
 }
 
 static gboolean
-bm_dbus_manager_init_bus (NMDBusManager *self)
+bm_dbus_manager_init_bus (BMDBusManager *self)
 {
-	NMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (self);
+	BMDBusManagerPrivate *priv = BM_DBUS_MANAGER_GET_PRIVATE (self);
 	GError *err = NULL;
 
 	if (priv->connection) {
@@ -306,9 +305,9 @@ bm_dbus_manager_init_bus (NMDBusManager *self)
  * when we register on the bus, clients may start to call.
  */
 gboolean
-bm_dbus_manager_start_service (NMDBusManager *self)
+bm_dbus_manager_start_service (BMDBusManager *self)
 {
-	NMDBusManagerPrivate *priv;
+	BMDBusManagerPrivate *priv;
 	int result;
 	GError *err = NULL;
 
@@ -362,7 +361,7 @@ bm_dbus_manager_start_service (NMDBusManager *self)
 }
 
 DBusConnection *
-bm_dbus_manager_get_dbus_connection (NMDBusManager *self)
+bm_dbus_manager_get_dbus_connection (BMDBusManager *self)
 {
 	g_return_val_if_fail (BM_IS_DBUS_MANAGER (self), NULL);
 
@@ -370,7 +369,7 @@ bm_dbus_manager_get_dbus_connection (NMDBusManager *self)
 }
 
 DBusGConnection *
-bm_dbus_manager_get_connection (NMDBusManager *self)
+bm_dbus_manager_get_connection (BMDBusManager *self)
 {
 	g_return_val_if_fail (BM_IS_DBUS_MANAGER (self), NULL);
 

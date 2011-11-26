@@ -29,49 +29,49 @@
 
 G_BEGIN_DECLS
 
-typedef gboolean (* NMDBusSignalHandlerFunc) (DBusConnection * connection,
+typedef gboolean (* BMDBusSignalHandlerFunc) (DBusConnection * connection,
                                               DBusMessage *    message,
                                               gpointer         user_data);
 
 #define BM_TYPE_DBUS_MANAGER (bm_dbus_manager_get_type ())
-#define BM_DBUS_MANAGER(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), BM_TYPE_DBUS_MANAGER, NMDBusManager))
-#define BM_DBUS_MANAGER_CLASS(k) (G_TYPE_CHECK_CLASS_CAST((k), BM_TYPE_DBUS_MANAGER, NMDBusManagerClass))
+#define BM_DBUS_MANAGER(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), BM_TYPE_DBUS_MANAGER, BMDBusManager))
+#define BM_DBUS_MANAGER_CLASS(k) (G_TYPE_CHECK_CLASS_CAST((k), BM_TYPE_DBUS_MANAGER, BMDBusManagerClass))
 #define BM_IS_DBUS_MANAGER(o) (G_TYPE_CHECK_INSTANCE_TYPE ((o), BM_TYPE_DBUS_MANAGER))
 #define BM_IS_DBUS_MANAGER_CLASS(k) (G_TYPE_CHECK_CLASS_TYPE ((k), BM_TYPE_DBUS_MANAGER))
-#define BM_DBUS_MANAGER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), BM_TYPE_DBUS_MANAGER, NMDBusManagerClass)) 
+#define BM_DBUS_MANAGER_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), BM_TYPE_DBUS_MANAGER, BMDBusManagerClass)) 
 
 typedef struct {
 	GObject parent;
-} NMDBusManager;
+} BMDBusManager;
 
 typedef struct {
 	GObjectClass parent;
 
 	/* Signals */
-	void (*dbus_connection_changed) (NMDBusManager *mgr,
+	void (*dbus_connection_changed) (BMDBusManager *mgr,
 	                                 DBusConnection *connection);
 
-	void (*name_owner_changed)      (NMDBusManager *mgr,
+	void (*name_owner_changed)      (BMDBusManager *mgr,
 	                                 const char *name,
 	                                 const char *old_owner,
 	                                 const char *new_owner);
-} NMDBusManagerClass;
+} BMDBusManagerClass;
 
 GType bm_dbus_manager_get_type (void);
 
-NMDBusManager * bm_dbus_manager_get       (void);
+BMDBusManager * bm_dbus_manager_get       (void);
 
-char * bm_dbus_manager_get_name_owner     (NMDBusManager *self,
+char * bm_dbus_manager_get_name_owner     (BMDBusManager *self,
                                            const char *name,
                                            GError **error);
 
-gboolean bm_dbus_manager_start_service    (NMDBusManager *self);
+gboolean bm_dbus_manager_start_service    (BMDBusManager *self);
 
-gboolean bm_dbus_manager_name_has_owner   (NMDBusManager *self,
+gboolean bm_dbus_manager_name_has_owner   (BMDBusManager *self,
                                            const char *name);
 
-DBusConnection * bm_dbus_manager_get_dbus_connection (NMDBusManager *self);
-DBusGConnection * bm_dbus_manager_get_connection (NMDBusManager *self);
+DBusConnection * bm_dbus_manager_get_dbus_connection (BMDBusManager *self);
+DBusGConnection * bm_dbus_manager_get_connection (BMDBusManager *self);
 
 G_END_DECLS
 

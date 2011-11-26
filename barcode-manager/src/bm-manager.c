@@ -73,7 +73,7 @@ typedef struct {
 	GSList *devices;
 	BMState state;
 
-	NMDBusManager *dbus_mgr;
+	BMDBusManager *dbus_mgr;
 	NMUdevManager *udev_mgr;
 
 	GHashTable *user_connections;
@@ -95,7 +95,8 @@ typedef struct {
 
 #define BM_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_MANAGER, BMManagerPrivate))
 
-G_DEFINE_TYPE_EXTENDED (BMManager, bm_manager, G_TYPE_OBJECT, 0, 0)
+G_DEFINE_TYPE(BMManager, bm_manager, G_TYPE_OBJECT)
+//G_DEFINE_TYPE_EXTENDED (BMManager, bm_manager, G_TYPE_OBJECT, 0, 0)
 
 enum {
 	DEVICE_ADDED,
@@ -625,7 +626,7 @@ bm_manager_get_device_by_path (BMManager *manager, const char *path)
 }
 
 static void
-bm_manager_name_owner_changed (NMDBusManager *mgr,
+bm_manager_name_owner_changed (BMDBusManager *mgr,
                                const char *name,
                                const char *old,
                                const char *new,

@@ -38,6 +38,7 @@
 #include "BarcodeManager.h"
 #include "BarcodeManagerUtils.h"
 #include "bm-manager.h"
+#include "bm-policy.h"
 #include "bm-system.h"
 #include "bm-dbus-manager.h"
 #include "bm-logging.h"
@@ -332,7 +333,8 @@ main (int argc, char *argv[])
 	char *log_level = NULL, *log_domains = NULL;
 	char **dns = NULL;
 	gboolean success;
-	NMDBusManager *dbus_mgr = NULL;
+	BMPolicy *policy = NULL;
+	BMDBusManager *dbus_mgr = NULL;
 	GError *error = NULL;
 	gboolean wrote_pidfile = FALSE;
 	char *cfg_log_level = NULL, *cfg_log_domains = NULL;
@@ -540,6 +542,12 @@ main (int argc, char *argv[])
 		goto done;
 	}
 
+    policy = bm_policy_new (manager);
+    if (policy == NULL) {
+        bm_log_err (LOGD_CORE, "failed to initialize the policy.");
+        goto done;
+    }
+
 	/* Start our DBus service */
 	if (!bm_dbus_manager_start_service (dbus_mgr)) {
 		bm_log_err (LOGD_CORE, "failed to start the dbus service.");
@@ -557,6 +565,9 @@ main (int argc, char *argv[])
 	g_main_loop_run (main_loop);
 
 done:
+    if (policy)
+		bm_policy_destroy (policy);
+
 	if (manager)
 		g_object_unref (manager);
 
