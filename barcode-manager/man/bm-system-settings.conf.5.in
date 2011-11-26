@@ -1,0 +1,26 @@
+.\" bm-system-settings.conf(5) manual page
+.\"
+.\" Copyright (C) 2011 Jakob Flierl
+.\"
+.TH "bm-system-settings.conf" "5" "1 February 2010" ""
+.SH NAME
+bm\-system\-settings.conf \- Deprecated BarcodeManager configuration file
+.SH SYNOPSIS
+/etc/BarcodeManager/bm\-system\-settings.conf
+.br
+or
+.br
+\fI<SYSCONFDIR>\fP/BarcodeManager/bm\-system\-settings.conf
+.br
+where <SYSCONFDIR> depends on your distribution or build.
+.SH DESCRIPTION
+.P
+.I bm\-system\-settings.conf
+is a deprecated configuration file for \fBBarcodeManager\fP (5).  While this
+file can still be used, BarcodeManager now defaults to reading the config
+file <SYSCONFDIR>\fP/BarcodeManager/BarcodeManager.conf\fP instead, falling back
+to bm\-system\-settings.conf if BarcodeManager.conf does not exist.
+.SH "SEE ALSO"
+.BR BarcodeManager (8),
+.BR BarcodeManager.conf (5),
+.BR bm\-tool (1).

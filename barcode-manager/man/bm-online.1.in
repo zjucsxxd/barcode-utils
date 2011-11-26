@@ -1,0 +1,64 @@
+.\" bm-online (1) manual page
+.\"
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 2 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, write to the Free
+.\" Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111,
+.\" USA.
+.\"
+.\" Copyright (C) 2011 Jakob Flierl
+.\"
+.TH BM-ONLINE "1" "26 November 2011"
+
+.SH NAME
+bm-online \- ask BarcodeManager whether it is running.
+.SH SYNOPSIS
+.B bm-online
+.RI " [ " OPTIONS " ]
+
+.SH DESCRIPTION
+.B bm-online
+is a utility to find out whether barcode manager is running. It is done by asking
+BarcodeManager about its status. When run, \fIbm\-online\fP waits until
+BarcodeManager reports active, or specified timeout expires. On
+exit, the returned status code should be checked (see the return codes bellow).
+
+.SH OPTIONS
+.TP
+.B \-t, \-\-timeout
+Time to wait, in seconds.  If not specified, the default is 30
+seconds.
+.TP
+.B \-x, \-\-exit
+Exit immediately if BarcodeManager is not running.
+.TP
+.B \-q, \-\-quiet
+Don't print anything.
+
+.SH EXIT STATUS
+
+.IP "0" 4
+Success - already online within given timeout
+.IP "1" 4
+Offline or not online within given timeout
+.IP "2" 4
+Unspecified error
+
+.SH SEE ALSO
+.BR bm\-tool (1),
+.BR bmcli (1),
+.BR BarcodeManager(8).

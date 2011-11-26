@@ -1,0 +1,14 @@
+.\" bm-tool(1) manual page
+.\"
+.\" Copyright (C) 2011 Jakob Flierl
+.\"
+.TH BM-TOOL "1"
+.SH NAME
+bm-tool \- utility to report BarcodeManager state and devices
+.SH SYNOPSIS
+.B bm-tool
+.SH DESCRIPTION
+The \fIbm-tool\fP utility provides information about BarcodeManager and barcode scanner devices.
+.SH SEE ALSO
+.BR BarcodeManager (8),
+
