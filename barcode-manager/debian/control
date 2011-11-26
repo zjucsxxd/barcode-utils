@@ -1,0 +1,104 @@
+Source: barcode-manager
+Section: net
+Priority: optional
+Maintainer: Jakob Flierl <jakob.flierl@gmail.com>
+XSBC-Original-Maintainer: jakob Flierl <jakob.flierl@gmail.com>
+Uploaders: jakob Flierl <jakob.flierl@gmail.com>
+Build-Depends: debhelper (>= 7.3.15ubuntu2),
+        automake1.9,
+        cdbs,
+        quilt,
+        gnome-common,
+        intltool,
+        libgnome-keyring-dev,
+        libdbus-glib-1-dev (>= 0.74),
+        libiw-dev(>= 27+28pre9),
+        libgnomeui-dev,
+        libpanel-applet2-dev,
+        libglade2-dev,
+        libgconf2-dev,
+        libnl-dev (>= 1.0~pre8),
+        libnotify-dev (>= 0.3),
+	libpolkit-gobject-1-dev,
+        docbook-to-man,
+	gtk-doc-tools,
+	uuid-dev,
+	libudev-dev,
+	libgudev-1.0-dev
+Standards-Version: 3.9.1
+Homepage: https://github.com/koppi/barcode-utils
+Vcs-Git: git://github.com/koppi/barcode-utils.git
+
+Package: barcode-manager
+Architecture: any
+Depends: ${shlibs:Depends},
+	${misc:Depends},
+	lsb-base (>= 3.2-14),
+	dbus (>= 0.60)
+Recommends: barcode-manager-gnome | barcode-manager-kde | plasma-widget-barcodemanagement
+Description: barcode scanner management framework daemon
+ BarcodeManager attempts to keep your barcode scanners working.
+ The point of BarcodeManager is to make barcode scanner
+ configuration and setup as painless and automatic as possible.
+ .
+ This package provides the userspace daemons.
+
+Package: barcode-manager-dev
+Architecture: any
+Section: devel
+Depends: ${shlibs:Depends}, ${misc:Depends}, pkg-config, libbm-util-dev
+Description: barcode scanner management framework (development files)
+ BarcodeManager attempts to keep your barcode scanners working.
+ The point of BarcodeManager is to make barcode scanner
+ configuration and setup as painless and automatic as possible.
+ .
+ This package provides header files that are needed to 
+ compile Plugins for BarcodeManager.
+
+Package: libbm-glib2
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: barcode scanner management framework (GLib shared library)
+ BarcodeManager attempts to keep your barcode scanners working.
+ The point of BarcodeManager is to make barcode scanner
+ configuration and setup as painless and automatic as possible.
+ .
+ This package provides the shared library that applications can use to query
+ connection status via BarcodeManager.
+
+Package: libbm-glib-dev
+Section: libdevel
+Architecture: any
+Depends: libbm-glib2 (= ${binary:Version}), ${misc:Depends}, libglib2.0-dev, libdbus-glib-1-dev (>= 0.60), barcode-manager-dev
+Description: barcode scanner management framework (GLib interface)
+ BarcodeManager attempts to keep your barcode scanners working.
+ The point of BarcodeManager is to make barcode scanner
+ configuration and setup as painless and automatic as possible.
+ .
+ This package provides the interface that applications can use to query
+ connection status via BarcodeManager.
+
+Package: libbm-util1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: barcode scanner management framework (shared library)
+ BarcodeManager attempts to keep your barcode scanners working.
+ The point of BarcodeManager is to make barcode scanner
+ configuration and setup as painless and automatic as possible.
+ .
+ This package contains a convenience library to ease the access to
+ BarcodeManager.
+
+Package: libbm-util-dev
+Section: libdevel
+Architecture: any
+Depends: libbm-util1 (= ${binary:Version}), ${misc:Depends}, libglib2.0-dev, libdbus-glib-1-dev (>= 0.60)
+Description: barcode scanner management framework (development files)
+ BarcodeManager attempts to keep your barcode scanners working.
+ The point of BarcodeManager is to make barcode scanner
+ configuration and setup as painless and automatic as possible.
+ .
+ This package contains header and development files.
+

@@ -1,0 +1,59 @@
+#!/bin/sh
+
+set -eu
+
+# This script can be called in the following ways:
+#
+# After the package was installed:
+#       <postinst> configure <old-version>
+#
+#
+# If prerm fails during upgrade or fails on failed upgrade:
+#       <old-postinst> abort-upgrade <new-version>
+#
+# If prerm fails during deconfiguration of a package:
+#       <postinst> abort-deconfigure in-favour <new-package> <version>
+#                  removing <old-package> <version>
+#
+# If prerm fails during replacement due to conflict:
+#       <postinst> abort-remove in-favour <new-package> <version>
+
+# Move a conffile without triggering a dpkg question
+mv_conffile() {
+    local OLDCONFFILE="$1"
+    local NEWCONFFILE="$2"
+
+    [ -e "$OLDCONFFILE" ] || return 0
+
+    echo "Preserving user changes to $NEWCONFFILE ..."
+    mv -f "$NEWCONFFILE" "$NEWCONFFILE".dpkg-new
+    mv -f "$OLDCONFFILE" "$NEWCONFFILE"
+}
+
+case "$1" in
+    configure)
+        [ -x /usr/share/update-notifier/notify-reboot-required ] && \
+            /usr/share/update-notifier/notify-reboot-required
+
+        [ -x /etc/dbus-1/event.d/25BarcodeManager.dpkg-moving ] && \
+            rm -f /etc/dbus-1/event.d/25BarcodeManager.dpkg-moving
+        [ -x /etc/dbus-1/event.d/25BarcodeManager.dpkg-removing ] && \
+            rm -f /etc/dbus-1/event.d/25BarcodeManager.dpkg-removing
+
+        [ -x /etc/dbus-1/event.d/26BarcodeManagerDispatcher.dpkg-moving ] && \
+            rm -f /etc/dbus-1/event.d/26BarcodeManagerDispatcher.dpkg-moving
+        [ -x /etc/dbus-1/event.d/26BarcodeManagerDispatcher.dpkg-removing ] && \
+            rm -f /etc/dbus-1/event.d/26BarcodeManagerDispatcher.dpkg-removing
+
+        [ -x /etc/init.d/BarcodeManager.dpkg-moving ] && \
+            rm -f /etc/init.d/BarcodeManager.dpkg-moving
+        [ -x /etc/init.d/BarcodeManager.dpkg-removing ] && \
+            rm -f /etc/init.d/BarcodeManager.dpkg-removing
+
+        update-rc.d -f BarcodeManager remove >/dev/null
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

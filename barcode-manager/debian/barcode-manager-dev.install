@@ -1,0 +1,3 @@
+debian/tmp/usr/lib/pkgconfig/BarcodeManager.pc
+debian/tmp/usr/include/BarcodeManager/BarcodeManager.h
+debian/tmp/usr/include/BarcodeManager/bm-version.h

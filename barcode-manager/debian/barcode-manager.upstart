@@ -1,0 +1,14 @@
+# barcode-manager - barcode scanner manager
+#
+# The Barcode Manager daemon manages the system's barcode scanners.
+
+description	"barcode scanner manager"
+
+start on (local-filesystems
+	  and started dbus)
+stop on stopping dbus
+
+expect fork
+respawn
+
+exec BarcodeManager

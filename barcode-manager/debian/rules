@@ -1,0 +1,59 @@
+#!/usr/bin/make -f
+
+DEB_SOURCE := $(shell dpkg-parsechangelog | grep Source: | sed -e 's/Source: //')
+DEB_VERSION := $(shell dpkg-parsechangelog | grep Version: | sed -e 's/Version: //')
+DEB_UPSTREAM_VERSION := $(shell echo $(DEB_VERSION) | sed -e 's/-[^-]*$$//')
+DEB_MAJOR_VERSION := $(shell echo $(DEB_UPSTREAM_VERSION) | sed -e 's/git.*//')
+
+include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+
+#ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+#        CFLAGS := $(CFLAGS:-O2=-Os)
+#        CXXFLAGS := $(CXXFLAGS:-O2=-Os)
+#endif
+
+DEB_AUTO_UPDATE_LIBTOOL = pre
+DEB_AUTO_UPDATE_AUTOHEADER = 2.50
+DEB_AUTO_UPDATE_ACLOCAL = 1.11
+DEB_AUTO_UPDATE_AUTOMAKE = 1.11 -a -c -f
+DEB_AUTO_UPDATE_AUTOCONF = 2.50
+
+DEB_INSTALL_DOCS_ALL := README AUTHORS TODO
+
+DEB_MAKE_CHECK_TARGET := check
+
+DEB_CONFIGURE_EXTRA_FLAGS += \
+		--with-dbus-sys=/etc/dbus-1/system.d \
+		--with-distro=debian \
+		--libexecdir=/usr/lib/BarcodeManager \
+		--with-docs \
+		--with-tests=yes \
+		$(NULL)
+
+DEB_DH_INSTALLINIT_ARGS = --noscripts
+
+DEB_DH_MAKESHLIBS_ARGS = -- -c4
+
+GIT_URL := git://github.com/koppi/barcode-utils.git
+GIT_BRANCH := "BM_0_0_1"
+GIT_BRANCH_NAME := BarcodeManager
+
+ifneq (,$(LOCAL_BRANCH))
+LOCAL_REAL_BRANCH = $(realpath $(LOCAL_BRANCH))
+endif
+
+clean::
+	rm -f po/*.gmo
+	rm -f debian/*.1
+	rm -f gtk-doc.make
+	echo "# empty file" > aclocal.m4
+
+pre-build::
+	intltoolize -f -c
+	gtkdocize --copy
+
+binary-install/barcode-manager::
+	cd po; intltool-update -p
+	cd test; $(MAKE) install DESTDIR=$(CURDIR)/debian/barcode-manager

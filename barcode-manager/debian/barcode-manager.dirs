@@ -1,0 +1,3 @@
+etc/dbus-1/event.d
+etc/BarcodeManager/dispatcher.d
+var/lib/BarcodeManager

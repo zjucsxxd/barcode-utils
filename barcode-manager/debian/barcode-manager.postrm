@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -e
+
+# summary of how this script can be called:
+#        * <postrm> `remove'
+#        * <postrm> `purge'
+#        * <old-postrm> `upgrade' <new-version>
+#        * <new-postrm> `failed-upgrade' <old-version>
+#        * <new-postrm> `abort-install'
+#        * <new-postrm> `abort-install' <old-version>
+#        * <new-postrm> `abort-upgrade' <old-version>
+#        * <disappearer's-postrm> `disappear' <overwriter>
+#          <overwriter-version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+abort_rm_conffile() {
+    CONFFILE="$1"
+
+    if [ -e "$CONFFILE".dpkg-backup ]; then
+        mv -f "$CONFFILE".dpkg-backup "$CONFFILE"
+    elif [ -e "$CONFFILE".dpkg-removing ]; then
+        mv -f "$CONFFILE".dpkg-removing "$CONFFILE"
+    fi
+}
+
+case "$1" in
+    purge)
+        # Clean up state file on purge
+        if [ -d /var/lib/BarcodeManager ]; then
+            rm -f /var/lib/BarcodeManager/BarcodeManager.state
+            rmdir --ignore-fail-on-non-empty /var/lib/BarcodeManager
+        fi
+        ;;
+    remove)
+        ;;
+    upgrade|failed-upgrade|disappear)
+        ;;
+
+    abort-install|abort-upgrade)
+        if dpkg --compare-versions "$2" lt "0.7~~"; then
+             abort_rm_conffile /etc/dbus-1/event.d/25BarcodeManager
+
+             abort_rm_conffile /etc/dbus-1/event.d/26BarcodeManagerDispatcher
+
+             /etc/dbus-1/event.d/25BarcodeManager start
+        fi
+
+	abort_rm_conffile /etc/init.d/BarcodeManager
+        ;;
+esac
+
+#DEBHELPER#

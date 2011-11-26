@@ -1,0 +1,8 @@
+BarcodeManager consists of two parts: one is on the system level daemon that
+manages the connections to the barcode scanners and gathers information about
+newly attached barcode scanner hardware. The other is a systray applet that
+users can use to interact with the BarcodeManager daemon. 
+
+After modifying /etc/BarcodeManager/bm-systems-settings.conf
+you may want to restart the system-settings daemon using the command:
+"sudo killall bm-system-settings" to apply those changes.

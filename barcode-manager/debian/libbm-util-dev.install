@@ -1,0 +1,13 @@
+debian/tmp/usr/lib/pkgconfig/libbm-util.pc
+debian/tmp/usr/lib/libbm-util.a
+debian/tmp/usr/lib/libbm-util.so
+debian/tmp/usr/include/BarcodeManager/bm-connection.h
+debian/tmp/usr/include/BarcodeManager/bm-setting.h
+debian/tmp/usr/include/BarcodeManager/bm-setting-bluetooth.h
+debian/tmp/usr/include/BarcodeManager/bm-setting-connection.h
+debian/tmp/usr/include/BarcodeManager/bm-setting-serial.h
+debian/tmp/usr/include/BarcodeManager/bm-setting-wired.h
+debian/tmp/usr/include/BarcodeManager/bm-setting-wireless.h
+debian/tmp/usr/include/BarcodeManager/bm-utils.h
+debian/tmp/usr/share/gtk-doc/html/libbm-util/
+

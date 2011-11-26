@@ -1,0 +1,13 @@
+debian/tmp/usr/sbin/BarcodeManager 
+debian/tmp/usr/bin/bm-tool 
+debian/tmp/usr/bin/bmcli 
+debian/tmp/usr/lib/BarcodeManager
+debian/tmp/usr/share/locale/
+debian/tmp/usr/share/dbus-1/system-services/
+debian/tmp/usr/share/polkit-1/
+debian/tmp/etc/dbus-1/system.d/BarcodeManager.conf
+debian/tmp/etc/dbus-1/system.d/bm-dispatcher.conf
+debian/BarcodeManager.conf /etc/BarcodeManager/
+
+debian/tmp/usr/share/man/
+debian/tmp/usr/share/BarcodeManager/

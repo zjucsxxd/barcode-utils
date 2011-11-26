@@ -1,0 +1,9 @@
+#
+# barcode scanners
+#
+
+# Symbol Technologies
+ATTRS{idVendor}=="05e0", GROUP="plugdev", SYMLINK+="input/barcode-%k", MODE="0664"
+
+# enable power control
+ATTRS{idVendor}=="05e0", ATTR{power/control}=="*", ATTR{power/control}="auto"
