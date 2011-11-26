@@ -1,0 +1,22 @@
+#include <bm-client.h>
+#include <bm-object.h>
+#include <bm-device.h>
+#include <bm-usb-device.h>
+#include <bm-serial-device.h>
+#include <bm-bt-device.h>
+#include <bm-active-connection.h>
+#include <bm-remote-settings.h>
+#include <bm-exported-connection.h>
+#include <bm-remote-connection.h>
+
+bm_client_get_type
+bm_object_get_type
+bm_device_get_type
+bm_usb_device_get_type
+bm_serial_device_get_type
+bm_bt_device_get_type
+bm_active_connection_get_type
+bm_remote_settings_get_type
+bm_exported_connection_get_type
+bm_remote_connection_get_type
+

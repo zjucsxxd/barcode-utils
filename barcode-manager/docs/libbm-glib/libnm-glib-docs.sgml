@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<book id="index" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <bookinfo>
+    <title>libbm-glib Reference Manual</title>
+    <releaseinfo>
+      for libbm-glib
+    </releaseinfo>
+  </bookinfo>
+
+  <chapter>
+    <title>libbm-glib Objects</title>
+    <xi:include href="xml/bm-client.xml"/>
+    <xi:include href="xml/bm-active-connection.xml"/>
+    <xi:include href="xml/bm-device.xml"/>
+    <xi:include href="xml/bm-serial-device.xml"/>
+    <xi:include href="xml/bm-usb-device.xml"/>
+    <xi:include href="xml/bm-bt-device.xml"/>
+    <xi:include href="xml/bm-exported-connection.xml"/>
+    <xi:include href="xml/bm-object.xml"/>
+    <xi:include href="xml/bm-remote-connection.xml"/>
+    <xi:include href="xml/bm-remote-settings.xml"/>
+    <xi:include href="xml/bm-remote-settings-system.xml"/>
+    <xi:include href="xml/bm-settings-connection-interface.xml"/>
+    <xi:include href="xml/bm-settings-interface.xml"/>
+    <xi:include href="xml/bm-settings-service.xml"/>
+    <xi:include href="xml/bm-settings-system-interface.xml"/>
+    <xi:include href="xml/bm-types.xml"/>
+  </chapter>
+</book>
