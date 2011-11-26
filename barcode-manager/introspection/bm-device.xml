@@ -79,14 +79,6 @@
       </tp:docstring>
     </property>
 
-    <method name="Disconnect">
-      <annotation name="org.freedesktop.DBus.GLib.CSymbol" value="impl_device_disconnect"/>
-      <annotation name="org.freedesktop.DBus.GLib.Async" value=""/>
-      <tp:docstring>
-        Disconnects a device and prevents the device from automatically activating further connections without user intervention.
-      </tp:docstring>
-    </method>
-
     <signal name="StateChanged">
       <arg name="new_state" type="u" tp:type="BM_DEVICE_STATE">
         <tp:docstring>

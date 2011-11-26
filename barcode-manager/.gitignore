@@ -1,4 +1,12 @@
 # generated stuff
+marshallers/bm-marshal.c
+marshallers/bm-marshal.h
+
+src/BarcodeManager
+src/bm-crash-logger
+
+*-bindings.h
+*-glue.h
 
 libbm-glib/libbm-glib-test
 

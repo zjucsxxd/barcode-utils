@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* BarcodeManager -- Network link manager
+/* BarcodeManager -- barcode scanner manager
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,14 +15,13 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2009 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #ifndef BM_DEVICE_BT_H
 #define BM_DEVICE_BT_H
 
 #include <bm-device.h>
-#include "bm-modem.h"
 
 G_BEGIN_DECLS
 
@@ -60,12 +59,6 @@ BMDevice *bm_device_bt_new (const char *udi,
 guint32 bm_device_bt_get_capabilities (BMDeviceBt *device);
 
 const char *bm_device_bt_get_hw_address (BMDeviceBt *device);
-
-gboolean bm_device_bt_modem_added (BMDeviceBt *device,
-                                   NMModem *modem,
-                                   const char *driver);
-
-gboolean bm_device_bt_modem_removed (BMDeviceBt *device, NMModem *modem);
 
 G_END_DECLS
 

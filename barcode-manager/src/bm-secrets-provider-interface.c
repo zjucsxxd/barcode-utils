@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* BarcodeManager -- Network link manager
+/* BarcodeManager -- barcode scanner manager
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2009 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #include <string.h>
@@ -23,8 +23,6 @@
 #include "bm-marshal.h"
 #include "bm-secrets-provider-interface.h"
 
-#include <bm-setting-8021x.h>
-#include <bm-setting-wireless-security.h>
 #include "bm-logging.h"
 
 static void
@@ -131,94 +129,5 @@ add_one_key_to_list (gpointer key, gpointer data, gpointer user_data)
 	GSList **list = (GSList **) user_data;
 
 	*list = g_slist_append (*list, key);
-}
-
-static gint
-settings_order_func (gconstpointer a, gconstpointer b)
-{
-	/* Just ensure the 802.1x setting gets processed _before_ the
-	 * wireless-security one.
-	 */
-
-	if (   !strcmp (a, BM_SETTING_802_1X_SETTING_NAME)
-	    && !strcmp (b, BM_SETTING_WIRELESS_SECURITY_SETTING_NAME))
-		return -1;
-
-	if (   !strcmp (a, BM_SETTING_WIRELESS_SECURITY_SETTING_NAME)
-	    && !strcmp (b, BM_SETTING_802_1X_SETTING_NAME))
-		return 1;
-
-	return 0;
-}
-
-void
-bm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *self,
-                                                  const char *setting_name,
-                                                  RequestSecretsCaller caller,
-                                                  GHashTable *settings,
-                                                  GError *error)
-{
-	GSList *keys = NULL, *iter;
-	GSList *updated = NULL;
-	GError *tmp_error = NULL;
-
-	g_return_if_fail (self != NULL);
-	g_return_if_fail (BM_IS_SECRETS_PROVIDER_INTERFACE (self));
-
-	if (error) {
-		BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
-		                                                            setting_name,
-		                                                            caller,
-		                                                            NULL,
-		                                                            error);
-		return;
-	}
-
-	if (g_hash_table_size (settings) == 0) {
-		g_set_error (&tmp_error, 0, 0, "%s", "no secrets were received!");
-		BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
-		                                                            setting_name,
-		                                                            caller,
-		                                                            NULL,
-		                                                            tmp_error);
-		g_clear_error (&tmp_error);
-		return;
-	}
-
-	g_hash_table_foreach (settings, add_one_key_to_list, &keys);
-	keys = g_slist_sort (keys, settings_order_func);
-	for (iter = keys; iter; iter = g_slist_next (iter)) {
-		GHashTable *hash;
-		const char *name = (const char *) iter->data;
-
-		hash = g_hash_table_lookup (settings, name);
-		if (!hash) {
-			bm_log_warn (LOGD_CORE, "couldn't get setting secrets for '%s'", name);
-			continue;
-		}
-
-		if (BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->update_setting (self, name, hash))
-			updated = g_slist_append (updated, (gpointer) setting_name);
-	}
-	g_slist_free (keys);
-
-	if (g_slist_length (updated)) {
-		BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
-		                                                            setting_name,
-		                                                            caller,
-		                                                            updated,
-		                                                            NULL);
-	} else {
-		g_set_error (&tmp_error, 0, 0, "%s", "no secrets updated because no valid "
-		             "settings were received!");
-		BM_SECRETS_PROVIDER_INTERFACE_GET_INTERFACE (self)->result (self,
-		                                                            setting_name,
-		                                                            caller,
-		                                                            NULL,
-		                                                            tmp_error);
-		g_clear_error (&tmp_error);
-	}
-
-	g_slist_free (updated);
 }
 

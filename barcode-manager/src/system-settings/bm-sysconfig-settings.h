@@ -34,11 +34,11 @@
 #include "bm-device.h"
 
 #define BM_TYPE_SYSCONFIG_SETTINGS            (bm_sysconfig_settings_get_type ())
-#define BM_SYSCONFIG_SETTINGS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettings))
-#define BM_SYSCONFIG_SETTINGS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  BM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettingsClass))
+#define BM_SYSCONFIG_SETTINGS(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_SYSCONFIG_SETTINGS, BMSysconfigSettings))
+#define BM_SYSCONFIG_SETTINGS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass),  BM_TYPE_SYSCONFIG_SETTINGS, BMSysconfigSettingsClass))
 #define BM_IS_SYSCONFIG_SETTINGS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_SYSCONFIG_SETTINGS))
 #define BM_IS_SYSCONFIG_SETTINGS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass),  BM_TYPE_SYSCONFIG_SETTINGS))
-#define BM_SYSCONFIG_SETTINGS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  BM_TYPE_SYSCONFIG_SETTINGS, NMSysconfigSettingsClass))
+#define BM_SYSCONFIG_SETTINGS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),  BM_TYPE_SYSCONFIG_SETTINGS, BMSysconfigSettingsClass))
 
 #define BM_SYSCONFIG_SETTINGS_UNMANAGED_SPECS "unmanaged-specs"
 #define BM_SYSCONFIG_SETTINGS_TIMESTAMPS_FILE LOCALSTATEDIR"/lib/BarcodeManager/timestamps"
@@ -46,28 +46,28 @@
 
 typedef struct {
 	BMSettingsService parent_instance;
-} NMSysconfigSettings;
+} BMSysconfigSettings;
 
 typedef struct {
 	BMSettingsServiceClass parent_class;
 
 	/* Signals */
-	void (*properties_changed) (NMSysconfigSettings *self, GHashTable *properties);
-} NMSysconfigSettingsClass;
+	void (*properties_changed) (BMSysconfigSettings *self, GHashTable *properties);
+} BMSysconfigSettingsClass;
 
 GType bm_sysconfig_settings_get_type (void);
 
-NMSysconfigSettings *bm_sysconfig_settings_new (const char *config_file,
+BMSysconfigSettings *bm_sysconfig_settings_new (const char *config_file,
                                                 const char *plugins,
                                                 DBusGConnection *bus,
                                                 GError **error);
 
-const GSList *bm_sysconfig_settings_get_unmanaged_specs (NMSysconfigSettings *self);
+const GSList *bm_sysconfig_settings_get_unmanaged_specs (BMSysconfigSettings *self);
 
-char *bm_sysconfig_settings_get_hostname (NMSysconfigSettings *self);
+char *bm_sysconfig_settings_get_hostname (BMSysconfigSettings *self);
 
-void bm_sysconfig_settings_device_added (NMSysconfigSettings *self, BMDevice *device);
+void bm_sysconfig_settings_device_added (BMSysconfigSettings *self, BMDevice *device);
 
-void bm_sysconfig_settings_device_removed (NMSysconfigSettings *self, BMDevice *device);
+void bm_sysconfig_settings_device_removed (BMSysconfigSettings *self, BMDevice *device);
 
 #endif  /* __BM_SYSCONFIG_SETTINGS_H__ */

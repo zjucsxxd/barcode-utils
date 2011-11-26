@@ -88,10 +88,6 @@ const char *  bm_device_get_vendor           (BMDevice *device);
 
 typedef void (*BMDeviceDeactivateFn) (BMDevice *device, GError *error, gpointer user_data);
 
-void          bm_device_disconnect         (BMDevice *device,
-                                            BMDeviceDeactivateFn callback,
-                                            gpointer user_data);
-
 G_END_DECLS
 
 #endif /* BM_DEVICE_H */

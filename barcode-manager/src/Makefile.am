@@ -32,23 +32,13 @@ BarcodeManager_SOURCES = \
 		bm-dbus-manager.c \
 		bm-udev-manager.c \
 		bm-udev-manager.h \
-		bm-secrets-provider-interface.c \
-		bm-secrets-provider-interface.h \
-		bm-active-connection.h \
-		bm-active-connection.c \
 		main.c \
-		bm-policy.c \
-		bm-policy.h \
 		BarcodeManagerUtils.c \
 		BarcodeManagerUtils.h \
 		bm-system.c \
 		bm-system.h \
 		bm-manager.c \
 		bm-manager.h \
-		bm-netlink-monitor.c \
-		bm-netlink-monitor.h \
-		bm-activation-request.c \
-		bm-activation-request.h \
 		bm-properties-changed-signal.c \
 		bm-properties-changed-signal.h
 
@@ -61,11 +51,9 @@ bm-device-interface-glue.h: $(top_srcdir)/introspection/bm-device.xml
 bm-device-bt-glue.h: $(top_srcdir)/introspection/bm-device-bt.xml
 	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device_bt --mode=glib-server --output=$@ $<
 
-bm-active-connection-glue.h: $(top_srcdir)/introspection/bm-active-connection.xml
-	$(AM_V_GEN) dbus-binding-tool --prefix=bm_active_connection --mode=glib-server --output=$@ $<
-
 BUILT_SOURCES = \
 	bm-manager-glue.h \
+	bm-device-interface-glue.h \
 	bm-device-bt-glue.h
 
 BarcodeManager_CPPFLAGS = \

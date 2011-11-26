@@ -25,7 +25,6 @@
 #include <glib-object.h>
 #include "BarcodeManager.h"
 #include "bm-connection.h"
-#include "bm-activation-request.h"
 
 #define BM_TYPE_DEVICE_INTERFACE      (bm_device_interface_get_type ())
 #define BM_DEVICE_INTERFACE(obj)      (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_DEVICE_INTERFACE, BMDeviceInterface))
@@ -98,14 +97,7 @@ struct _BMDeviceInterface {
 	                                         BMConnection *connection,
 	                                         GError **error);
 
-	gboolean (*activate) (BMDeviceInterface *device,
-	                      NMActRequest *req,
-	                      GError **error);
-
-	void (*deactivate) (BMDeviceInterface *device, BMDeviceStateReason reason);
 	gboolean (*disconnect) (BMDeviceInterface *device, GError **error);
-
-	gboolean (*spec_match_list) (BMDeviceInterface *device, const GSList *specs);
 
 	BMConnection * (*connection_match_config) (BMDeviceInterface *device, const GSList *specs);
 
@@ -132,12 +124,6 @@ GType bm_device_interface_get_type (void);
 gboolean bm_device_interface_check_connection_compatible (BMDeviceInterface *device,
                                                           BMConnection *connection,
                                                           GError **error);
-
-gboolean bm_device_interface_activate (BMDeviceInterface *device,
-				       NMActRequest *req,
-				       GError **error);
-
-void bm_device_interface_deactivate (BMDeviceInterface *device, BMDeviceStateReason reason);
 
 BMDeviceState bm_device_interface_get_state (BMDeviceInterface *device);
 

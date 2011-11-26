@@ -22,9 +22,7 @@ libsystem_settings_la_SOURCES = \
 	bm-system-config-interface.c \
 	bm-system-config-interface.h \
 	bm-sysconfig-connection.c \
-	bm-sysconfig-connection.h \
-	bm-default-wired-connection.c \
-	bm-default-wired-connection.h
+	bm-sysconfig-connection.h
 
 libsystem_settings_la_CPPFLAGS = \
 	$(DBUS_CFLAGS) \

@@ -315,7 +315,6 @@ include/bm-version.h
 src/Makefile
 marshallers/Makefile
 src/logging/Makefile
-src/bluez-manager/Makefile
 src/system-settings/Makefile
 libbm-util/libbm-util.pc
 libbm-util/Makefile

@@ -79,7 +79,7 @@ gboolean bm_secrets_provider_interface_get_secrets    (NMSecretsProviderInterfac
 
 void bm_secrets_provider_interface_cancel_get_secrets (NMSecretsProviderInterface *self);
 
-/* For NMManager */
+/* For BMManager */
 void bm_secrets_provider_interface_get_secrets_result (NMSecretsProviderInterface *self,
                                                        const char *setting_name,
                                                        RequestSecretsCaller caller,

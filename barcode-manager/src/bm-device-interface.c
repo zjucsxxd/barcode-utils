@@ -26,10 +26,6 @@
 #include "bm-device-interface.h"
 #include "bm-logging.h"
 #include "bm-properties-changed-signal.h"
-#include "bm-rfkill.h"
-
-static void impl_device_disconnect (BMDeviceInterface *device,
-                                    DBusGMethodInvocation *context);
 
 #include "bm-device-interface-glue.h"
 
@@ -195,15 +191,6 @@ bm_device_interface_init (gpointer g_iface)
 							  G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | BM_PROPERTY_PARAM_NO_EXPORT));
 
 	g_object_interface_install_property
-		(g_iface, g_param_spec_uint (BM_DEVICE_INTERFACE_RFKILL_TYPE,
-	                                 "Rfkill Type",
-	                                 "Type of rfkill switch (if any) supported by this device",
-	                                 RFKILL_TYPE_WLAN,
-	                                 RFKILL_TYPE_MAX,
-	                                 RFKILL_TYPE_UNKNOWN,
-	                                 G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | BM_PROPERTY_PARAM_NO_EXPORT));
-
-	g_object_interface_install_property
 		(g_iface,
 		 g_param_spec_int (BM_DEVICE_INTERFACE_IFINDEX,
 							"Ifindex",
@@ -295,77 +282,6 @@ bm_device_interface_check_connection_compatible (BMDeviceInterface *device,
 	return TRUE;
 }
 
-gboolean
-bm_device_interface_activate (BMDeviceInterface *device,
-                              NMActRequest *req,
-                              GError **error)
-{
-	gboolean success;
-	BMConnection *connection;
-	BMSettingConnection *s_con;
-	char *iface;
-
-	g_return_val_if_fail (BM_IS_DEVICE_INTERFACE (device), FALSE);
-	g_return_val_if_fail (BM_IS_ACT_REQUEST (req), FALSE);
-
-	connection = bm_act_request_get_connection (req);
-	g_assert (connection);
-	s_con = BM_SETTING_CONNECTION (bm_connection_get_setting (connection, BM_TYPE_SETTING_CONNECTION));
-	g_assert (s_con);
-
-	iface = bm_device_interface_get_iface (device);
-	bm_log_info (LOGD_DEVICE, "Activation (%s) starting connection '%s'", iface,
-			     bm_setting_connection_get_id (s_con));
-	g_free (iface);
-
-	success = BM_DEVICE_INTERFACE_GET_INTERFACE (device)->activate (device, req, error);
-	if (!success)
-		g_assert (*error);
-
-	return success;
-}
-
-gboolean
-bm_device_interface_disconnect (BMDeviceInterface *device,
-                                GError **error)
-{
-	gboolean success = FALSE;
-
-	g_return_val_if_fail (BM_IS_DEVICE_INTERFACE (device), FALSE);
-
-	switch (bm_device_interface_get_state (device)) {
-	case BM_DEVICE_STATE_UNKNOWN:
-	case BM_DEVICE_STATE_UNMANAGED:
-	case BM_DEVICE_STATE_UNAVAILABLE:
-	case BM_DEVICE_STATE_DISCONNECTED:
-		g_set_error_literal (error,
-		                     BM_DEVICE_INTERFACE_ERROR,
-		                     BM_DEVICE_INTERFACE_ERROR_NOT_ACTIVE,
-		                     "Cannot disconnect an inactive device.");
-		break;
-	default:
-		success = BM_DEVICE_INTERFACE_GET_INTERFACE (device)->disconnect (device, error);
-		break;
-	}
-
-	return success;
-}
-
-static void
-impl_device_disconnect (BMDeviceInterface *device,
-                        DBusGMethodInvocation *context)
-{
-	g_signal_emit_by_name (device, BM_DEVICE_INTERFACE_DISCONNECT_REQUEST, context);
-}
-
-void
-bm_device_interface_deactivate (BMDeviceInterface *device, BMDeviceStateReason reason)
-{
-	g_return_if_fail (BM_IS_DEVICE_INTERFACE (device));
-
-	BM_DEVICE_INTERFACE_GET_INTERFACE (device)->deactivate (device, reason);
-}
-
 BMDeviceState
 bm_device_interface_get_state (BMDeviceInterface *device)
 {
@@ -373,17 +289,6 @@ bm_device_interface_get_state (BMDeviceInterface *device)
 
 	g_object_get (G_OBJECT (device), "state", &state, NULL);
 	return state;
-}
-
-gboolean
-bm_device_interface_spec_match_list (BMDeviceInterface *device,
-                                     const GSList *specs)
-{
-	g_return_val_if_fail (BM_IS_DEVICE_INTERFACE (device), FALSE);
-
-	if (BM_DEVICE_INTERFACE_GET_INTERFACE (device)->spec_match_list)
-		return BM_DEVICE_INTERFACE_GET_INTERFACE (device)->spec_match_list (device, specs);
-	return FALSE;
 }
 
 BMConnection *

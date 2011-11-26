@@ -52,7 +52,7 @@ bm_sysconfig_settings_error_get_type (void)
 			{ 0, 0, 0 }
 		};
 
-		etype = g_enum_register_static ("NMSysconfigSettingsError", values);
+		etype = g_enum_register_static ("BMSysconfigSettingsError", values);
 	}
 
 	return etype;

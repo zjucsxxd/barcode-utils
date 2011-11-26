@@ -27,10 +27,6 @@
 #include <net/ethernet.h>
 
 #include "bm-device.h"
-#include "bm-ip4-config.h"
-#include "bm-setting-ip4-config.h"
-#include "bm-ip6-config.h"
-#include "bm-setting-ip6-config.h"
 #include "bm-connection.h"
 
 gboolean bm_ethernet_address_is_valid (const struct ether_addr *test_addr);
@@ -38,9 +34,6 @@ gboolean bm_ethernet_address_is_valid (const struct ether_addr *test_addr);
 int bm_spawn_process (const char *args);
 
 char *bm_ether_ntop (const struct ether_addr *mac);
-
-void bm_utils_merge_ip4_config (NMIP4Config *ip4_config, BMSettingIP4Config *setting);
-void bm_utils_merge_ip6_config (NMIP6Config *ip6_config, BMSettingIP6Config *setting);
 
 void bm_utils_call_dispatcher (const char *action,
                                BMConnection *connection,

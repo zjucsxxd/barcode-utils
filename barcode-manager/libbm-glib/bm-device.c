@@ -862,32 +862,3 @@ deactivate_cb (DBusGProxy *proxy,
 	g_slice_free (DeactivateInfo, info);
 }
 
-/**
- * bm_device_disconnect:
- * @device: a #BMDevice
- * @callback: callback to be called when disconnect operation completes
- * @user_data: caller-specific data passed to @callback
- *
- * Disconnects the device if currently connected, and prevents the device from
- * automatically connecting to networks until the next manual network connection
- * request.
- **/
-void
-bm_device_disconnect (BMDevice *device,
-                      BMDeviceDeactivateFn callback,
-                      gpointer user_data)
-{
-	DeactivateInfo *info;
-
-	g_return_if_fail (BM_IS_DEVICE (device));
-
-	info = g_slice_new (DeactivateInfo);
-	info->fn = callback;
-	info->user_data = user_data;
-	info->device = g_object_ref (device);
-
-	org_freedesktop_BarcodeManager_Device_disconnect_async (BM_DEVICE_GET_PRIVATE (device)->proxy,
-	                                                        deactivate_cb,
-	                                                        info);
-}
-

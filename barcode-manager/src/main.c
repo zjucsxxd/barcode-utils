@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* BarcodeManager -- Network link manager
+/* BarcodeManager -- barcode scanner manager
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2004 - 2010 Red Hat, Inc.
- * Copyright (C) 2005 - 2008 Novell, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #include <config.h>
@@ -39,17 +38,9 @@
 #include "BarcodeManager.h"
 #include "BarcodeManagerUtils.h"
 #include "bm-manager.h"
-#include "bm-policy.h"
 #include "bm-system.h"
-#include "bm-dns-manager.h"
 #include "bm-dbus-manager.h"
-#include "bm-supplicant-manager.h"
-#include "bm-dhcp-manager.h"
-#include "bm-hostname-provider.h"
-#include "bm-netlink-monitor.h"
-#include "bm-vpn-manager.h"
 #include "bm-logging.h"
-#include "bm-policy-hosts.h"
 
 #if !defined(BM_DIST_VERSION)
 # define BM_DIST_VERSION VERSION
@@ -63,7 +54,7 @@
 /*
  * Globals
  */
-static NMManager *manager = NULL;
+static BMManager *manager = NULL;
 static GMainLoop *main_loop = NULL;
 
 typedef struct {
@@ -72,73 +63,6 @@ typedef struct {
 	guint32 code;
 	guint32 count;
 } MonitorInfo;
-
-static gboolean
-detach_monitor (gpointer data)
-{
-	bm_log_warn (LOGD_HW, "detaching netlink event monitor");
-	bm_netlink_monitor_detach (BM_NETLINK_MONITOR (data));
-	return FALSE;
-}
-
-static void
-bm_error_monitoring_device_link_state (NMNetlinkMonitor *monitor,
-									   GError *error,
-									   gpointer user_data)
-{
-	MonitorInfo *info = (MonitorInfo *) user_data;
-	time_t now;
-
-	now = time (NULL);
-
-	if (   (info->domain != error->domain)
-	    || (info->code != error->code)
-	    || (info->time && now > info->time + 10)) {
-		/* FIXME: Try to handle the error instead of just printing it. */
-		bm_log_warn (LOGD_HW, "error monitoring device for netlink events: %s\n", error->message);
-
-		info->time = now;
-		info->domain = error->domain;
-		info->code = error->code;
-		info->count = 0;
-	}
-
-	info->count++;
-	if (info->count > 100) {
-		/* Broken drivers will sometimes cause a flood of netlink errors.
-		 * rh #459205, novell #443429, lp #284507
-		 */
-		bm_log_warn (LOGD_HW, "excessive netlink errors ocurred, disabling netlink monitor.");
-		bm_log_warn (LOGD_HW, "link change events will not be processed.");
-		g_idle_add_full (G_PRIORITY_HIGH, detach_monitor, monitor, NULL);
-	}
-}
-
-static gboolean
-bm_monitor_setup (GError **error)
-{
-	NMNetlinkMonitor *monitor;
-	MonitorInfo *info;
-
-	monitor = bm_netlink_monitor_get ();
-	if (!bm_netlink_monitor_open_connection (monitor, error)) {
-		g_object_unref (monitor);
-		return FALSE;
-	}
-
-	info = g_new0 (MonitorInfo, 1);
-	g_signal_connect_data (G_OBJECT (monitor), "error",
-						   G_CALLBACK (bm_error_monitoring_device_link_state),
-						   info,
-						   (GClosureNotify) g_free,
-						   0);
-	bm_netlink_monitor_attach (monitor);
-
-	/* Request initial status of cards */
-	bm_netlink_monitor_request_status (monitor, NULL);
-
-	return TRUE;
-}
 
 static gboolean quit_early = FALSE;
 
@@ -335,18 +259,10 @@ parse_config_file (const char *filename,
 
 static gboolean
 parse_state_file (const char *filename,
-                  gboolean *net_enabled,
-                  gboolean *wifi_enabled,
-                  gboolean *wwan_enabled,
                   GError **error)
 {
 	GKeyFile *state_file;
 	GError *tmp_error = NULL;
-	gboolean wifi, net, wwan;
-
-	g_return_val_if_fail (net_enabled != NULL, FALSE);
-	g_return_val_if_fail (wifi_enabled != NULL, FALSE);
-	g_return_val_if_fail (wwan_enabled != NULL, FALSE);
 
 	state_file = g_key_file_new ();
 	if (!state_file) {
@@ -381,11 +297,6 @@ parse_state_file (const char *filename,
 			}
 			g_free (dirname);
 
-			/* Write out the initial state to the state file */
-			g_key_file_set_boolean (state_file, "main", "NetworkingEnabled", *net_enabled);
-			g_key_file_set_boolean (state_file, "main", "WirelessEnabled", *wifi_enabled);
-			g_key_file_set_boolean (state_file, "main", "WWANEnabled", *wwan_enabled);
-
 			data = g_key_file_to_data (state_file, &len, NULL);
 			if (data)
 				ret = g_file_set_contents (filename, data, len, error);
@@ -400,32 +311,6 @@ parse_state_file (const char *filename,
 		/* Otherwise, file probably corrupt or inaccessible */
 		return FALSE;
 	}
-
-	/* Reading state bits of BarcodeManager; an error leaves the passed-in state
-	 * value unchanged.
-	 */
-	net = g_key_file_get_boolean (state_file, "main", "NetworkingEnabled", &tmp_error);
-	if (tmp_error)
-		g_set_error_literal (error, tmp_error->domain, tmp_error->code, tmp_error->message);
-	else
-		*net_enabled = net;
-	g_clear_error (&tmp_error);
-
-	wifi = g_key_file_get_boolean (state_file, "main", "WirelessEnabled", &tmp_error);
-	if (tmp_error) {
-		g_clear_error (error);
-		g_set_error_literal (error, tmp_error->domain, tmp_error->code, tmp_error->message);
-	} else
-		*wifi_enabled = wifi;
-	g_clear_error (&tmp_error);
-
-	wwan = g_key_file_get_boolean (state_file, "main", "WWANEnabled", &tmp_error);
-	if (tmp_error) {
-		g_clear_error (error);
-		g_set_error_literal (error, tmp_error->domain, tmp_error->code, tmp_error->message);
-	} else
-		*wwan_enabled = wwan;
-	g_clear_error (&tmp_error);
 
 	g_key_file_free (state_file);
 
@@ -446,14 +331,8 @@ main (int argc, char *argv[])
 	char *config = NULL, *plugins = NULL, *conf_plugins = NULL;
 	char *log_level = NULL, *log_domains = NULL;
 	char **dns = NULL;
-	gboolean wifi_enabled = TRUE, net_enabled = TRUE, wwan_enabled = TRUE;
 	gboolean success;
-	NMPolicy *policy = NULL;
-	NMVPNManager *vpn_manager = NULL;
-	NMDnsManager *dns_mgr = NULL;
 	NMDBusManager *dbus_mgr = NULL;
-	NMSupplicantManager *sup_mgr = NULL;
-	NMDHCPManager *dhcp_mgr = NULL;
 	GError *error = NULL;
 	gboolean wrote_pidfile = FALSE;
 	char *cfg_log_level = NULL, *cfg_log_domains = NULL;
@@ -467,8 +346,8 @@ main (int argc, char *argv[])
 		{ "plugins", 0, 0, G_OPTION_ARG_STRING, &plugins, "List of plugins separated by ','", "plugin1,plugin2" },
 		{ "log-level", 0, 0, G_OPTION_ARG_STRING, &log_level, "Log level: one of [ERR, WARN, INFO, DEBUG]", "INFO" },
 		{ "log-domains", 0, 0, G_OPTION_ARG_STRING, &log_domains,
-		        "Log domains separated by ',': any combination of [NONE,HW,RFKILL,ETHER,WIFI,BT,MB,DHCP4,DHCP6,PPP,WIFI_SCAN,IP4,IP6,AUTOIP4,DNS,VPN,SHARING,SUPPLICANT,USER_SET,SYS_SET,SUSPEND,CORE,DEVICE,OLPC]",
-		        "HW,RFKILL,WIFI" },
+		        "Log domains separated by ',': any combination of [NONE,HW,BT,USER_SET,SYS_SET,SUSPEND,CORE,DEVICE]",
+		        "HW" },
 		{NULL}
 	};
 
@@ -482,7 +361,7 @@ main (int argc, char *argv[])
 		exit (1);
 	}
 
-	bindtextdomain (GETTEXT_PACKAGE, NMLOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, BMLOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
 
@@ -494,7 +373,7 @@ main (int argc, char *argv[])
 	g_option_context_add_main_entries (opt_ctx, options, NULL);
 
 	g_option_context_set_summary (opt_ctx,
-		"BarcodeManager monitors all network connections and automatically\nchooses the best connection to use.  It also allows the user to\nspecify wireless access points which wireless cards in the computer\nshould associate with.");
+		"BarcodeManager monitors all barcode scanners automatically.");
 
 	success = g_option_context_parse (opt_ctx, &argc, &argv, NULL);
 	g_option_context_free (opt_ctx);
@@ -581,7 +460,7 @@ main (int argc, char *argv[])
 	g_free (conf_plugins);
 
 	/* Parse the state file */
-	if (!parse_state_file (state_file, &net_enabled, &wifi_enabled, &wwan_enabled, &error)) {
+	if (!parse_state_file (state_file, &error)) {
 		fprintf (stderr, "State file %s parsing failed: (%d) %s\n",
 		         state_file,
 		         error ? error->code : -1,
@@ -651,62 +530,15 @@ main (int argc, char *argv[])
 
 	main_loop = g_main_loop_new (NULL, FALSE);
 
-	/* Create watch functions that monitor cards for link status. */
-	if (!bm_monitor_setup (&error)) {
-		bm_log_err (LOGD_CORE, "failed to start monitoring devices: %s.",
-		            error && error->message ? error->message : "(unknown)");
-		goto done;
-	}
-
 	/* Initialize our DBus service & connection */
 	dbus_mgr = bm_dbus_manager_get ();
 
-	vpn_manager = bm_vpn_manager_get ();
-	if (!vpn_manager) {
-		bm_log_err (LOGD_CORE, "failed to start the VPN manager.");
-		goto done;
-	}
-
-	dns_mgr = bm_dns_manager_get ((const char **) dns);
-	if (!dns_mgr) {
-		bm_log_err (LOGD_CORE, "failed to start the DNS manager.");
-		goto done;
-	}
-
-	manager = bm_manager_get (config,
-	                          plugins,
-	                          state_file,
-	                          net_enabled,
-	                          wifi_enabled,
-	                          wwan_enabled,
-	                          &error);
+	manager = bm_manager_get (config, plugins, state_file, &error);
 	if (manager == NULL) {
-		bm_log_err (LOGD_CORE, "failed to initialize the network manager: %s",
+		bm_log_err (LOGD_CORE, "failed to initialize the barcode manager: %s",
 		          error && error->message ? error->message : "(unknown)");
 		goto done;
 	}
-
-	policy = bm_policy_new (manager, vpn_manager);
-	if (policy == NULL) {
-		bm_log_err (LOGD_CORE, "failed to initialize the policy.");
-		goto done;
-	}
-
-	/* Initialize the supplicant manager */
-	sup_mgr = bm_supplicant_manager_get ();
-	if (!sup_mgr) {
-		bm_log_err (LOGD_CORE, "failed to initialize the supplicant manager.");
-		goto done;
-	}
-
-	/* Initialize DHCP manager */
-	dhcp_mgr = bm_dhcp_manager_new (dhcp, &error);
-	if (!dhcp_mgr) {
-		bm_log_err (LOGD_CORE, "failed to start the DHCP manager: %s.", error->message);
-		goto done;
-	}
-
-	bm_dhcp_manager_set_hostname_provider (dhcp_mgr, BM_HOSTNAME_PROVIDER (manager));
 
 	/* Start our DBus service */
 	if (!bm_dbus_manager_start_service (dbus_mgr)) {
@@ -714,13 +546,7 @@ main (int argc, char *argv[])
 		goto done;
 	}
 
-	/* Clean leftover "# Added by BarcodeManager" entries from /etc/hosts */
-	bm_policy_hosts_clean_etc_hosts ();
-
 	bm_manager_start (manager);
-
-	/* Bring up the loopback interface. */
-	bm_system_enable_loopback ();
 
 	success = TRUE;
 
@@ -731,26 +557,8 @@ main (int argc, char *argv[])
 	g_main_loop_run (main_loop);
 
 done:
-	if (policy)
-		bm_policy_destroy (policy);
-
 	if (manager)
 		g_object_unref (manager);
-
-	if (vpn_manager)
-		g_object_unref (vpn_manager);
-
-	if (dns_mgr)
-		g_object_unref (dns_mgr);
-
-	if (dhcp_mgr)
-		g_object_unref (dhcp_mgr);
-
-	if (sup_mgr)
-		g_object_unref (sup_mgr);
-
-	if (dbus_mgr)
-		g_object_unref (dbus_mgr);
 
 	bm_logging_shutdown ();
 

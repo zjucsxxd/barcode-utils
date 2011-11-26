@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* BarcodeManager -- Network link manager
+/* BarcodeManager -- barcode scanner manager
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2008 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #ifndef BM_UDEV_MANAGER_H
@@ -27,8 +26,6 @@
 
 #define G_UDEV_API_IS_SUBJECT_TO_CHANGE
 #include <gudev/gudev.h>
-
-#include "bm-rfkill.h"
 
 G_BEGIN_DECLS
 
@@ -57,7 +54,6 @@ typedef struct {
 
 	void (*device_removed) (NMUdevManager *manager, GUdevDevice *device);
 
-	void (*rfkill_changed) (NMUdevManager *manager, RfKillType rtype, RfKillState state);
 } NMUdevManagerClass;
 
 GType bm_udev_manager_get_type (void);
@@ -65,8 +61,6 @@ GType bm_udev_manager_get_type (void);
 NMUdevManager *bm_udev_manager_new (void);
 
 void bm_udev_manager_query_devices (NMUdevManager *manager);
-
-RfKillState bm_udev_manager_get_rfkill_state (NMUdevManager *manager, RfKillType rtype);
 
 #endif /* BM_UDEV_MANAGER_H */
 
