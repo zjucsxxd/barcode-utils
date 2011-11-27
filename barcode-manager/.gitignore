@@ -1,5 +1,15 @@
 # generated stuff
 
+debian/libbm-glib2.postinst.debhelper
+debian/libbm-glib2.postrm.debhelper
+debian/libbm-util1.postinst.debhelper
+debian/libbm-util1.postrm.debhelper
+
+debian/files
+
+debian/libbm-util-dev
+debian/libbm-util1
+
 test/bm-online
 test/bm-tool
 
