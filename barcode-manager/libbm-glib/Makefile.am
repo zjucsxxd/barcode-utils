@@ -7,6 +7,7 @@ BUILT_SOURCES = \
 	bm-client-bindings.h \
 	bm-device-bindings.h \
 	bm-device-bt-bindings.h \
+	bm-device-hidraw-bindings.h \
 	bm-exported-connection-glue.h \
 	bm-exported-connection-bindings.h \
 	bm-settings-glue.h \
@@ -33,6 +34,7 @@ libbminclude_HEADERS = \
 	bm-client.h \
 	bm-device.h \
 	bm-device-bt.h \
+	bm-device-hidraw.h \
 	bm-serial-device.h \
 	bm-types.h \
 	bm-active-connection.h \
@@ -54,6 +56,7 @@ libbm_glib_la_SOURCES = \
 	bm-device.c \
 	bm-device-private.h \
 	bm-device-bt.c \
+	bm-device-hidraw.c \
 	bm-serial-device.c \
 	bm-types.c \
 	bm-types-private.h \
@@ -92,6 +95,9 @@ bm-client-bindings.h: $(top_srcdir)/introspection/bm-manager-client.xml
 
 bm-device-bindings.h: $(top_srcdir)/introspection/bm-device.xml
 	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device --mode=glib-client --output=$@ $<
+
+bm-device-hidraw-bindings.h: $(top_srcdir)/introspection/bm-device-hidraw.xml
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device_hidraw --mode=glib-client --output=$@ $<
 
 bm-device-bt-bindings.h: $(top_srcdir)/introspection/bm-device-bt.xml
 	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device_bt --mode=glib-client --output=$@ $<
