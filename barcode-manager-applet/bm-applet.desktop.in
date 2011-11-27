@@ -1,0 +1,12 @@
+[Desktop Entry]
+_Name=Barcode Manager
+_Comment=Control your barcode scanners
+Icon=bm-device-barcode
+Exec=bm-applet --sm-disable
+Terminal=false
+Type=Application
+OnlyShowIn=GNOME;XFCE;
+X-GNOME-Bugzilla-Bugzilla=GNOME
+X-GNOME-Bugzilla-Product=BarcodeManager
+X-GNOME-Bugzilla-Component=general
+X-GNOME-Autostart-enabled=true

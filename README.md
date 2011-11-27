@@ -8,7 +8,7 @@ Working:
 Work in progress:
 
 * [barcode-manager](barcode-utils/blob/master/barcode-manager): Barcode Scanning that just works.
-* [indicator-barcode](barcode-utils/blob/master/indicator-barcode): A barcode reader utility showing in the GNOME indicator bar.
+* [barcode-manager-applet](barcode-utils/blob/master/barcode-manager-applet): A barcode reader utility showing in the GNOME indicator bar.
 
 ## Tested Barcode Scanners
 

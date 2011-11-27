@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:gnome="http://api.gnome.org/doap-extensions#"
+         xmlns="http://usefulinc.com/ns/doap#">
+
+  <name xml:lang="en">barcode-manager-applet</name>
+  <shortdesc xml:lang="en">Applet for managing barcode scanners</shortdesc>
+
+  <homepage rdf:resource="http://github.com/koppi/barcode-utils" />
+  <download-page rdf:resource="http://ithub.com/koppi/barcode-utils" />
+  <bug-database rdf:resource="http://ithub.com/koppi/barcode-utils" />
+  <category rdf:resource="http://api.gnome.org/doap-extensions#development" />
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Jakob Flierl</foaf:name>
+      <foaf:mbox rdf:resource="mailto:jakob.flierl@gmail.com" />
+      <gnome:userid>koppi</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+</Project>
+

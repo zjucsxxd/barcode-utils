@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=me.koppi.indicator.barcode.agent
-Exec=@libexecdir@/indicator-barcode-agent
