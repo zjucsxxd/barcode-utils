@@ -117,7 +117,7 @@ impl_settings_list_connections (BMSettingsService *self,
 static BMSettingsConnectionInterface *
 get_connection_by_path (BMSettingsInterface *settings, const char *path)
 {
-	NMExportedConnection *connection = NULL;
+	BMExportedConnection *connection = NULL;
 	GSList *list = NULL, *iter;
 
 	list = list_connections (settings);
@@ -132,14 +132,14 @@ get_connection_by_path (BMSettingsInterface *settings, const char *path)
 	return (BMSettingsConnectionInterface *) connection;
 }
 
-NMExportedConnection *
+BMExportedConnection *
 bm_settings_service_get_connection_by_path (BMSettingsService *self,
                                             const char *path)
 {
 	g_return_val_if_fail (self != NULL, NULL);
 	g_return_val_if_fail (BM_IS_SETTINGS_SERVICE (self), NULL);
 
-	return (NMExportedConnection *) get_connection_by_path (BM_SETTINGS_INTERFACE (self), path);
+	return (BMExportedConnection *) get_connection_by_path (BM_SETTINGS_INTERFACE (self), path);
 }
 
 static gboolean

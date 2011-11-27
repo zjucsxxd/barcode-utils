@@ -1,6 +1,6 @@
 AC_PREREQ([2.63])
 AC_INIT([bm-applet],
-        [0.1.3.998],
+        [0.0.1],
         [https://github.com/koppi/barcode-utils],
         [barcode-manager-applet])
 
@@ -66,17 +66,20 @@ AC_C_BIGENDIAN
 
 PKG_CHECK_MODULES(GOBJECT, gobject-2.0)
 
-PKG_CHECK_MODULES(BMA,
+MY_PKG_CHECK_MODULES(BMA,
 		[dbus-glib-1 >= 0.74
 		 glib-2.0 >= 2.16
-		 BarcodeManager >= 0.8.3.995
-		 libbm-glib >= 0.8.3.995
-		 libbm-util >= 0.8.3.995
+		 BarcodeManager >= 0.0.1.1
+		 libbm-glib >= 0.0.1.1
+		 libbm-util >= 0.0.1.1
 		 gtk+-2.0 >= 2.14
 		 gmodule-export-2.0
 		 gconf-2.0
 		 gnome-keyring-1
 		 libnotify >= 0.4.3])
+
+AC_SUBST(BMA_CFLAGS)
+AC_SUBST(BMA_LIBS)
 
 # Check for dbus-1.2.6 or later for deny-by-default rules
 PKG_CHECK_MODULES(DBUS_126, [dbus-1 >= 1.2.6], [have_dbus_126=yes],[have_dbus_126=no])
@@ -129,7 +132,7 @@ if test x"$have_libnotify_07" = "xyes"; then
 	AC_DEFINE(HAVE_LIBNOTIFY_07, 1, [Define if you have libnotify 0.7 or later])
 fi
 
-AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
+AC_PATH_PROG(GLIB_GEBMARSHAL, glib-genmarshal)
 
 dnl GConf stuff
 AC_PATH_PROG(GCONFTOOL, gconftool-2)
@@ -138,7 +141,7 @@ AM_GCONF_SOURCE_2
 dnl
 dnl Compiler flags
 dnl
-BM_COMPILER_WARNINGS
+NM_COMPILER_WARNINGS
 # Use --enable-maintainer-mode to disabled deprecated symbols
 GNOME_MAINTAINER_MODE_DEFINES
 
@@ -150,7 +153,6 @@ src/marshallers/Makefile
 src/utils/Makefile
 src/utils/tests/Makefile
 src/gconf-helpers/Makefile
-src/wireless-security/Makefile
 src/connection-editor/Makefile
 src/gnome-bluetooth/Makefile
 icons/Makefile

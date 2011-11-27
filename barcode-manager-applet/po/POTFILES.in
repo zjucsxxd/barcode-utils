@@ -1,0 +1,28 @@
+[encoding: UTF-8]
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+bm-applet.desktop.in
+bm-applet.schemas.in
+bm-connection-editor.desktop.in
+src/applet-dbus-manager.c
+src/applet-device-bt.c
+src/applet-dialogs.c
+src/applet.c
+[type: gettext/glade]src/applet.ui
+src/applet.h
+src/connection-editor/ce-page.c
+[type: gettext/glade]src/connection-editor/ce-page-dsl.ui
+[type: gettext/glade]src/connection-editor/ce-page-ip4.ui
+[type: gettext/glade]src/connection-editor/ce-page-ip6.ui
+[type: gettext/glade]src/connection-editor/ce-page-mobile.ui
+[type: gettext/glade]src/connection-editor/ce-page-ppp.ui
+[type: gettext/glade]src/connection-editor/ce-page-wired.ui
+[type: gettext/glade]src/connection-editor/ce-page-wireless.ui
+[type: gettext/glade]src/connection-editor/ce-page-wireless-security.ui
+[type: gettext/glade]src/connection-editor/ce-vpn-wizard.ui
+src/connection-editor/page-ppp.c
+src/connection-editor/bm-connection-editor.c
+[type: gettext/glade]src/connection-editor/bm-connection-editor.ui
+src/connection-editor/bm-connection-list.c
+src/gnome-bluetooth/bt-widget.c
+src/main.c

@@ -1,0 +1,150 @@
+#!/usr/bin/make -f
+
+DEB_SOURCE := $(shell dpkg-parsechangelog | grep Source: | sed -e 's/Source: //')
+DEB_VERSION := $(shell dpkg-parsechangelog | grep Version: | sed -e 's/Version: //')
+DEB_UPSTREAM_VERSION := $(shell echo $(DEB_VERSION) | sed -e 's/-[^-]*$$//')
+DEB_MAJOR_VERSION := $(shell echo $(DEB_UPSTREAM_VERSION) | sed -e 's/git.*//')
+
+DEB_AUTO_UPDATE_LIBTOOL = pre
+DEB_AUTO_UPDATE_AUTOHEADER = 2.50
+DEB_AUTO_UPDATE_ACLOCAL = 1.11
+DEB_AUTO_UPDATE_AUTOMAKE = 1.11 -a -c -f
+DEB_AUTO_UPDATE_AUTOCONF = 2.50
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+include /usr/share/cdbs/1/class/gnome.mk
+
+DEB_CONFIGURE_EXTRA_FLAGS = \
+	--without-gnutls \
+	--with-nss \
+	--with-mbca \
+	--enable-indicator \
+	$(NULL)
+
+GIT_URL := git://github.com/koppi/barcode-utils.git
+GIT_BRANCH := "BMA_0_8"
+GIT_BRANCH_NAME := barcode-manager-applet
+
+ifneq (,$(LOCAL_BRANCH))
+LOCAL_REAL_BRANCH = $(realpath $(LOCAL_BRANCH))
+endif
+
+build/barcode-manager-gnome::
+	/usr/bin/docbook-to-man debian/bm-applet.sgml > debian/bm-applet.1
+
+common-binary-arch::
+	rm -rf debian/barcode-manager-gnome/usr/include/
+	# workaround for icon-changes
+	# dapper -> intrepid (?)
+	cp -f debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/bm-vpn-active-lock.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/bm-vpn-lock.png
+	cp -f debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/bm-device-wired.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/bm-device-wired-autoip.png
+	# karmic -> lucid
+	cp -f debian/icons/22/bm-active-device.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/
+	# natty fallback icons
+	cp -f debian/icons/22/bm-device-wired-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/
+	cp -f debian/icons/22/bm-signal-00-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/
+	ln -snf bm-signal-00.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-none.png
+	ln -snf bm-signal-00-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-none-secure.png
+	cp -f debian/icons/22/bm-signal-25-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/
+	ln -snf bm-signal-25.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-low.png
+	ln -snf bm-signal-25-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-low-secure.png
+	cp -f debian/icons/22/bm-signal-50-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/
+	ln -snf bm-signal-50.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-medium.png
+	ln -snf bm-signal-50-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-medium-secure.png
+	cp -f debian/icons/22/bm-signal-75-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/
+	ln -snf bm-signal-75.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-high.png
+	ln -snf bm-signal-75-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-high-secure.png
+	cp -f debian/icons/22/bm-signal-100-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/
+	ln -snf bm-signal-100.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-full.png
+	ln -snf bm-signal-100-secure.png \
+		debian/barcode-manager-gnome/usr/share/icons/hicolor/22x22/apps/gsm-3g-full-secure.png
+
+common-binary-post-install-arch::
+	find debian/barcode-manager-gnome/ -name \*.la -o -name \*.a | xargs rm > /dev/null || true
+
+clean::
+	rm -f po/*.gmo
+	rm -f debian/*.1
+	rm -f gtk-doc.make
+	echo "# empty file" > aclocal.m4
+	rm -f debian/icons/22/*.png
+
+pre-build::
+	intltoolize -f -c
+	set -e; cd debian/icons/22/; uudecode bm-secure-lock.png.uue
+	set -e; cd debian/icons/22/; uudecode bm-active-device.png.uue
+	set -e; cd debian/icons/22/; uudecode bm-device-wired-secure.png.uue
+	set -e; cd debian/icons/22/; uudecode bm-signal-00-secure.png.uue
+	set -e; cd debian/icons/22/; uudecode bm-signal-25-secure.png.uue
+	set -e; cd debian/icons/22/; uudecode bm-signal-50-secure.png.uue
+	set -e; cd debian/icons/22/; uudecode bm-signal-75-secure.png.uue
+	set -e; cd debian/icons/22/; uudecode bm-signal-100-secure.png.uue
+	cp -rf $(CURDIR)/debian/icons/22 icons/
+
+GET_SOURCE = \
+	set -e; \
+	tmpdir=`mktemp -d -t`; \
+	cd $$tmpdir; \
+		echo "cloning upstream repository ..."; \
+		git clone -b $(GIT_BRANCH) $(if $(LOCAL_BRANCH),$(call LOCAL_REAL_BRANCH)/$(GIT_BRANCH_NAME),$(GIT_URL)) $(GIT_BRANCH_NAME); \
+		echo "getting specific upstream revision/tag: $(1)"; \
+		cd `ls | head -n 1`; git checkout -b orig $(1); \
+		commit_id=`git log -n1 --abbrev-commit | grep '^commit ' | sed -e 's/commit //' | sed -e 's/\.\.\.$$//'`; \
+		raw=`date --utc --date="$$(git log --pretty=fuller -n1 --date=rfc | grep CommitDate: | sed -e 's/CommitDate:[^0-9]*//')" "+%Y%m%dt%H%M%S"`; \
+		if echo $(1) | grep -q -c "orig" || echo $(DEB_VERSION) | grep -q -c "git"; \
+		then \
+			upstream_version=$(DEB_MAJOR_VERSION)git.$$raw.$$commit_id; \
+		else \
+			upstream_version=$(DEB_UPSTREAM_VERSION); \
+		fi; \
+		cd ..; tar --exclude=.git -czf $(CURDIR)/$(DEB_SOURCE)_$$upstream_version.orig.tar.gz `ls | head -n 1`; \
+		cd $(CURDIR); rm -rf $$tmpdir; 
+
+get-current-source:: $(if $(LOCAL_BRANCH),update-local-branch)
+	set -e; if echo $(DEB_VERSION) | grep -q -c "git"; \
+	then \
+		git_version=`echo $(DEB_VERSION) | sed -e 's/^.*git\.*\([0-9t]*\)\.\(.*\)-.*$$/\2/g'`; \
+	elif echo $(DEB_VERSION) | grep -q -c "~rc"; \
+	then \
+		git_version=`echo $(DEB_VERSION) | sed -e 's/^\([0-9\.]*\)\(~rc\)\([0-9]\)-.*$$/\1-rc\3/'`; \
+	else \
+		git_version=$(DEB_UPSTREAM_VERSION); \
+	fi; \
+	$(call GET_SOURCE, $$git_version, "current")
+
+get-orig-source:: $(if $(LOCAL_BRANCH),update-local-branch)
+	$(call GET_SOURCE, "HEAD", "orig")
+
+update-local-branch::
+	@echo "updating local branch ($(LOCAL_BRANCH))"
+	@set -e; if ! test -d $(LOCAL_BRANCH); then mkdir -p $(LOCAL_BRANCH); fi
+	@set -e; if ! test -d $(LOCAL_BRANCH)/$(GIT_BRANCH_NAME); then git clone $(GIT_URL) $(LOCAL_BRANCH)/$(GIT_BRANCH_NAME); fi
+	@set -e; cd $(LOCAL_BRANCH)/$(GIT_BRANCH_NAME); if ! `git branch | grep -q -c "$(GIT_BRANCH)"`; then git branch $(GIT_BRANCH) remotes/origin/$(GIT_BRANCH); fi
+	@set -e; cd $(LOCAL_BRANCH)/$(GIT_BRANCH_NAME); git checkout $(GIT_BRANCH); git pull -f
+	@echo "updated local branch ($(LOCAL_BRANCH))"
+
+get-snapshot-info:: $(if $(LOCAL_BRANCH),update-local-branch)
+	@set -e; \
+	git_version=`echo $(DEB_VERSION) | sed -e 's/^.*git\.*\([0-9t]*\)\.\(.*\)-.*$$/\2/g'`; \
+	cd $(LOCAL_BRANCH)/$(GIT_BRANCH_NAME); \
+	raw=`date --utc --date="$$(git log --pretty=fuller -n1 --date=rfc $$git_version | grep CommitDate: | sed -e 's/CommitDate:[^0-9]*//')" "+%Y-%m-%d %H:%M:%S (GMT)"`; \
+	git log -n1 $$git_version --format="%n%s%n%n  * upstream snapshot $$raw%n    + %H%n";

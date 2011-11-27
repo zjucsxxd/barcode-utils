@@ -28,30 +28,30 @@
 G_BEGIN_DECLS
 
 #define BM_TYPE_EXPORTED_CONNECTION            (bm_exported_connection_get_type ())
-#define BM_EXPORTED_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_EXPORTED_CONNECTION, NMExportedConnection))
-#define BM_EXPORTED_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_EXPORTED_CONNECTION, NMExportedConnectionClass))
+#define BM_EXPORTED_CONNECTION(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_EXPORTED_CONNECTION, BMExportedConnection))
+#define BM_EXPORTED_CONNECTION_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_EXPORTED_CONNECTION, BMExportedConnectionClass))
 #define BM_IS_EXPORTED_CONNECTION(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_EXPORTED_CONNECTION))
 #define BM_IS_EXPORTED_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_EXPORTED_CONNECTION))
-#define BM_EXPORTED_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_EXPORTED_CONNECTION, NMExportedConnectionClass))
+#define BM_EXPORTED_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_EXPORTED_CONNECTION, BMExportedConnectionClass))
 
 typedef struct {
 	BMConnection parent;
-} NMExportedConnection;
+} BMExportedConnection;
 
 typedef struct {
 	BMConnectionClass parent;
 
-	GHashTable * (*get_settings) (NMExportedConnection *self,
+	GHashTable * (*get_settings) (BMExportedConnection *self,
 	                              GError **error);
 
-	void (*update) (NMExportedConnection *self,
+	void (*update) (BMExportedConnection *self,
 	                GHashTable *new_settings,
 	                DBusGMethodInvocation *context);
 
-	void (*delete) (NMExportedConnection *self,
+	void (*delete) (BMExportedConnection *self,
 	                DBusGMethodInvocation *context);
 
-	void (*get_secrets) (NMExportedConnection *self,
+	void (*get_secrets) (BMExportedConnection *self,
 	                     const gchar *setting_name,
 	                     const gchar **hints,
 	                     gboolean request_new,
@@ -64,11 +64,11 @@ typedef struct {
 	void (*_reserved4) (void);
 	void (*_reserved5) (void);
 	void (*_reserved6) (void);
-} NMExportedConnectionClass;
+} BMExportedConnectionClass;
 
 GType bm_exported_connection_get_type (void);
 
-NMExportedConnection *bm_exported_connection_new (BMConnectionScope scope);
+BMExportedConnection *bm_exported_connection_new (BMConnectionScope scope);
 
 G_END_DECLS
 

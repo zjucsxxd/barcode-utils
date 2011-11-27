@@ -1,0 +1,45 @@
+Source: barcode-manager-applet
+Section: gnome
+Priority: optional
+Maintainer: Jakob Flierl <jakob.flierl@gmail.com>
+Original-Maintainer: Jakob Flierl <jakob.flierl@gmail.com>
+Build-Depends: debhelper (>= 5.0.37),
+	automake1.9,
+	libtool,
+	cdbs,
+	libgnome-keyring-dev,
+	libgnomeui-dev,
+	libpanel-applet2-dev,
+	libglade2-dev,
+	libgconf2-dev,
+	barcode-manager-dev (>= 0.8.4~),
+	libbm-util-dev (>= 0.8.4~),
+	libbm-glib-dev (>= 0.8.4~),
+	libiw-dev,
+	libxml-parser-perl,
+	docbook-to-man,
+	quilt,
+	libnotify-dev,
+	gnome-common,
+	libnss3-dev,
+	libpolkit-gobject-1-dev,
+	intltool,
+	libgnome-bluetooth-dev,
+	libappindicator-dev,
+	sharutils
+Standards-Version: 3.9.1
+Homepage: http://github.com/koppi/barcode-utils
+Vcs-Git: git://github.com/koppi/barcode-utils.git
+
+Package: barcode-manager-gnome
+Architecture: any
+Depends: ${shlibs:Depends},
+	${misc:Depends},
+	barcode-manager (>= 0.8.4~),
+	gksu
+Recommends: notification-daemon
+Description: barcode scanner management framework (GNOME frontend)
+ This package contains a systray applet for GNOME's notification area but it
+ also works for other desktop environments which provide a systray like KDE
+ or XFCE.  It displays the available barcode scanners and allows to easily
+ switch between them.

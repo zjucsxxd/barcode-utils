@@ -46,8 +46,8 @@ typedef struct {
 typedef struct {
 	GObjectClass parent;
 
-	/* Returned list must contain all NMExportedConnection objects exported
-	 * by the settings service.  The list (but not the NMExportedConnection
+	/* Returned list must contain all BMExportedConnection objects exported
+	 * by the settings service.  The list (but not the BMExportedConnection
 	 * objects) will be freed by caller.
 	 */
 	GSList * (*list_connections) (BMSettingsService *self);
@@ -69,7 +69,7 @@ typedef struct {
 
 GType bm_settings_service_get_type (void);
 
-NMExportedConnection *bm_settings_service_get_connection_by_path (BMSettingsService *self,
+BMExportedConnection *bm_settings_service_get_connection_by_path (BMSettingsService *self,
                                                                   const char *path);
 
 void bm_settings_service_export (BMSettingsService *self);

@@ -34,11 +34,11 @@ G_BEGIN_DECLS
 #define BM_SYSCONFIG_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_SYSCONFIG_CONNECTION, NMSysconfigConnectionClass))
 
 typedef struct {
-	NMExportedConnection parent;
+	BMExportedConnection parent;
 } NMSysconfigConnection;
 
 typedef struct {
-	NMExportedConnectionClass parent;
+	BMExportedConnectionClass parent;
 } NMSysconfigConnectionClass;
 
 GType bm_sysconfig_connection_get_type (void);

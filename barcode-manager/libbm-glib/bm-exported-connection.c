@@ -28,18 +28,18 @@
 #include "bm-settings-interface.h"
 #include "bm-settings-connection-interface.h"
 
-static gboolean impl_exported_connection_get_settings (NMExportedConnection *connection,
+static gboolean impl_exported_connection_get_settings (BMExportedConnection *connection,
                                                        GHashTable **settings,
                                                        GError **error);
 
-static void impl_exported_connection_update (NMExportedConnection *connection,
+static void impl_exported_connection_update (BMExportedConnection *connection,
                                              GHashTable *new_settings,
                                              DBusGMethodInvocation *context);
 
-static void impl_exported_connection_delete (NMExportedConnection *connection,
+static void impl_exported_connection_delete (BMExportedConnection *connection,
                                              DBusGMethodInvocation *context);
 
-static void impl_exported_connection_get_secrets (NMExportedConnection *connection,
+static void impl_exported_connection_get_secrets (BMExportedConnection *connection,
                                                   const gchar *setting_name,
                                                   const gchar **hints,
                                                   gboolean request_new,
@@ -49,17 +49,17 @@ static void impl_exported_connection_get_secrets (NMExportedConnection *connecti
 
 static void settings_connection_interface_init (BMSettingsConnectionInterface *class);
 
-G_DEFINE_TYPE_EXTENDED (NMExportedConnection, bm_exported_connection, BM_TYPE_CONNECTION, 0,
+G_DEFINE_TYPE_EXTENDED (BMExportedConnection, bm_exported_connection, BM_TYPE_CONNECTION, 0,
                         G_IMPLEMENT_INTERFACE (BM_TYPE_SETTINGS_CONNECTION_INTERFACE,
                                                settings_connection_interface_init))
 
 #define BM_EXPORTED_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), \
                                                BM_TYPE_EXPORTED_CONNECTION, \
-                                               NMExportedConnectionPrivate))
+                                               BMExportedConnectionPrivate))
 
 typedef struct {
 	gboolean foo;
-} NMExportedConnectionPrivate;
+} BMExportedConnectionPrivate;
 
 
 /**************************************************************/
@@ -68,7 +68,7 @@ typedef struct {
 #define CONNECTION_TIMESTAMP_TAG "timestamp-tag"
 
 static GHashTable *
-real_get_settings (NMExportedConnection *self, GError **error)
+real_get_settings (BMExportedConnection *self, GError **error)
 {
 	BMConnection *no_secrets;
 	GHashTable *settings;
@@ -139,7 +139,7 @@ check_writable (BMConnection *connection, GError **error)
 }
 
 static gboolean
-impl_exported_connection_get_settings (NMExportedConnection *self,
+impl_exported_connection_get_settings (BMExportedConnection *self,
                                        GHashTable **settings,
                                        GError **error)
 {
@@ -162,7 +162,7 @@ update (BMSettingsConnectionInterface *connection,
 }
 
 static void
-impl_exported_connection_update (NMExportedConnection *self,
+impl_exported_connection_update (BMExportedConnection *self,
                                  GHashTable *new_settings,
                                  DBusGMethodInvocation *context)
 {
@@ -213,7 +213,7 @@ do_delete (BMSettingsConnectionInterface *connection,
 }
 
 static void
-impl_exported_connection_delete (NMExportedConnection *self,
+impl_exported_connection_delete (BMExportedConnection *self,
                                  DBusGMethodInvocation *context)
 {
 	GError *error = NULL;
@@ -236,7 +236,7 @@ impl_exported_connection_delete (NMExportedConnection *self,
 }
 
 static void
-impl_exported_connection_get_secrets (NMExportedConnection *self,
+impl_exported_connection_get_secrets (BMExportedConnection *self,
                                       const gchar *setting_name,
                                       const gchar **hints,
                                       gboolean request_new,
@@ -272,25 +272,25 @@ settings_connection_interface_init (BMSettingsConnectionInterface *iface)
  *
  * Returns: the new exported connection object on success, or %NULL on failure
  **/
-NMExportedConnection *
+BMExportedConnection *
 bm_exported_connection_new (BMConnectionScope scope)
 {
 	g_return_val_if_fail (scope != BM_CONNECTION_SCOPE_UNKNOWN, NULL);
 
-	return (NMExportedConnection *) g_object_new (BM_TYPE_EXPORTED_CONNECTION,
+	return (BMExportedConnection *) g_object_new (BM_TYPE_EXPORTED_CONNECTION,
 	                                              BM_CONNECTION_SCOPE, scope,
 	                                              NULL);
 }
 
 static void
-bm_exported_connection_init (NMExportedConnection *self)
+bm_exported_connection_init (BMExportedConnection *self)
 {
 }
 
 static void
-bm_exported_connection_class_init (NMExportedConnectionClass *class)
+bm_exported_connection_class_init (BMExportedConnectionClass *class)
 {
-	g_type_class_add_private (class, sizeof (NMExportedConnectionPrivate));
+	g_type_class_add_private (class, sizeof (BMExportedConnectionPrivate));
 
 	/* Virtual methods */
 	class->get_settings = real_get_settings;

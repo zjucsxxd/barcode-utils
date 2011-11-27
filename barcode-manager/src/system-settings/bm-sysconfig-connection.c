@@ -379,7 +379,7 @@ out:
 }
 
 static void
-dbus_update (NMExportedConnection *exported,
+dbus_update (BMExportedConnection *exported,
              GHashTable *new_settings,
              DBusGMethodInvocation *context)
 {
@@ -482,7 +482,7 @@ out:
 }
 
 static void
-dbus_delete (NMExportedConnection *exported,
+dbus_delete (BMExportedConnection *exported,
              DBusGMethodInvocation *context)
 {
 	NMSysconfigConnection *self = BM_SYSCONFIG_CONNECTION (exported);
@@ -577,7 +577,7 @@ out:
 }
 
 static void
-dbus_get_secrets (NMExportedConnection *exported,
+dbus_get_secrets (BMExportedConnection *exported,
                   const gchar *setting_name,
                   const gchar **hints,
                   gboolean request_new,
@@ -650,7 +650,7 @@ static void
 bm_sysconfig_connection_class_init (NMSysconfigConnectionClass *class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (class);
-	NMExportedConnectionClass *ec_class = BM_EXPORTED_CONNECTION_CLASS (class);
+	BMExportedConnectionClass *ec_class = BM_EXPORTED_CONNECTION_CLASS (class);
 
 	g_type_class_add_private (class, sizeof (NMSysconfigConnectionPrivate));
 
