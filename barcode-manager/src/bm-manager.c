@@ -31,6 +31,7 @@
 #include "bm-logging.h"
 #include "bm-dbus-manager.h"
 #include "bm-device-bt.h"
+#include "bm-device-hidraw.h"
 #include "bm-system.h"
 #include "bm-properties-changed-signal.h"
 #include "bm-setting-bluetooth.h"
@@ -56,6 +57,16 @@ static gboolean impl_manager_set_logging (BMManager *manager,
 
 #include "bm-manager-glue.h"
 
+static void udev_device_added_cb (BMUdevManager *udev_mgr,
+                                  GUdevDevice *device,
+                                  BMDeviceCreatorFn creator_fn,
+                                  gpointer user_data);
+
+static void udev_device_removed_cb (BMUdevManager *udev_mgr,
+                                    GUdevDevice *device,
+                                    gpointer user_data);
+
+static void add_device (BMManager *self, BMDevice *device);
 
 static const char *internal_activate_device (BMManager *manager,
                                              BMDevice *device,
@@ -226,8 +237,9 @@ remove_one_device (BMManager *manager,
 
 		if (   !bm_device_interface_can_assume_connections (BM_DEVICE_INTERFACE (device))
 		    || (bm_device_get_state (device) != BM_DEVICE_STATE_ACTIVATED)
-		    || !quitting)
-			bm_device_set_managed (device, FALSE, BM_DEVICE_STATE_REASON_REMOVED);
+			   || !quitting) {
+			// bm_device_set_managed (device, FALSE, BM_DEVICE_STATE_REASON_REMOVED);
+		}
 	}
 
 	bm_sysconfig_settings_device_removed (priv->sys_settings, device);
@@ -948,7 +960,14 @@ bm_manager_get (const char *config_file,
 
 	priv->udev_mgr = bm_udev_manager_new ();
 
-	// FIXME device added cb
+    g_signal_connect (priv->udev_mgr,
+                      "device-added",
+                      G_CALLBACK (udev_device_added_cb),
+                      singleton);
+    g_signal_connect (priv->udev_mgr,
+                      "device-removed",
+                      G_CALLBACK (udev_device_removed_cb),
+                      singleton);
 
 	return singleton;
 }
@@ -1209,6 +1228,8 @@ manager_sleeping (BMManager *self)
 {
     BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
 
+	bm_log_dbg(LOGD_CORE, "%s", (priv->sleeping || !priv->net_enabled) ? "true" : "false");
+
     if (priv->sleeping || !priv->net_enabled)
         return TRUE;
     return FALSE;
@@ -1436,5 +1457,141 @@ impl_manager_get_devices (BMManager *manager, GPtrArray **devices, GError **err)
         g_ptr_array_add (*devices, g_strdup (bm_device_get_path (BM_DEVICE (iter->data))));
 
     return TRUE;
+}
+
+static BMDevice *
+find_device_by_iface (BMManager *self, const gchar *iface)
+{
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+    GSList *iter;
+
+    for (iter = priv->devices; iter; iter = g_slist_next (iter)) {
+        BMDevice *device = BM_DEVICE (iter->data);
+        const gchar *d_iface = bm_device_get_iface (device);
+        if (!strcmp (d_iface, iface))
+            return device;
+    }
+
+    return NULL;
+}
+
+static void
+manager_device_state_changed (BMDevice *device,
+                              BMDeviceState new_state,
+                              BMDeviceState old_state,
+                              BMDeviceStateReason reason,
+                              gpointer user_data)
+{
+    BMManager *manager = BM_MANAGER (user_data);
+
+    switch (new_state) {
+    case BM_DEVICE_STATE_UNMANAGED:
+    case BM_DEVICE_STATE_UNAVAILABLE:
+    case BM_DEVICE_STATE_DISCONNECTED:
+    case BM_DEVICE_STATE_PREPARE:
+    case BM_DEVICE_STATE_FAILED:
+        g_object_notify (G_OBJECT (manager), BM_MANAGER_ACTIVE_CONNECTIONS);
+        break;
+    default:
+        break;
+    }
+
+    bm_manager_update_state (manager);
+
+    if (new_state == BM_DEVICE_STATE_ACTIVATED) {
+        // TODO update_active_connection_timestamp (manager, device);
+	}
+}
+
+static void
+add_device (BMManager *self, BMDevice *device)
+{
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+    const char *iface, *driver, *type_desc;
+    char *path;
+    static guint32 devcount = 0;
+    const GSList *unmanaged_specs;
+    BMConnection *existing = NULL;
+    GHashTableIter iter;
+    gpointer value;
+    gboolean managed = FALSE, enabled = FALSE;
+
+    iface = bm_device_get_iface (device);
+    g_assert (iface);
+
+    bm_log_info (LOGD_HW, "%s new device", iface);
+
+	/* FIXME more checks here
+    if (!BM_IS_DEVICE_MODEM (device) && find_device_by_iface (self, iface)) {
+        g_object_unref (device);
+        return;
+		}*/
+
+    priv->devices = g_slist_append (priv->devices, device);
+
+    g_signal_connect (device, "state-changed",
+                      G_CALLBACK (manager_device_state_changed),
+                      self);
+
+	/* WE dont support disconnect reqeusts right now.
+    g_signal_connect (device, BM_DEVICE_INTERFACE_DISCONNECT_REQUEST,
+                      G_CALLBACK (manager_device_disconnect_request),
+                      self);*/
+
+    type_desc = bm_device_get_type_desc (device);
+    g_assert (type_desc);
+    driver = bm_device_get_driver (device);
+    if (!driver)
+        driver = "unknown";
+
+    bm_log_info (LOGD_HW, "(%s): new %s device (driver: '%s')",
+                 iface, type_desc, driver);
+
+    path = g_strdup_printf ("/org/freedesktop/BarcodeManager/Devices/%d", devcount++);
+    bm_device_set_path (device, path);
+    dbus_g_connection_register_g_object (bm_dbus_manager_get_connection (priv->dbus_mgr),
+                                         path,
+                                         G_OBJECT (device));
+    bm_log_info (LOGD_CORE, "(%s): exported as %s", iface, path);
+    g_free (path);
+
+    bm_sysconfig_settings_device_added (priv->sys_settings, device);
+    g_signal_emit (self, signals[DEVICE_ADDED], 0, device);
+
+	// FIXME process states here
+}
+
+static void
+udev_device_added_cb (BMUdevManager *udev_mgr,
+                      GUdevDevice *udev_device,
+                      BMDeviceCreatorFn creator_fn,
+                      gpointer user_data)
+{
+    BMManager *self = BM_MANAGER (user_data);
+    GObject *device;
+
+    device = creator_fn (udev_mgr, udev_device, manager_sleeping (self));
+
+    if (device) {
+		bm_log_dbg (LOGD_HW, "processing..");
+        add_device (self, BM_DEVICE (device));
+	} else {
+		bm_log_dbg (LOGD_HW, "skipping..");
+	}
+}
+
+static void
+udev_device_removed_cb (BMUdevManager *manager,
+                        GUdevDevice *udev_device,
+                        gpointer user_data)
+{
+    BMManager *self = BM_MANAGER (user_data);
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+    BMDevice *device;
+
+	device = find_device_by_iface (self, g_udev_device_get_name (udev_device));
+
+    if (device)
+        priv->devices = remove_one_device (self, priv->devices, device, FALSE);
 }
 

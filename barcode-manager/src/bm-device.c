@@ -66,7 +66,6 @@ typedef struct {
 	char *        udi;
 	char *        path;
 	char *        iface;   /* may change, could be renamed by user */
-	int           ifindex;
 	BMDeviceType  type;
 	char *        type_desc;
 	guint32       capabilities;
@@ -108,8 +107,10 @@ constructor (GType type,
 	BMDevicePrivate *priv;
 
 	// FIXME object = G_OBJECT_CLASS (bm_device_parent_class)->constructor (type, n_construct_params, construct_params);
-	if (!object)
+	if (!object) {
+		 bm_log_warn (LOGD_DEVICE, "Device unsupported, ignoring.");
 		return NULL;
+	}
 
 	dev = BM_DEVICE (object);
 	priv = BM_DEVICE_GET_PRIVATE (dev);
@@ -165,6 +166,8 @@ bm_device_get_path (BMDevice *self)
 {
 	g_return_val_if_fail (self != NULL, NULL);
 
+	bm_log_dbg (LOGD_CORE, "bm_device_get_path %s", BM_DEVICE_GET_PRIVATE (self)->path);
+
 	return BM_DEVICE_GET_PRIVATE (self)->path;
 }
 
@@ -177,14 +180,6 @@ bm_device_get_iface (BMDevice *self)
 	g_return_val_if_fail (self != NULL, NULL);
 
 	return BM_DEVICE_GET_PRIVATE (self)->iface;
-}
-
-int
-bm_device_get_ifindex (BMDevice *self)
-{
-	g_return_val_if_fail (self != NULL, 0);
-
-	return BM_DEVICE_GET_PRIVATE (self)->ifindex;
 }
 
 /*
@@ -331,14 +326,7 @@ set_property (GObject *object, guint prop_id,
 	switch (prop_id) {
 	case BM_DEVICE_INTERFACE_PROP_IFACE:
 		g_free (priv->iface);
-		priv->ifindex = 0;
 		priv->iface = g_value_dup_string (value);
-		if (priv->iface) {
-			priv->ifindex = bm_netlink_iface_to_index (priv->iface);
-			if (priv->ifindex < 0) {
-				bm_log_warn (LOGD_HW, "(%s): failed to look up interface index", priv->iface);
-			}
-		}
 		break;
 	case BM_DEVICE_INTERFACE_PROP_DRIVER:
 		priv->driver = g_strdup (g_value_get_string (value));
@@ -372,9 +360,6 @@ get_property (GObject *object, guint prop_id,
 	switch (prop_id) {
 	case BM_DEVICE_INTERFACE_PROP_IFACE:
 		g_value_set_string (value, priv->iface);
-		break;
-	case BM_DEVICE_INTERFACE_PROP_IFINDEX:
-		g_value_set_int (value, priv->ifindex);
 		break;
 	case BM_DEVICE_INTERFACE_PROP_DRIVER:
 		g_value_set_string (value, priv->driver);
@@ -418,10 +403,6 @@ bm_device_class_init (BMDeviceClass *klass)
 	g_object_class_override_property (object_class,
 									  BM_DEVICE_INTERFACE_PROP_IFACE,
 									  BM_DEVICE_INTERFACE_IFACE);
-
-	g_object_class_override_property (object_class,
-	                                  BM_DEVICE_INTERFACE_PROP_IFINDEX,
-	                                  BM_DEVICE_INTERFACE_IFINDEX);
 
 	g_object_class_override_property (object_class,
 									  BM_DEVICE_INTERFACE_PROP_DRIVER,

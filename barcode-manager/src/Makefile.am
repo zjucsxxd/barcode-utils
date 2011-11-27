@@ -34,6 +34,8 @@ BarcodeManager_SOURCES = \
 		bm-device-private.h \
 		bm-device-bt.c \
 		bm-device-bt.h \
+		bm-device-hidraw.c \
+		bm-device-hidraw.h \
 		bm-dbus-manager.h \
 		bm-dbus-manager.c \
 		bm-udev-manager.c \
@@ -59,10 +61,14 @@ bm-device-interface-glue.h: $(top_srcdir)/introspection/bm-device.xml
 bm-device-bt-glue.h: $(top_srcdir)/introspection/bm-device-bt.xml
 	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device_bt --mode=glib-server --output=$@ $<
 
+bm-device-hidraw-glue.h: $(top_srcdir)/introspection/bm-device-hidraw.xml
+	$(AM_V_GEN) dbus-binding-tool --prefix=bm_device_hidraw --mode=glib-server --output=$@ $<
+
 BUILT_SOURCES = \
 	bm-manager-glue.h \
 	bm-device-interface-glue.h \
-	bm-device-bt-glue.h
+	bm-device-bt-glue.h \
+	bm-device-hidraw-glue.h
 
 BarcodeManager_CPPFLAGS = \
 	$(DBUS_CFLAGS) \

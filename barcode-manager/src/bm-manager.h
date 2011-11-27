@@ -41,6 +41,8 @@ G_BEGIN_DECLS
 
 #define BM_MANAGER_NETWORKING_ENABLED "networking-enabled"
 
+#define BM_MANAGER_ACTIVE_CONNECTIONS "active-connections"
+
 typedef struct {
 	GObject parent;
 } BMManager;

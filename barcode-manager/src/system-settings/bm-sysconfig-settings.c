@@ -1264,3 +1264,19 @@ bm_sysconfig_settings_init (BMSysconfigSettings *self)
 	}
 }
 
+void
+bm_sysconfig_settings_device_removed (BMSysconfigSettings *self, BMDevice *device)
+{
+    // BMDefaultWiredConnection *connection;
+
+	bm_log_dbg(LOGD_SYS_SET, "");
+
+	// FIXME remove connection here
+
+}
+
+void
+bm_sysconfig_settings_device_added (BMSysconfigSettings *self, BMDevice *device)
+{
+	bm_log_dbg(LOGD_SYS_SET, "");
+}

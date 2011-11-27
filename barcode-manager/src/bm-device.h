@@ -69,7 +69,6 @@ const char *    bm_device_get_path (BMDevice *dev);
 void            bm_device_set_path (BMDevice *dev, const char *path);
 
 const char *	bm_device_get_iface		(BMDevice *dev);
-int             bm_device_get_ifindex	(BMDevice *dev);
 const char *	bm_device_get_driver	(BMDevice *dev);
 const char *	bm_device_get_type_desc (BMDevice *dev);
 

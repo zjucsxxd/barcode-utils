@@ -3,6 +3,7 @@ EXTRA_DIST = \
 	generic-types.xml \
 	errors.xml \
 	bm-device-bt.xml \
+	bm-device-hidraw.xml \
 	bm-device-serial.xml \
 	bm-device.xml \
 	bm-manager.xml \

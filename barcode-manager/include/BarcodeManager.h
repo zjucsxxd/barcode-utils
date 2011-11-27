@@ -68,7 +68,7 @@ typedef enum BMDeviceType
 {
 	BM_DEVICE_TYPE_UNKNOWN = 0,
 	BM_DEVICE_TYPE_SERIAL,
-	BM_DEVICE_TYPE_USB,
+	BM_DEVICE_TYPE_HIDRAW, /* HIDRAW USB */
 	BM_DEVICE_TYPE_BT  /* Bluetooth */
 } BMDeviceType;
 
@@ -94,6 +94,22 @@ typedef enum {
 	BM_BT_CAPABILITY_DUN  = 0x00000001,
 	BM_BT_CAPABILITY_NAP  = 0x00000002,
 } BMBluetoothCapabilities;
+
+
+/**
+ * BMHidrawCapabilities:
+ * @BM_HIDRAW_CAPABILITY_NONE: device has no usable capabilities
+ * @BM_HIDRAW_CAPABILITY_DUN:  device provides Dial-Up Networking capability
+ * @BM_HIDRAW_CAPABILITY_PAN:  device provides Personal Area Networking capability
+ *
+ * #BMHidrawCapabilities values indicate the usable capabilities of a
+ * Hidraw device.
+ */
+typedef enum {
+	BM_HIDRAW_CAPABILITY_NONE = 0x00000000,
+	BM_HIDRAW_CAPABILITY_DUN  = 0x00000001,
+	BM_HIDRAW_CAPABILITY_NAP  = 0x00000002,
+} BMHidrawCapabilities;
 
 
 /*

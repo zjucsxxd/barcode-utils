@@ -30,6 +30,8 @@
 #include <gudev/gudev.h>
 
 #include "bm-udev-manager.h"
+#include "bm-device-bt.h"
+#include "bm-device-hidraw.h"
 #include "bm-marshal.h"
 #include "bm-logging.h"
 #include "BarcodeManagerUtils.h"
@@ -67,18 +69,21 @@ device_creator (BMUdevManager *manager,
 	GObject *device = NULL;
 	const char *ifname, *driver, *path, *subsys;
 	GUdevDevice *parent = NULL, *grandparent = NULL;
-	gint ifindex;
 
 	ifname = g_udev_device_get_name (udev_device);
 	g_assert (ifname);
 
+	bm_log_dbg(LOGD_HW, "processing %s", ifname);
+
 	path = g_udev_device_get_sysfs_path (udev_device);
+
 	if (!path) {
 		bm_log_warn (LOGD_HW, "couldn't determine device path; ignoring...");
 		return NULL;
 	}
 
 	driver = g_udev_device_get_driver (udev_device);
+
 	if (!driver) {
 		/* Try the parent */
 		parent = g_udev_device_get_parent (udev_device);
@@ -99,20 +104,66 @@ device_creator (BMUdevManager *manager,
 	if (!driver) {
 		bm_log_warn (LOGD_HW, "%s: couldn't determine device driver; ignoring...", path);
 		goto out;
+	} else {
+		bm_log_dbg(LOGD_HW, "device driver: %s for %s", driver, path);
 	}
 
-	ifindex = g_udev_device_get_sysfs_attr_as_int (udev_device, "ifindex");
-	if (ifindex <= 0) {
-		bm_log_warn (LOGD_HW, "%s: device had invalid ifindex %d; ignoring...", path, (guint32) ifindex);
-		goto out;
-	}
+	device = (GObject *) bm_device_hidraw_new (path, ifname, driver);
 
 out:
 	if (grandparent)
 		g_object_unref (grandparent);
 	if (parent)
 		g_object_unref (parent);
+
 	return device;
+}
+
+static void
+udev_add (BMUdevManager *self, GUdevDevice *device)
+{
+    gint etype;
+    const char *iface;
+    const char *devtype;
+
+    g_return_if_fail (device != NULL);
+	
+    etype = g_udev_device_get_sysfs_attr_as_int (device, "type");
+    if (etype != 0) {
+        bm_log_dbg (LOGD_HW, "ignoring interface with type %d", etype);
+        return; /* Not using ethernet encapsulation, don't care */
+    } else {
+        bm_log_dbg (LOGD_HW, "processing interface with type %d", etype);
+	}
+
+    /* Not all ethernet devices are immediately usable; newer mobile broadband
+     * devices (Ericsson, Option, Sierra) require setup on the tty before the
+     * ethernet device is usable.  2.6.33 and later kernels set the 'DEVTYPE'
+     * uevent variable which we can use to ignore the interface as a BMDevice
+     * subclass.  ModemManager will pick it up though and so we'll handle it
+     * through the mobile broadband stuff.
+     */
+    devtype = g_udev_device_get_property (device, "DEVTYPE");
+    if (devtype && !strcmp (devtype, "wwan")) {
+        bm_log_dbg (LOGD_HW, "ignoring interface with devtype '%s'", devtype);
+        return;
+    }
+
+    iface = g_udev_device_get_name (device);
+    if (!iface) {
+        bm_log_dbg (LOGD_HW, "failed to get device's interface");
+        return;
+    }
+
+    g_signal_emit (self, signals[DEVICE_ADDED], 0, device, device_creator);
+}
+
+static void
+udev_remove (BMUdevManager *self, GUdevDevice *device)
+{
+	bm_log_dbg (LOGD_HW, "processing interface with type %s", g_udev_device_get_property (device, "DEVTYPE"));
+
+	g_signal_emit (self, signals[DEVICE_REMOVED], 0, device);
 }
 
 void
@@ -126,7 +177,7 @@ bm_udev_manager_query_devices (BMUdevManager *self)
 
 	devices = g_udev_client_query_by_subsystem (priv->client, "hidraw");
 	for (iter = devices; iter; iter = g_list_next (iter)) {
-		// net_add (self, G_UDEV_DEVICE (iter->data));
+		udev_add (self, G_UDEV_DEVICE (iter->data));
 		g_object_unref (G_UDEV_DEVICE (iter->data));
 	}
 	g_list_free (devices);
@@ -149,6 +200,12 @@ handle_uevent (GUdevClient *client,
 
 	bm_log_dbg (LOGD_HW, "UDEV event: action '%s' subsys '%s' device '%s'",
 	            action, subsys, g_udev_device_get_name (device));
+
+	if (!strcmp (action, "add")) {
+		udev_add (self, device);
+	} else if (!strcmp (action, "remove")) {
+		udev_remove (self, device);
+	}
 }
 
 static void

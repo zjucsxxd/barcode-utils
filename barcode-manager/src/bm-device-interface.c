@@ -190,14 +190,6 @@ bm_device_interface_init (gpointer g_iface)
 							  NULL,
 							  G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | BM_PROPERTY_PARAM_NO_EXPORT));
 
-	g_object_interface_install_property
-		(g_iface,
-		 g_param_spec_int (BM_DEVICE_INTERFACE_IFINDEX,
-							"Ifindex",
-							"Ifindex",
-							0, G_MAXINT, 0,
-							G_PARAM_READABLE | BM_PROPERTY_PARAM_NO_EXPORT));
-
 	/* Signals */
 	g_signal_new ("state-changed",
 				  iface_type,
