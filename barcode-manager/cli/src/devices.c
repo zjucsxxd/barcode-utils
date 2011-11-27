@@ -31,24 +31,10 @@
 
 #include <bm-client.h>
 #include <bm-device.h>
-#include <bm-device-ethernet.h>
-#include <bm-device-wifi.h>
-#include <bm-gsm-device.h>
-#include <bm-cdma-device.h>
 #include <bm-device-bt.h>
-//#include <bm-device-olpc-mesh.h>
 #include <bm-utils.h>
-#include <bm-setting-ip4-config.h>
-#include <bm-setting-ip6-config.h>
-#include <bm-vpn-connection.h>
 #include <bm-setting-connection.h>
-#include <bm-setting-wired.h>
-#include <bm-setting-pppoe.h>
-#include <bm-setting-wireless.h>
-#include <bm-setting-gsm.h>
-#include <bm-setting-cdma.h>
 #include <bm-setting-bluetooth.h>
-#include <bm-setting-olpc-mesh.h>
 
 #include "utils.h"
 #include "devices.h"
@@ -110,9 +96,6 @@ static void usage (void);
 static const char *device_state_to_string (BMDeviceState state);
 static BMCResultCode do_devices_status (BmCli *bmc, int argc, char **argv);
 static BMCResultCode do_devices_list (BmCli *bmc, int argc, char **argv);
-static BMCResultCode do_device_disconnect (BmCli *bmc, int argc, char **argv);
-static BMCResultCode do_device_wifi (BmCli *bmc, int argc, char **argv);
-
 
 extern GMainLoop *loop;   /* glib main loop variable */
 
@@ -121,7 +104,7 @@ usage (void)
 {
 	fprintf (stderr,
 	 	 _("Usage: bmcli dev { COMMAND | help }\n\n"
-		 "  COMMAND := { status | list | disconnect | wifi }\n\n"
+		 "  COMMAND := { status | list | wifi }\n\n"
 		 "  status\n"
 		 "  list [iface <iface>]\n"
 		 "  disconnect iface <iface> [--nowait] [--timeout <timeout>]\n"
@@ -166,9 +149,9 @@ device_state_to_string (BMDeviceState state)
 static const char *
 get_device_type ( BMDevice * device)
 {
-        if (BM_IS_USB_DEVICE (device))
-		return BM_SETTING_USB_SETTING_NAME;
-	else if (BM_IS_DEVICE_BT (device))
+  // FIXME if (BM_IS_USB_DEVICE (device))
+	  //	return BM_SETTING_USB_SETTING_NAME;
+	if (BM_IS_DEVICE_BT (device))
 		return BM_SETTING_BLUETOOTH_SETTING_NAME;
 	else
 		return _("Unknown");
@@ -244,11 +227,6 @@ show_device_info (gpointer data, gpointer user_data)
 			bmc->print_fields.flags = multiline_flag | mode_flag | escape_flag | BMC_PF_FLAG_FIELD_NAMES;
 			bmc->print_fields.indices = parse_output_fields (BMC_FIELDS_DEV_LIST_GENERAL_ALL, bmc->allowed_fields, NULL);
 			print_fields (bmc->print_fields, bmc->allowed_fields); /* Print header */
-
-			if (BM_IS_DEVICE_ETHERNET (device))
-				hwaddr = bm_device_ethernet_get_hw_address (BM_DEVICE_ETHERNET (device));
-			else if (BM_IS_DEVICE_WIFI (device))
-				hwaddr = bm_device_wifi_get_hw_address (BM_DEVICE_WIFI (device));
 
 			bmc->allowed_fields[0].value = bmc_fields_dev_list_sections[0].name;  /* "GENERAL"*/
 			bmc->allowed_fields[1].value = bm_device_get_iface (device);
@@ -491,100 +469,6 @@ disconnect_device_cb (BMDevice *device, GError *error, gpointer user_data)
 	}
 }
 
-static BMCResultCode
-do_device_disconnect (BmCli *bmc, int argc, char **argv)
-{
-	const GPtrArray *devices;
-	GError *error = NULL;
-	BMDevice *device = NULL;
-	const char *iface = NULL;
-	gboolean iface_specified = FALSE;
-	gboolean wait = TRUE;
-	int i;
-
-	/* Set default timeout for disconnect operation */
-	bmc->timeout = 10;
-
-	while (argc > 0) {
-		if (strcmp (*argv, "iface") == 0) {
-			iface_specified = TRUE;
-
-			if (next_arg (&argc, &argv) != 0) {
-				g_string_printf (bmc->return_text, _("Error: %s argument is missing."), *argv);
-				bmc->return_value = BMC_RESULT_ERROR_USER_INPUT;
-				goto error;
-			}
-
-			iface = *argv;
-		} else if (strcmp (*argv, "--nowait") == 0) {
-			wait = FALSE;
-		} else if (strcmp (*argv, "--timeout") == 0) {
-			if (next_arg (&argc, &argv) != 0) {
-				g_string_printf (bmc->return_text, _("Error: %s argument is missing."), *argv);
-				bmc->return_value = BMC_RESULT_ERROR_USER_INPUT;
-				goto error;
-			}
-
-			errno = 0;
-			bmc->timeout = strtol (*argv, NULL, 10);
-			if (errno || bmc->timeout < 0) {
-				g_string_printf (bmc->return_text, _("Error: timeout value '%s' is not valid."), *argv);
-				bmc->return_value = BMC_RESULT_ERROR_USER_INPUT;
-				goto error;
-			}
-
-		} else {
-			fprintf (stderr, _("Unknown parameter: %s\n"), *argv);
-		}
-
-		argc--;
-		argv++;
-	}
-
-	if (!iface_specified) {
-		g_string_printf (bmc->return_text, _("Error: iface has to be specified."));
-		bmc->return_value = BMC_RESULT_ERROR_USER_INPUT;
-		goto error;
-	}
-
-	if (!bmc_is_bm_running (bmc, &error)) {
-		if (error) {
-			g_string_printf (bmc->return_text, _("Error: Can't find out if BarcodeManager is running: %s."), error->message);
-			bmc->return_value = BMC_RESULT_ERROR_UNKNOWN;
-			g_error_free (error);
-		} else {
-			g_string_printf (bmc->return_text, _("Error: BarcodeManager is not running."));
-			bmc->return_value = BMC_RESULT_ERROR_BM_NOT_RUNNING;
-		}
-		goto error;
-	}
-
-	bmc->get_client (bmc);
-	devices = bm_client_get_devices (bmc->client);
-	for (i = 0; devices && (i < devices->len); i++) {
-		BMDevice *candidate = g_ptr_array_index (devices, i);
-		const char *dev_iface = bm_device_get_iface (candidate);
-
-		if (!strcmp (dev_iface, iface))
-			device = candidate;
-	}
-
-	if (!device) {
-		g_string_printf (bmc->return_text, _("Error: Device '%s' not found."), iface);
-		bmc->return_value = BMC_RESULT_ERROR_UNKNOWN;
-		goto error;
-	}
-
-	/* Use nowait_flag instead of should_wait because exitting has to be postponed till disconnect_device_cb()
-	 * is called, giving BM time to check our permissions */
-	bmc->nowait_flag = !wait;
-	bmc->should_wait = TRUE;
-	bm_device_disconnect (device, disconnect_device_cb, bmc);
-
-error:
-	return bmc->return_value;
-}
-
 BMCResultCode
 do_devices (BmCli *bmc, int argc, char **argv)
 {
@@ -606,14 +490,6 @@ do_devices (BmCli *bmc, int argc, char **argv)
 			if (!bmc->mode_specified)
 				bmc->multiline_output = TRUE;  /* multiline mode is default for 'dev list' */
 			bmc->return_value = do_devices_list (bmc, argc-1, argv+1);
-		}
-		else if (matches (*argv, "disconnect") == 0) {
-			bmc->return_value = do_device_disconnect (bmc, argc-1, argv+1);
-		}
-		else if (matches (*argv, "wifi") == 0) {
-			if (!bmc_terse_option_check (bmc->print_output, bmc->required_fields, &error))
-				goto opt_error;
-			bmc->return_value = do_device_wifi (bmc, argc-1, argv+1);
 		}
 		else if (strcmp (*argv, "help") == 0) {
 			usage ();

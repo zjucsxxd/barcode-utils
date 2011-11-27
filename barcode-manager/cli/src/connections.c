@@ -104,8 +104,6 @@ static void usage (void);
 static void quit (void);
 static void show_connection (BMConnection *data, gpointer user_data);
 static BMConnection *find_connection (GSList *list, const char *filter_type, const char *filter_val);
-static gboolean find_device_for_connection (BmCli *bmc, BMConnection *connection, const char *iface, const char *ap,
-                                            BMDevice **device, const char **spec_object, GError **error);
 static const char *active_connection_state_to_string (BMActiveConnectionState state);
 static void active_connection_state_cb (BMActiveConnection *active, GParamSpec *pspec, gpointer user_data);
 static void activate_connection_cb (gpointer user_data, const char *path, GError *error);
@@ -113,14 +111,13 @@ static void get_connections_cb (BMSettingsInterface *settings, gpointer user_dat
 static BMCResultCode do_connections_list (BmCli *bmc, int argc, char **argv);
 static BMCResultCode do_connections_status (BmCli *bmc, int argc, char **argv);
 static BMCResultCode do_connection_up (BmCli *bmc, int argc, char **argv);
-static BMCResultCode do_connection_down (BmCli *bmc, int argc, char **argv);
 
 static void
 usage (void)
 {
 	fprintf (stderr,
 	 	 _("Usage: bmcli con { COMMAND | help }\n"
-		 "  COMMAND := { list | status | up | down }\n\n"
+		 "  COMMAND := { list | status | up }\n\n"
 		 "  list [id <id> | uuid <id> | system | user]\n"
 		 "  status\n"
 		 "  up id <id> | uuid <id> [iface <iface>] [ap <hwaddr>] [--nowait] [--timeout <timeout>]\n"
@@ -460,7 +457,6 @@ show_active_connection (gpointer data, gpointer user_data)
 			info->bmc->allowed_fields[4].value = bm_active_connection_get_default (active) ? _("yes") : _("no");
 			info->bmc->allowed_fields[5].value = bm_active_connection_get_service_name (active);
 			info->bmc->allowed_fields[6].value = bm_active_connection_get_specific_object (active);
-			info->bmc->allowed_fields[7].value = BM_IS_VPN_CONNECTION (active) ? _("yes") : _("no");
 			info->bmc->allowed_fields[8].value = bm_object_get_path (BM_OBJECT (active));
 
 			info->bmc->print_fields.flags &= ~BMC_PF_FLAG_MAIN_HEADER_ADD & ~BMC_PF_FLAG_MAIN_HEADER_ONLY & ~BMC_PF_FLAG_FIELD_NAMES; /* Clear header flags */
@@ -698,118 +694,6 @@ get_default_active_connection (BmCli *bmc, BMDevice **device)
 	return default_ac;
 }
 
-/* Find a device to activate the connection on.
- * IN:  connection:  connection to activate
- *      iface:       device interface name to use (optional)
- *      ap:          access point to use (optional; valid just for 802-11-wireless)
- * OUT: device:      found device
- *      spec_object: specific_object path of BMAccessPoint
- * RETURNS: TRUE when a device is found, FALSE otherwise.
- */
-static gboolean
-find_device_for_connection (BmCli *bmc, BMConnection *connection, const char *iface, const char *ap,
-                            BMDevice **device, const char **spec_object, GError **error)
-{
-	BMSettingConnection *s_con;
-	const char *con_type;
-	int i, j;
-
-	g_return_val_if_fail (bmc != NULL, FALSE);
-	g_return_val_if_fail (device != NULL && *device == NULL, FALSE);
-	g_return_val_if_fail (spec_object != NULL && *spec_object == NULL, FALSE);
-	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-	s_con = (BMSettingConnection *) bm_connection_get_setting (connection, BM_TYPE_SETTING_CONNECTION);
-	g_assert (s_con);
-	con_type = bm_setting_connection_get_connection_type (s_con);
-
-	if (strcmp (con_type, "vpn") == 0) {
-		/* VPN connections */
-		BMActiveConnection *active = NULL;
-		if (iface) {
-			const GPtrArray *connections = bm_client_get_active_connections (bmc->client);
-			for (i = 0; connections && (i < connections->len) && !active; i++) {
-				BMActiveConnection *candidate = g_ptr_array_index (connections, i);
-				const GPtrArray *devices = bm_active_connection_get_devices (candidate);
-				if (!devices || !devices->len)
-					continue;
-
-				for (j = 0; devices && (j < devices->len); j++) {
-					BMDevice *dev = g_ptr_array_index (devices, j);
-					if (!strcmp (iface, bm_device_get_iface (dev))) {
-						active = candidate;
-						*device = dev;
-						break;
-					}
-				}
-			}
-			if (!active) {
-				g_set_error (error, 0, 0, _("no active connection on device '%s'"), iface);
-				return FALSE;
-			}
-			*spec_object = bm_object_get_path (BM_OBJECT (active));
-			return TRUE;
-		} else {
-			active = get_default_active_connection (bmc, device);
-			if (!active) {
-				g_set_error (error, 0, 0, _("no active connection or device"));
-				return FALSE;
-			}
-			*spec_object = bm_object_get_path (BM_OBJECT (active));
-			return TRUE;
-		}
-	} else {
-		/* Other connections */
-		BMDevice *found_device = NULL;
-		const GPtrArray *devices = bm_client_get_devices (bmc->client);
-
-		for (i = 0; devices && (i < devices->len) && !found_device; i++) {
-			BMDevice *dev = g_ptr_array_index (devices, i);
-
-			if (iface) {
-				const char *dev_iface = bm_device_get_iface (dev);
-				if (   !strcmp (dev_iface, iface)
-				    && bm_device_is_connection_compatible (dev, connection, NULL)) {
-					found_device = dev;
-				}
-			} else {
-				if (bm_device_is_connection_compatible (dev, connection, NULL)) {
-					found_device = dev;
-				}
-			}
-
-			if (found_device && ap && !strcmp (con_type, "802-11-wireless") && BM_IS_DEVICE_WIFI (dev)) {
-				char *hwaddr_up = g_ascii_strup (ap, -1);
-				const GPtrArray *aps = bm_device_wifi_get_access_points (BM_DEVICE_WIFI (dev));
-				found_device = NULL;  /* Mark as not found; set to the device again later, only if AP matches */
-
-				for (j = 0; aps && (j < aps->len); j++) {
-					BMAccessPoint *candidate_ap = g_ptr_array_index (aps, j);
-					const char *candidate_hwaddr = bm_access_point_get_hw_address (candidate_ap);
-
-					if (!strcmp (hwaddr_up, candidate_hwaddr)) {
-						found_device = dev;
-						*spec_object = bm_object_get_path (BM_OBJECT (candidate_ap));
-						break;
-					}
-				}
-				g_free (hwaddr_up);
-			}
-		}
-
-		if (found_device) {
-			*device = found_device;
-			return TRUE;
-		} else {
-			if (iface)
-				g_set_error (error, 0, 0, _("device '%s' not compatible with connection '%s'"), iface, bm_setting_connection_get_id (s_con));
-			else
-				g_set_error (error, 0, 0, _("no device found for connection '%s'"), bm_setting_connection_get_id (s_con));
-			return FALSE;
-		}
-	}
-}
-
 static const char *
 active_connection_state_to_string (BMActiveConnectionState state)
 {
@@ -1044,18 +928,6 @@ do_connection_up (BmCli *bmc, int argc, char **argv)
 	g_assert (s_con);
 	con_type = bm_setting_connection_get_connection_type (s_con);
 
-	device_found = find_device_for_connection (bmc, connection, iface, ap, &device, &spec_object, &error);
-
-	if (!device_found) {
-		if (error)
-			g_string_printf (bmc->return_text, _("Error: No suitable device found: %s."), error->message);
-		else
-			g_string_printf (bmc->return_text, _("Error: No suitable device found."));
-		bmc->return_value = BMC_RESULT_ERROR_CON_ACTIVATION;
-		g_clear_error (&error);
-		goto error;
-	}
-
 	/* Use nowait_flag instead of should_wait because exitting has to be postponed till active_connection_state_cb()
 	 * is called, giving BM time to check our permissions */
 	bmc->nowait_flag = !wait;
@@ -1069,99 +941,6 @@ do_connection_up (BmCli *bmc, int argc, char **argv)
 	                               bmc);
 
 	return bmc->return_value;
-error:
-	bmc->should_wait = FALSE;
-	return bmc->return_value;
-}
-
-static BMCResultCode
-do_connection_down (BmCli *bmc, int argc, char **argv)
-{
-	BMConnection *connection = NULL;
-	BMActiveConnection *active = NULL;
-	GError *error = NULL;
-	const GPtrArray *active_cons;
-	const char *con_path;
-	const char *active_path;
-	BMConnectionScope active_service_scope, con_scope;
-	gboolean id_specified = FALSE;
-	gboolean wait = TRUE;
-	int i;
-
-	while (argc > 0) {
-		if (strcmp (*argv, "id") == 0 || strcmp (*argv, "uuid") == 0) {
-			const char *selector = *argv;
-			id_specified = TRUE;
-
-			if (next_arg (&argc, &argv) != 0) {
-				g_string_printf (bmc->return_text, _("Error: %s argument is missing."), *argv);
-				bmc->return_value = BMC_RESULT_ERROR_USER_INPUT;
-				goto error;
-			}
-
-			if ((connection = find_connection (bmc->system_connections, selector, *argv)) == NULL)
-				connection = find_connection (bmc->user_connections, selector, *argv);
-
-			if (!connection) {
-				g_string_printf (bmc->return_text, _("Error: Unknown connection: %s."), *argv);
-				bmc->return_value = BMC_RESULT_ERROR_UNKNOWN;
-				goto error;
-			}
-		}
-		else if (strcmp (*argv, "--nowait") == 0) {
-			wait = FALSE;
-		}
-		else {
-			fprintf (stderr, _("Unknown parameter: %s\n"), *argv);
-		}
-
-		argc--;
-		argv++;
-	}
-
-	if (!id_specified) {
-		g_string_printf (bmc->return_text, _("Error: id or uuid has to be specified."));
-		bmc->return_value = BMC_RESULT_ERROR_USER_INPUT;
-		goto error;
-	}
-
-	if (!bmc_is_bm_running (bmc, &error)) {
-		if (error) {
-			g_string_printf (bmc->return_text, _("Error: Can't find out if BarcodeManager is running: %s."), error->message);
-			bmc->return_value = BMC_RESULT_ERROR_UNKNOWN;
-			g_error_free (error);
-		} else {
-			g_string_printf (bmc->return_text, _("Error: BarcodeManager is not running."));
-			bmc->return_value = BMC_RESULT_ERROR_BM_NOT_RUNNING;
-		}
-		goto error;
-	}
-
-	/* create BMClient */
-	bmc->get_client (bmc);
-
-	con_path = bm_connection_get_path (connection);
-	con_scope = bm_connection_get_scope (connection);
-
-	active_cons = bm_client_get_active_connections (bmc->client);
-	for (i = 0; active_cons && (i < active_cons->len); i++) {
-		BMActiveConnection *candidate = g_ptr_array_index (active_cons, i);
-
-		active_path = bm_active_connection_get_connection (candidate);
-		active_service_scope = bm_active_connection_get_scope (candidate);
-		if (!strcmp (active_path, con_path) && active_service_scope == con_scope) {
-			active = candidate;
-			break;
-		}
-	}
-
-	if (active)
-		vm_client_deactivate_connection (bmc->client, active);
-	else {
-		fprintf (stderr, _("Warning: Connection not active\n"));
-	}
-	sleep (1);  /* Don't quit immediatelly and give BM time to check our permissions */
-
 error:
 	bmc->should_wait = FALSE;
 	return bmc->return_value;
@@ -1206,9 +985,6 @@ get_connections_cb (BMSettingsInterface *settings, gpointer user_data)
 		}
 		else if (matches(*args->argv, "up") == 0) {
 			args->bmc->return_value = do_connection_up (args->bmc, args->argc-1, args->argv+1);
-		}
-		else if (matches(*args->argv, "down") == 0) {
-			args->bmc->return_value = do_connection_down (args->bmc, args->argc-1, args->argv+1);
 		}
 		else if (matches (*args->argv, "help") == 0) {
 			usage ();

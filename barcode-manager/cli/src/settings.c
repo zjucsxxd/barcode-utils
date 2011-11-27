@@ -29,7 +29,7 @@
 #define SETTING_FIELD(setting, width) { setting, N_(setting), width, NULL, 0 }
 
 /* Available fields for BM_SETTING_CONNECTION_SETTING_NAME */
-static NmcOutputField bmc_fields_setting_connection[] = {
+static BmcOutputField bmc_fields_setting_connection[] = {
 	SETTING_FIELD ("name",  15),                            /* 0 */
 	SETTING_FIELD (BM_SETTING_CONNECTION_ID, 25),           /* 1 */
 	SETTING_FIELD (BM_SETTING_CONNECTION_UUID, 38),         /* 2 */
@@ -47,28 +47,6 @@ static NmcOutputField bmc_fields_setting_connection[] = {
                                               BM_SETTING_CONNECTION_TIMESTAMP","\
                                               BM_SETTING_CONNECTION_READ_ONLY
 #define BMC_FIELDS_SETTING_CONNECTION_COMMON  BMC_FIELDS_SETTING_CONNECTION_ALL
-
-/* Available fields for BM_SETTING_WIRED_SETTING_NAME */
-static BmcOutputField bmc_fields_setting_wired[] = {
-	SETTING_FIELD ("name",  17),                             /* 0 */
-	SETTING_FIELD (BM_SETTING_WIRED_PORT, 8),                /* 1 */
-	SETTING_FIELD (BM_SETTING_WIRED_SPEED, 10),              /* 2 */
-	SETTING_FIELD (BM_SETTING_WIRED_DUPLEX, 10),             /* 3 */
-	SETTING_FIELD (BM_SETTING_WIRED_AUTO_NEGOTIATE, 15),     /* 4 */
-	SETTING_FIELD (BM_SETTING_WIRED_MAC_ADDRESS, 19),        /* 5 */
-	SETTING_FIELD (BM_SETTING_WIRED_CLONED_MAC_ADDRESS, 19), /* 6 */
-	SETTING_FIELD (BM_SETTING_WIRED_MTU, 6),                 /* 7 */
-	{NULL, NULL, 0, NULL, 0}
-};
-#define BMC_FIELDS_SETTING_WIRED_ALL     "name"","\
-                                         BM_SETTING_WIRED_PORT","\
-                                         BM_SETTING_WIRED_SPEED","\
-                                         BM_SETTING_WIRED_DUPLEX","\
-                                         BM_SETTING_WIRED_AUTO_NEGOTIATE","\
-                                         BM_SETTING_WIRED_MAC_ADDRESS","\
-                                         BM_SETTING_WIRED_CLONED_MAC_ADDRESS","\
-                                         BM_SETTING_WIRED_MTU
-#define BMC_FIELDS_SETTING_WIRED_COMMON  BMC_FIELDS_SETTING_WIRED_ALL
 
 /* Available fields for BM_SETTING_SERIAL_SETTING_NAME */
 static BmcOutputField bmc_fields_setting_serial[] = {

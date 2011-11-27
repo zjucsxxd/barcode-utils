@@ -1,5 +1,11 @@
 # generated stuff
 
+cli/src/bmcli
+po/.intltool-merge-cache
+
+policy/org.freedesktop.BarcodeManager.policy
+policy/org.freedesktop.barcode-manager-settings.system.policy
+
 callouts/bm-dispatcher.action
 callouts/org.freedesktop.bm_dispatcher.service
 

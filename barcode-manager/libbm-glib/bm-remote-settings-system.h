@@ -32,15 +32,15 @@
 G_BEGIN_DECLS
 
 #define BM_TYPE_REMOTE_SETTINGS_SYSTEM            (bm_remote_settings_system_get_type ())
-#define BM_REMOTE_SETTINGS_SYSTEM(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystem))
-#define BM_REMOTE_SETTINGS_SYSTEM_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemClass))
+#define BM_REMOTE_SETTINGS_SYSTEM(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM, BMRemoteSettingsSystem))
+#define BM_REMOTE_SETTINGS_SYSTEM_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_REMOTE_SETTINGS_SYSTEM, BMRemoteSettingsSystemClass))
 #define BM_IS_REMOTE_SETTINGS_SYSTEM(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM))
 #define BM_IS_REMOTE_SETTINGS_SYSTEM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM))
-#define BM_REMOTE_SETTINGS_SYSTEM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemClass))
+#define BM_REMOTE_SETTINGS_SYSTEM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM, BMRemoteSettingsSystemClass))
 
 typedef struct {
 	BMRemoteSettings parent;
-} NMRemoteSettingsSystem;
+} BMRemoteSettingsSystem;
 
 typedef struct {
 	BMRemoteSettingsClass parent;

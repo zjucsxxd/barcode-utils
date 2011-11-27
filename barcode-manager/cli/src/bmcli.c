@@ -41,7 +41,7 @@
 #include "utils.h"
 #include "connections.h"
 #include "devices.h"
-#include "network-manager.h"
+#include "barcode-manager.h"
 
 #if defined(BM_DIST_VERSION)
 # define BMCLI_VERSION BM_DIST_VERSION
@@ -137,7 +137,7 @@ parse_command_line (BmCli *bmc, int argc, char **argv)
 		if (opt[1] == '-')
 			opt++;
 		if (matches (opt, "-terse") == 0) {
-			if (mc->print_output == BMC_PRINT_TERSE) {
+			if (bmc->print_output == BMC_PRINT_TERSE) {
 				g_string_printf (bmc->return_text, _("Error: Option '--terse' is specified the second time."));
 				bmc->return_value = BMC_RESULT_ERROR_USER_INPUT;
 				return bmc->return_value;
@@ -328,7 +328,7 @@ start (gpointer data)
 int
 main (int argc, char *argv[])
 {
-	bmCli bmc;
+        BmCli bmc;
 	ArgsInfo args_info = { &bmc, argc, argv };
 
 	/* Set locale to use environment variables */
