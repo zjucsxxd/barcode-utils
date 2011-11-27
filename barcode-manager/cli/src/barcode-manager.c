@@ -34,14 +34,10 @@ static BmcOutputField bmc_fields_bm_status[] = {
 	{"RUNNING",        N_("RUNNING"),         15, NULL, 0},  /* 0 */
 	{"STATE",          N_("STATE"),           15, NULL, 0},  /* 1 */
 	{"NET-ENABLED",    N_("NET-ENABLED"),     13, NULL, 0},  /* 2 */
-	{"WIFI-HARDWARE",  N_("WIFI-HARDWARE"),   15, NULL, 0},  /* 3 */
-	{"WIFI",           N_("WIFI"),            10, NULL, 0},  /* 4 */
-	{"WWAN-HARDWARE",  N_("WWAN-HARDWARE"),   15, NULL, 0},  /* 5 */
-	{"WWAN",           N_("WWAN"),            10, NULL, 0},  /* 6 */
 	{NULL,             NULL,                   0, NULL, 0}
 };
-#define BMC_FIELDS_BM_STATUS_ALL     "RUNNING,STATE,NET-ENABLED,WIFI-HARDWARE,WIFI,WWAN-HARDWARE,WWAN"
-#define BMC_FIELDS_BM_STATUS_COMMON  "RUNNING,STATE,WIFI-HARDWARE,WIFI,WWAN-HARDWARE,WWAN"
+#define BMC_FIELDS_BM_STATUS_ALL     "RUNNING,STATE,NET-ENABLED"
+#define BMC_FIELDS_BM_STATUS_COMMON  "RUNNING,STATE"
 #define BMC_FIELDS_BM_NET_ENABLED    "NET-ENABLED"
 #define BMC_FIELDS_BM_WIFI           "WIFI"
 #define BMC_FIELDS_BM_WWAN           "WWAN"
@@ -98,8 +94,6 @@ show_bm_status (BmCli *bmc)
 	gboolean bm_running;
 	BMState state = BM_STATE_UNKNOWN;
 	const char *net_enabled_str;
-	const char *wireless_hw_enabled_str, *wireless_enabled_str;
-	const char *wwan_hw_enabled_str, *wwan_enabled_str;
 	GError *error = NULL;
 	const char *fields_str;
 	const char *fields_all =    BMC_FIELDS_BM_STATUS_ALL;
@@ -120,9 +114,9 @@ show_bm_status (BmCli *bmc)
 
 	if (error) {
 		if (error->code == 0)
-			g_string_printf (bmc->return_text, _("Error: 'nm status': %s"), error->message);
+			g_string_printf (bmc->return_text, _("Error: 'bm status': %s"), error->message);
 		else
-			g_string_printf (bmc->return_text, _("Error: 'nm status': %s; allowed fields: %s"), error->message, BMC_FIELDS_BM_STATUS_ALL);
+			g_string_printf (bmc->return_text, _("Error: 'bm status': %s; allowed fields: %s"), error->message, BMC_FIELDS_BM_STATUS_ALL);
 		g_error_free (error);
 		bmc->return_value = BMC_RESULT_ERROR_USER_INPUT;
 		return bmc->return_value;
@@ -138,16 +132,12 @@ show_bm_status (BmCli *bmc)
 		state = bm_client_get_state (bmc->client);
 		net_enabled_str = bm_client_networking_get_enabled (bmc->client) ? _("enabled") : _("disabled");
 	} else {
-		net_enabled_str = wireless_hw_enabled_str = wireless_enabled_str = wwan_hw_enabled_str = wwan_enabled_str = _("unknown");
+		net_enabled_str = _("unknown");
 	}
 
 	bmc->allowed_fields[0].value = bm_running ? _("running") : _("not running");
 	bmc->allowed_fields[1].value = bm_state_to_string (state);
 	bmc->allowed_fields[2].value = net_enabled_str;
-	bmc->allowed_fields[3].value = wireless_hw_enabled_str;
-	bmc->allowed_fields[4].value = wireless_enabled_str;
-	bmc->allowed_fields[5].value = wwan_hw_enabled_str;
-	bmc->allowed_fields[6].value = wwan_enabled_str;
 
 	bmc->print_fields.flags = multiline_flag | mode_flag | escape_flag;
 	print_fields (bmc->print_fields, bmc->allowed_fields); /* Print values */

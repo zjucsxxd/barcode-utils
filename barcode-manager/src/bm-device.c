@@ -74,6 +74,8 @@ typedef struct {
 	gboolean      managed; /* whether managed by NM or not */
 	gboolean      firmware_missing;
 
+    guint           act_source_id;
+
 	/* inhibit autoconnect feature */
 	gboolean	autoconnect_inhibit;
 } BMDevicePrivate;
@@ -253,6 +255,40 @@ bm_device_get_type_desc (BMDevice *self)
 	g_return_val_if_fail (self != NULL, NULL);
 
 	return BM_DEVICE_GET_PRIVATE (self)->type_desc;
+}
+
+/*                                                                                                                                                            
+ * nm_device_is_activating                                                                                                                                    
+ *                                                                                                                                                            
+ * Return whether or not the device is currently activating itself.                                                                                           
+ *                                                                                                                                                            
+ */
+gboolean
+bm_device_is_activating (BMDevice *device)
+{
+    BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (device);
+
+    g_return_val_if_fail (BM_IS_DEVICE (device), FALSE);
+
+    switch (bm_device_get_state (device)) {
+    case BM_DEVICE_STATE_PREPARE:
+    case BM_DEVICE_STATE_CONFIG:
+    case BM_DEVICE_STATE_NEED_AUTH:
+    case BM_DEVICE_STATE_IP_CONFIG:
+        return TRUE;
+        break;
+    default:
+        break;
+    }
+
+    /* There's a small race between the time when stage 1 is scheduled
+	 * and when the device actually sets STATE_PREPARE when the activation
+     * handler is actually run.  If there's an activation handler scheduled
+     * we're activating anyway.  */
+    if (priv->act_source_id)
+        return TRUE;
+
+    return FALSE;
 }
 
 gboolean

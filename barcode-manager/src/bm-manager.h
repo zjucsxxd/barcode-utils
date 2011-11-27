@@ -39,6 +39,8 @@ G_BEGIN_DECLS
 #define BM_MANAGER_VERSION "version"
 #define BM_MANAGER_STATE "state"
 
+#define BM_MANAGER_NETWORKING_ENABLED "networking-enabled"
+
 typedef struct {
 	GObject parent;
 } BMManager;

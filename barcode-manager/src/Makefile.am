@@ -45,6 +45,8 @@ BarcodeManager_SOURCES = \
 		bm-system.h \
 		bm-manager.c \
 		bm-manager.h \
+		bm-manager-auth.c \
+		bm-manager-auth.h \
 		bm-properties-changed-signal.c \
 		bm-properties-changed-signal.h
 

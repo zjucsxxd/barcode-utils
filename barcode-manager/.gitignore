@@ -1,4 +1,15 @@
 # generated stuff
+#
+
+include/libbm-glib/
+include/BarcodeManager/
+
+lib/
+share/
+sbin/
+libexec/
+etc/
+var/
 
 debian/libbm-glib2.postinst.debhelper
 debian/libbm-glib2.postrm.debhelper

@@ -42,7 +42,7 @@ typedef struct {
 
 #define BM_UDEV_MANAGER_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_UDEV_MANAGER, BMUdevManagerPrivate))
 
-G_DEFINE_TYPE (NMUdevManager, bm_udev_manager, G_TYPE_OBJECT)
+G_DEFINE_TYPE (BMUdevManager, bm_udev_manager, G_TYPE_OBJECT)
 
 enum {
 	DEVICE_ADDED,
@@ -53,14 +53,14 @@ enum {
 
 static guint signals[LAST_SIGNAL] = { 0 };
 
-NMUdevManager *
+BMUdevManager *
 bm_udev_manager_new (void)
 {
 	return BM_UDEV_MANAGER (g_object_new (BM_TYPE_UDEV_MANAGER, NULL));
 }
 
 static GObject *
-device_creator (NMUdevManager *manager,
+device_creator (BMUdevManager *manager,
                 GUdevDevice *udev_device,
                 gboolean sleeping)
 {
@@ -116,7 +116,7 @@ out:
 }
 
 void
-bm_udev_manager_query_devices (NMUdevManager *self)
+bm_udev_manager_query_devices (BMUdevManager *self)
 {
 	BMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 	GList *devices, *iter;
@@ -124,7 +124,7 @@ bm_udev_manager_query_devices (NMUdevManager *self)
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (BM_IS_UDEV_MANAGER (self));
 
-	devices = g_udev_client_query_by_subsystem (priv->client, "net");
+	devices = g_udev_client_query_by_subsystem (priv->client, "hidraw");
 	for (iter = devices; iter; iter = g_list_next (iter)) {
 		// net_add (self, G_UDEV_DEVICE (iter->data));
 		g_object_unref (G_UDEV_DEVICE (iter->data));
@@ -138,7 +138,7 @@ handle_uevent (GUdevClient *client,
                GUdevDevice *device,
                gpointer user_data)
 {
-	NMUdevManager *self = BM_UDEV_MANAGER (user_data);
+	BMUdevManager *self = BM_UDEV_MANAGER (user_data);
 	const char *subsys;
 
 	g_return_if_fail (action != NULL);
@@ -152,10 +152,10 @@ handle_uevent (GUdevClient *client,
 }
 
 static void
-bm_udev_manager_init (NMUdevManager *self)
+bm_udev_manager_init (BMUdevManager *self)
 {
 	BMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
-	const char *subsys[3] = { "net", NULL };
+	const char *subsys[3] = { "hidraw", NULL };
 	GList *iter;
 	guint32 i;
 
@@ -166,7 +166,7 @@ bm_udev_manager_init (NMUdevManager *self)
 static void
 dispose (GObject *object)
 {
-	NMUdevManager *self = BM_UDEV_MANAGER (object);
+	BMUdevManager *self = BM_UDEV_MANAGER (object);
 	BMUdevManagerPrivate *priv = BM_UDEV_MANAGER_GET_PRIVATE (self);
 
 	if (priv->disposed) {
@@ -181,7 +181,7 @@ dispose (GObject *object)
 }
 
 static void
-bm_udev_manager_class_init (NMUdevManagerClass *klass)
+bm_udev_manager_class_init (BMUdevManagerClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
@@ -195,7 +195,7 @@ bm_udev_manager_class_init (NMUdevManagerClass *klass)
 		g_signal_new ("device-added",
 					  G_OBJECT_CLASS_TYPE (object_class),
 					  G_SIGNAL_RUN_FIRST,
-					  G_STRUCT_OFFSET (NMUdevManagerClass, device_added),
+					  G_STRUCT_OFFSET (BMUdevManagerClass, device_added),
 					  NULL, NULL,
 					  _bm_marshal_VOID__POINTER_POINTER,
 					  G_TYPE_NONE, 2, G_TYPE_POINTER, G_TYPE_POINTER);
@@ -204,7 +204,7 @@ bm_udev_manager_class_init (NMUdevManagerClass *klass)
 		g_signal_new ("device-removed",
 					  G_OBJECT_CLASS_TYPE (object_class),
 					  G_SIGNAL_RUN_FIRST,
-					  G_STRUCT_OFFSET (NMUdevManagerClass, device_removed),
+					  G_STRUCT_OFFSET (BMUdevManagerClass, device_removed),
 					  NULL, NULL,
 					  g_cclosure_marshal_VOID__POINTER,
 					  G_TYPE_NONE, 1, G_TYPE_POINTER);

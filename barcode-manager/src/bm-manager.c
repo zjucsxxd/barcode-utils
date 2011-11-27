@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* BarcodeManager -- Network link manager
+/* BarcodeManager -- barcode scanner manager
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2009 Novell, Inc.
- * Copyright (C) 2007 - 2011 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #include <config.h>
@@ -28,6 +27,7 @@
 
 #include "bm-glib-compat.h"
 #include "bm-manager.h"
+#include "bm-manager-auth.h"
 #include "bm-logging.h"
 #include "bm-dbus-manager.h"
 #include "bm-device-bt.h"
@@ -42,6 +42,12 @@
 #include "bm-secrets-provider-interface.h"
 #include "bm-settings-interface.h"
 #include "bm-settings-system-interface.h"
+
+static gboolean impl_manager_get_devices (BMManager *manager, GPtrArray **devices, GError **err);
+
+static void impl_manager_enable (BMManager *manager,
+                                 gboolean enable,
+                                 DBusGMethodInvocation *context);
 
 static gboolean impl_manager_set_logging (BMManager *manager,
                                           const char *level,
@@ -74,7 +80,7 @@ typedef struct {
 	BMState state;
 
 	BMDBusManager *dbus_mgr;
-	NMUdevManager *udev_mgr;
+	BMUdevManager *udev_mgr;
 
 	GHashTable *user_connections;
 	DBusGProxy *user_proxy;
@@ -89,6 +95,10 @@ typedef struct {
 
 	gboolean sleeping;
 	gboolean net_enabled;
+
+    PolkitAuthority *authority;
+    guint auth_changed_id;
+    GSList *auth_chains;
 
 	gboolean disposed;
 } BMManagerPrivate;
@@ -1086,6 +1096,14 @@ bm_manager_class_init (BMManagerClass *manager_class)
 		                    0, BM_STATE_DISCONNECTED, 0,
 		                    G_PARAM_READABLE));
 
+    g_object_class_install_property
+		(object_class, PROP_NETWORKING_ENABLED,
+         g_param_spec_boolean (BM_MANAGER_NETWORKING_ENABLED,
+                               "NetworkingEnabled",
+                               "Is networking enabled",
+                               TRUE,
+                               G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+
 	/* signals */
 	signals[DEVICE_ADDED] =
 		g_signal_new ("device-added",
@@ -1184,5 +1202,239 @@ bm_manager_class_init (BMManagerClass *manager_class)
 
 	dbus_g_error_domain_register (BM_MANAGER_ERROR, NULL, BM_TYPE_MANAGER_ERROR);
 	dbus_g_error_domain_register (BM_LOGGING_ERROR, "org.freedesktop.BarcodeManager.Logging", BM_TYPE_LOGGING_ERROR);
+}
+
+static gboolean
+manager_sleeping (BMManager *self)
+{
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+
+    if (priv->sleeping || !priv->net_enabled)
+        return TRUE;
+    return FALSE;
+}
+
+
+
+static void
+bm_manager_update_state (BMManager *manager)
+{
+    BMManagerPrivate *priv;
+    BMState new_state = BM_STATE_DISCONNECTED;
+
+    g_return_if_fail (BM_IS_MANAGER (manager));
+
+    priv = BM_MANAGER_GET_PRIVATE (manager);
+
+    if (manager_sleeping (manager))
+        new_state = BM_STATE_ASLEEP;
+    else {
+        GSList *iter;
+
+        for (iter = priv->devices; iter; iter = iter->next) {
+            BMDevice *dev = BM_DEVICE (iter->data);
+
+            if (bm_device_get_state (dev) == BM_DEVICE_STATE_ACTIVATED) {
+                new_state = BM_STATE_CONNECTED;
+                break;
+            } else if (bm_device_is_activating (dev)) {
+                new_state = BM_STATE_CONNECTING;
+            }
+        }
+    }
+
+    if (priv->state != new_state) {
+		priv->state = new_state;
+        g_object_notify (G_OBJECT (manager), BM_MANAGER_STATE);
+
+        g_signal_emit (manager, signals[STATE_CHANGED], 0, priv->state);
+
+		/* Emit StateChange too for backwards compatibility */
+        g_signal_emit (manager, signals[STATE_CHANGE], 0, priv->state);
+    }
+}
+
+static void
+do_sleep_wake (BMManager *self)
+{
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+    const GSList *unmanaged_specs;
+    GSList *iter;
+
+    if (manager_sleeping (self)) {
+        bm_log_info (LOGD_SUSPEND, "sleeping or disabling...");
+
+    } else {
+        bm_log_info (LOGD_SUSPEND, "waking up and re-enabling...");
+
+        /* Re-manage managed devices */
+        for (iter = priv->devices; iter; iter = iter->next) {
+			//            BMDevice *device = BM_DEVICE (iter->data);
+            // guint i;
+        }
+
+        /* Ask for new bluetooth devices */
+        // bluez_manager_resync_devices (self);
+    }
+
+    bm_manager_update_state (self);
+}
+
+static void
+_internal_enable (BMManager *self, gboolean enable)
+{
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+    GError *err = NULL;
+
+    /* Update "NetworkingEnabled" key in state file */
+    if (priv->state_file) {
+		if (!write_value_to_state_file (priv->state_file,
+                                        "main", "NetworkingEnabled",
+                                        G_TYPE_BOOLEAN, (gpointer) &enable,
+										&err)) {
+            /* Not a hard error */
+            bm_log_warn (LOGD_SUSPEND, "writing to state file %s failed: (%d) %s.",
+                         priv->state_file,
+                         err ? err->code : -1,
+                         (err && err->message) ? err->message : "unknown");
+        }
+    }
+
+    bm_log_info (LOGD_SUSPEND, "%s requested (sleeping: %s  enabled: %s)",
+                 enable ? "enable" : "disable",
+				 priv->sleeping ? "yes" : "no",
+                 priv->net_enabled ? "yes" : "no");
+
+    priv->net_enabled = enable;
+
+    do_sleep_wake (self);
+
+    g_object_notify (G_OBJECT (self), BM_MANAGER_NETWORKING_ENABLED);
+}
+
+static void
+enable_net_done_cb (BMAuthChain *chain,
+                    GError *error,
+                    DBusGMethodInvocation *context,
+                    gpointer user_data)
+{
+    BMManager *self = BM_MANAGER (user_data);
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+    GError *ret_error;
+    BMAuthCallResult result;
+    gboolean enable;
+
+    priv->auth_chains = g_slist_remove (priv->auth_chains, chain);
+
+    result = GPOINTER_TO_UINT (bm_auth_chain_get_data (chain, BM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK));
+    if (error) {
+        bm_log_dbg (LOGD_CORE, "Enable request failed: %s", error->message);
+        ret_error = g_error_new (BM_MANAGER_ERROR,
+                                 BM_MANAGER_ERROR_PERMISSION_DENIED,
+                                 "Enable request failed: %s",
+                                 error->message);
+        dbus_g_method_return_error (context, ret_error);
+        g_error_free (ret_error);
+    } else if (result != BM_AUTH_CALL_RESULT_YES) {
+        ret_error = g_error_new_literal (BM_MANAGER_ERROR,
+                                         BM_MANAGER_ERROR_PERMISSION_DENIED,
+                                         "Not authorized to enable/disable networking");
+        dbus_g_method_return_error (context, ret_error);
+        g_error_free (ret_error);
+    } else {
+        /* Auth success */
+        enable = GPOINTER_TO_UINT (bm_auth_chain_get_data (chain, "enable"));
+        _internal_enable (self, enable);
+        dbus_g_method_return (context);
+    }
+    bm_auth_chain_unref (chain);
+}
+
+static gboolean
+return_no_pk_error (PolkitAuthority *authority,
+                    const char *detail,
+                    DBusGMethodInvocation *context)
+{
+    GError *error;
+
+    if (!authority) {
+        error = g_error_new (BM_MANAGER_ERROR,
+                             BM_MANAGER_ERROR_PERMISSION_DENIED,
+                             "%s request failed: PolicyKit not initialized",
+                             detail);
+		dbus_g_method_return_error (context, error);
+        g_error_free (error);
+		return FALSE;
+    }
+    return TRUE;
+}
+
+static void
+impl_manager_enable (BMManager *self,
+                     gboolean enable,
+                     DBusGMethodInvocation *context)
+{
+    BMManagerPrivate *priv;
+    BMAuthChain *chain;
+    GError *error = NULL;
+    gulong sender_uid = G_MAXULONG;
+    const char *error_desc = NULL;
+
+    g_return_if_fail (BM_IS_MANAGER (self));
+
+    priv = BM_MANAGER_GET_PRIVATE (self);
+
+    if (priv->net_enabled == enable) {
+        error = g_error_new (BM_MANAGER_ERROR,
+                             BM_MANAGER_ERROR_ALREADY_ENABLED_OR_DISABLED,
+                             "Already %s", enable ? "enabled" : "disabled");
+        dbus_g_method_return_error (context, error);
+        g_error_free (error);
+        return;
+    }
+
+    if (!bm_auth_get_caller_uid (context, priv->dbus_mgr, &sender_uid, &error_desc)) {
+        error = g_error_new_literal (BM_MANAGER_ERROR,
+                                     BM_MANAGER_ERROR_PERMISSION_DENIED,
+                                     error_desc);
+        dbus_g_method_return_error (context, error);
+        g_error_free (error);
+        return;
+    }
+
+    /* Root doesn't need PK authentication */
+    if (0 == sender_uid) {
+        _internal_enable (self, enable);
+        dbus_g_method_return (context);
+        return;
+    }
+
+    if (!return_no_pk_error (priv->authority, "Enable/disable", context))
+        return;
+
+    chain = bm_auth_chain_new (priv->authority, context, NULL, enable_net_done_cb, self);
+    g_assert (chain);
+    priv->auth_chains = g_slist_append (priv->auth_chains, chain);
+
+    bm_auth_chain_set_data (chain, "enable", GUINT_TO_POINTER (enable), NULL);
+    bm_auth_chain_add_call (chain, BM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK, TRUE);
+}
+
+
+
+static gboolean
+impl_manager_get_devices (BMManager *manager, GPtrArray **devices, GError **err)
+{
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (manager);
+    GSList *iter;
+
+	bm_log_dbg (LOGD_CORE, "impl_manager_get_devices");
+
+    *devices = g_ptr_array_sized_new (g_slist_length (priv->devices));
+
+    for (iter = priv->devices; iter; iter = iter->next)
+        g_ptr_array_add (*devices, g_strdup (bm_device_get_path (BM_DEVICE (iter->data))));
+
+    return TRUE;
 }
 

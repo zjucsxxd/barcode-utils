@@ -30,17 +30,17 @@
 G_BEGIN_DECLS
 
 #define BM_TYPE_UDEV_MANAGER            (bm_udev_manager_get_type ())
-#define BM_UDEV_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_UDEV_MANAGER, NMUdevManager))
-#define BM_UDEV_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_UDEV_MANAGER, NMUdevManagerClass))
+#define BM_UDEV_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), BM_TYPE_UDEV_MANAGER, BMUdevManager))
+#define BM_UDEV_MANAGER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), BM_TYPE_UDEV_MANAGER, BMUdevManagerClass))
 #define BM_IS_UDEV_MANAGER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), BM_TYPE_UDEV_MANAGER))
 #define BM_IS_UDEV_MANAGER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((obj), BM_TYPE_UDEV_MANAGER))
-#define BM_UDEV_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_UDEV_MANAGER, NMUdevManagerClass))
+#define BM_UDEV_MANAGER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_UDEV_MANAGER, BMUdevManagerClass))
 
 typedef struct {
 	GObject parent;
-} NMUdevManager;
+} BMUdevManager;
 
-typedef GObject *(*BMDeviceCreatorFn) (NMUdevManager *manager,
+typedef GObject *(*BMDeviceCreatorFn) (BMUdevManager *manager,
                                        GUdevDevice *device,
                                        gboolean sleeping);
 
@@ -48,19 +48,19 @@ typedef struct {
 	GObjectClass parent;
 
 	/* Virtual functions */
-	void (*device_added) (NMUdevManager *manager,
+	void (*device_added) (BMUdevManager *manager,
 	                      GUdevDevice *device,
 	                      BMDeviceCreatorFn creator_fn);
 
-	void (*device_removed) (NMUdevManager *manager, GUdevDevice *device);
+	void (*device_removed) (BMUdevManager *manager, GUdevDevice *device);
 
-} NMUdevManagerClass;
+} BMUdevManagerClass;
 
 GType bm_udev_manager_get_type (void);
 
-NMUdevManager *bm_udev_manager_new (void);
+BMUdevManager *bm_udev_manager_new (void);
 
-void bm_udev_manager_query_devices (NMUdevManager *manager);
+void bm_udev_manager_query_devices (BMUdevManager *manager);
 
 #endif /* BM_UDEV_MANAGER_H */
 
