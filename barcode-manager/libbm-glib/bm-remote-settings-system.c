@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libbm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access barcode scanner hardware & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 Novell, Inc.
- * Copyright (C) 2009 - 2010 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #include <string.h>
@@ -33,10 +32,10 @@
 
 static void settings_system_interface_init (BMSettingsSystemInterface *klass);
 
-G_DEFINE_TYPE_EXTENDED (NMRemoteSettingsSystem, bm_remote_settings_system, BM_TYPE_REMOTE_SETTINGS, 0,
+G_DEFINE_TYPE_EXTENDED (BMRemoteSettingsSystem, bm_remote_settings_system, BM_TYPE_REMOTE_SETTINGS, 0,
                         G_IMPLEMENT_INTERFACE (BM_TYPE_SETTINGS_SYSTEM_INTERFACE, settings_system_interface_init))
 
-#define BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemPrivate))
+#define BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_REMOTE_SETTINGS_SYSTEM, BMRemoteSettingsSystemPrivate))
 
 typedef struct {
 	DBusGProxy *proxy;
@@ -49,15 +48,15 @@ typedef struct {
 	gboolean have_permissions;
 
 	gboolean disposed;
-} NMRemoteSettingsSystemPrivate;
+} BMRemoteSettingsSystemPrivate;
 
 static void
 properties_changed_cb (DBusGProxy *proxy,
                        GHashTable *properties,
                        gpointer user_data)
 {
-	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
-	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
+	BMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
+	BMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
 	GHashTableIter iter;
 	gpointer key, tmp;
 
@@ -83,7 +82,7 @@ get_all_cb  (DBusGProxy *proxy,
              DBusGProxyCall *call,
              gpointer user_data)
 {
-	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
+	BMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
 	GHashTable *props = NULL;
 	GError *error = NULL;
 
@@ -132,8 +131,8 @@ save_hostname (BMSettingsSystemInterface *settings,
 	           BMSettingsSystemSaveHostnameFunc callback,
 	           gpointer user_data)
 {
-	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (settings);
-	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
+	BMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (settings);
+	BMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
 	SaveHostnameInfo *info;
 
 	info = g_malloc0 (sizeof (SaveHostnameInfo));
@@ -162,8 +161,8 @@ get_permissions_cb  (DBusGProxy *proxy,
                      gpointer user_data)
 {
 	GetPermissionsInfo *info = user_data;
-	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (info->settings);
-	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
+	BMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (info->settings);
+	BMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
 	BMSettingsSystemPermissions permissions = BM_SETTINGS_SYSTEM_PERMISSION_NONE;
 	GError *error = NULL;
 
@@ -181,7 +180,7 @@ get_permissions (BMSettingsSystemInterface *settings,
                  BMSettingsSystemGetPermissionsFunc callback,
                  gpointer user_data)
 {
-	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (settings);
+	BMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (settings);
 	GetPermissionsInfo *info;
 
 	/* Skip D-Bus if we already have permissions */
@@ -190,7 +189,7 @@ get_permissions (BMSettingsSystemInterface *settings,
 		return TRUE;
 	}
 
-	/* Otherwise fetch them from NM */
+	/* Otherwise fetch them from BM */
 	info = g_malloc0 (sizeof (GetPermissionsInfo));
 	info->settings = settings;
 	info->callback = callback;
@@ -207,8 +206,8 @@ get_permissions (BMSettingsSystemInterface *settings,
 static void
 check_permissions_cb (DBusGProxy *proxy, gpointer user_data)
 {
-	NMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
-	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
+	BMRemoteSettingsSystem *self = BM_REMOTE_SETTINGS_SYSTEM (user_data);
+	BMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (self);
 
 	/* Permissions need to be re-fetched */
 	priv->have_permissions = FALSE;
@@ -233,19 +232,19 @@ settings_system_interface_init (BMSettingsSystemInterface *klass)
  *
  * Returns: the new remote system settings object on success, or %NULL on failure
  **/
-NMRemoteSettingsSystem *
+BMRemoteSettingsSystem *
 bm_remote_settings_system_new (DBusGConnection *bus)
 {
 	g_return_val_if_fail (bus != NULL, NULL);
 
-	return (NMRemoteSettingsSystem *) g_object_new (BM_TYPE_REMOTE_SETTINGS_SYSTEM,
+	return (BMRemoteSettingsSystem *) g_object_new (BM_TYPE_REMOTE_SETTINGS_SYSTEM,
 	                                                BM_REMOTE_SETTINGS_BUS, bus,
 	                                                BM_REMOTE_SETTINGS_SCOPE, BM_CONNECTION_SCOPE_SYSTEM,
 	                                                NULL);
 }
 
 static void
-bm_remote_settings_system_init (NMRemoteSettingsSystem *self)
+bm_remote_settings_system_init (BMRemoteSettingsSystem *self)
 {
 }
 
@@ -255,7 +254,7 @@ constructor (GType type,
              GObjectConstructParam *construct_params)
 {
 	GObject *object;
-	NMRemoteSettingsSystemPrivate *priv;
+	BMRemoteSettingsSystemPrivate *priv;
 	DBusGConnection *bus = NULL;
 
 	object = G_OBJECT_CLASS (bm_remote_settings_system_parent_class)->constructor (type, n_construct_params, construct_params);
@@ -317,7 +316,7 @@ constructor (GType type,
 static void
 dispose (GObject *object)
 {
-	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
+	BMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
 
 	if (priv->disposed)
 		return;
@@ -336,7 +335,7 @@ static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
-	NMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
+	BMRemoteSettingsSystemPrivate *priv = BM_REMOTE_SETTINGS_SYSTEM_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case BM_SETTINGS_SYSTEM_INTERFACE_PROP_HOSTNAME:
@@ -352,11 +351,11 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-bm_remote_settings_system_class_init (NMRemoteSettingsSystemClass *klass)
+bm_remote_settings_system_class_init (BMRemoteSettingsSystemClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-	g_type_class_add_private (klass, sizeof (NMRemoteSettingsSystemPrivate));
+	g_type_class_add_private (klass, sizeof (BMRemoteSettingsSystemPrivate));
 
 	/* Virtual methods */
 	object_class->constructor = constructor;

@@ -22,7 +22,7 @@
 
 #include <bm-setting-connection.h>
 #include <bm-setting-serial.h>
-#include <bm-setting-usb.h>
+// #include <bm-setting-usb.h>
 #include <bm-setting-bluetooth.h>
 
 #include "bmcli.h"

@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libbm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access barcode scanner hardware & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 Novell, Inc.
- * Copyright (C) 2009 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #ifndef BM_REMOTE_SETTINGS_SYSTEM_H
@@ -40,11 +39,11 @@ G_BEGIN_DECLS
 #define BM_REMOTE_SETTINGS_SYSTEM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), BM_TYPE_REMOTE_SETTINGS_SYSTEM, NMRemoteSettingsSystemClass))
 
 typedef struct {
-	NMRemoteSettings parent;
+	BMRemoteSettings parent;
 } NMRemoteSettingsSystem;
 
 typedef struct {
-	NMRemoteSettingsClass parent;
+	BMRemoteSettingsClass parent;
 
 	/* Padding for future expansion */
 	void (*_reserved1) (void);
@@ -53,11 +52,11 @@ typedef struct {
 	void (*_reserved4) (void);
 	void (*_reserved5) (void);
 	void (*_reserved6) (void);
-} NMRemoteSettingsSystemClass;
+} BMRemoteSettingsSystemClass;
 
 GType bm_remote_settings_system_get_type (void);
 
-NMRemoteSettingsSystem *bm_remote_settings_system_new (DBusGConnection *bus);
+BMRemoteSettingsSystem *bm_remote_settings_system_new (DBusGConnection *bus);
 
 G_END_DECLS
 

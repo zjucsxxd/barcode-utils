@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libbm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access barcode scanner hardware & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2009 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #ifndef __BM_REMOTE_CONNECTION_PRIVATE_H__
@@ -29,7 +29,7 @@ typedef enum {
 	BM_REMOTE_CONNECTION_INIT_RESULT_UNKNOWN = 0,
 	BM_REMOTE_CONNECTION_INIT_RESULT_SUCCESS,
 	BM_REMOTE_CONNECTION_INIT_RESULT_ERROR
-} NMRemoteConnectionInitResult;
+} BMRemoteConnectionInitResult;
 
 #endif  /* __BM_REMOTE_CONNECTION_PRIVATE__ */
 

@@ -31,29 +31,16 @@
 
 #include <bm-client.h>
 #include <bm-setting-connection.h>
-#include <bm-setting-wired.h>
-#include <bm-setting-pppoe.h>
-#include <bm-setting-wireless.h>
-#include <bm-setting-gsm.h>
-#include <bm-setting-cdma.h>
 #include <bm-setting-bluetooth.h>
-#include <bm-setting-olpc-mesh.h>
-#include <bm-device-ethernet.h>
-#include <bm-device-wifi.h>
-#include <bm-gsm-device.h>
-#include <bm-cdma-device.h>
 #include <bm-device-bt.h>
-//#include <bm-device-olpc-mesh.h>
 #include <bm-remote-settings.h>
 #include <bm-remote-settings-system.h>
 #include <bm-settings-interface.h>
 #include <bm-settings-connection-interface.h>
-#include <bm-vpn-connection.h>
 
 #include "utils.h"
 #include "settings.h"
 #include "connections.h"
-
 
 /* Available fields for 'con status' */
 static BmcOutputField bmc_fields_con_status[] = {

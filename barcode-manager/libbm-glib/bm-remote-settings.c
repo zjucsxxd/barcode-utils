@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * libbm_glib -- Access network status & information from glib applications
+ * libbm_glib -- Access barcode scanner hardware & information from glib applications
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2008 Novell, Inc.
- * Copyright (C) 2009 - 2010 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #include <string.h>
@@ -33,10 +32,10 @@
 
 static void settings_interface_init (BMSettingsInterface *class);
 
-G_DEFINE_TYPE_EXTENDED (NMRemoteSettings, bm_remote_settings, G_TYPE_OBJECT, 0,
+G_DEFINE_TYPE_EXTENDED (BMRemoteSettings, bm_remote_settings, G_TYPE_OBJECT, 0,
                         G_IMPLEMENT_INTERFACE (BM_TYPE_SETTINGS_INTERFACE, settings_interface_init))
 
-#define BM_REMOTE_SETTINGS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_REMOTE_SETTINGS, NMRemoteSettingsPrivate))
+#define BM_REMOTE_SETTINGS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_REMOTE_SETTINGS, BMRemoteSettingsPrivate))
 
 typedef struct {
 	DBusGConnection *bus;
@@ -52,7 +51,7 @@ typedef struct {
 	guint fetch_id;
 
 	gboolean disposed;
-} NMRemoteSettingsPrivate;
+} BMRemoteSettingsPrivate;
 
 enum {
 	PROP_0,
@@ -70,10 +69,10 @@ get_connection_by_path (BMSettingsInterface *settings, const char *path)
 }
 
 static void
-connection_removed_cb (NMRemoteConnection *remote, gpointer user_data)
+connection_removed_cb (BMRemoteConnection *remote, gpointer user_data)
 {
-	NMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
+	BMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
 	const char *path;
 
 	path = bm_connection_get_path (BM_CONNECTION (remote));
@@ -82,12 +81,12 @@ connection_removed_cb (NMRemoteConnection *remote, gpointer user_data)
 }
 
 static void
-connection_init_result_cb (NMRemoteConnection *remote,
+connection_init_result_cb (BMRemoteConnection *remote,
                            GParamSpec *pspec,
                            gpointer user_data)
 {
-	NMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
+	BMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
 	guint32 init_result = BM_REMOTE_CONNECTION_INIT_RESULT_UNKNOWN;
 	const char *path;
 
@@ -133,9 +132,9 @@ connection_init_result_cb (NMRemoteConnection *remote,
 static void
 new_connection_cb (DBusGProxy *proxy, const char *path, gpointer user_data)
 {
-	NMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
-	NMRemoteConnection *connection;
+	BMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
+	BMRemoteConnection *connection;
 
 	connection = bm_remote_connection_new (priv->bus, priv->scope, path);
 	if (connection) {
@@ -161,8 +160,8 @@ fetch_connections_done (DBusGProxy *proxy,
                         GError *error,
                         gpointer user_data)
 {
-	NMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);	
+	BMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);	
 	int i;
 
 	if (error) {
@@ -207,8 +206,8 @@ fetch_connections_done (DBusGProxy *proxy,
 static gboolean
 fetch_connections (gpointer user_data)
 {
-	NMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
+	BMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
 
 	priv->fetch_id = 0;
 
@@ -221,7 +220,7 @@ fetch_connections (gpointer user_data)
 static GSList *
 list_connections (BMSettingsInterface *settings)
 {
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (settings);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (settings);
 	GSList *list = NULL;
 	GHashTableIter iter;
 	gpointer value;
@@ -256,8 +255,8 @@ add_connection (BMSettingsInterface *settings,
 	            BMSettingsAddConnectionFunc callback,
 	            gpointer user_data)
 {
-	NMRemoteSettings *self = BM_REMOTE_SETTINGS (settings);
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
+	BMRemoteSettings *self = BM_REMOTE_SETTINGS (settings);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
 	AddConnectionInfo *info;
 	GHashTable *new_settings;
 
@@ -278,8 +277,8 @@ add_connection (BMSettingsInterface *settings,
 static gboolean
 remove_connections (gpointer user_data)
 {
-	NMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
+	BMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
 	GHashTableIter iter;
 	gpointer value;
 	GSList *list = NULL, *list_iter;
@@ -308,8 +307,8 @@ name_owner_changed (DBusGProxy *proxy,
                     const char *new_owner,
                     gpointer user_data)
 {
-	NMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
+	BMRemoteSettings *self = BM_REMOTE_SETTINGS (user_data);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
 	const char *sname = BM_DBUS_SERVICE_USER_SETTINGS;
 
 	if (priv->scope == BM_CONNECTION_SCOPE_SYSTEM)
@@ -350,22 +349,22 @@ settings_interface_init (BMSettingsInterface *iface)
  *
  * Returns: the new remote settings object on success, or %NULL on failure
  **/
-NMRemoteSettings *
+BMRemoteSettings *
 bm_remote_settings_new (DBusGConnection *bus, BMConnectionScope scope)
 {
 	g_return_val_if_fail (bus != NULL, NULL);
 	g_return_val_if_fail (scope != BM_CONNECTION_SCOPE_UNKNOWN, NULL);
 
-	return (NMRemoteSettings *) g_object_new (BM_TYPE_REMOTE_SETTINGS,
+	return (BMRemoteSettings *) g_object_new (BM_TYPE_REMOTE_SETTINGS,
 	                                          BM_REMOTE_SETTINGS_BUS, bus,
 	                                          BM_REMOTE_SETTINGS_SCOPE, scope,
 	                                          NULL);
 }
 
 static void
-bm_remote_settings_init (NMRemoteSettings *self)
+bm_remote_settings_init (BMRemoteSettings *self)
 {
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (self);
 
 	priv->connections = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 	priv->pending = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
@@ -377,7 +376,7 @@ constructor (GType type,
              GObjectConstructParam *construct_params)
 {
 	GObject *object;
-	NMRemoteSettingsPrivate *priv;
+	BMRemoteSettingsPrivate *priv;
 	const char *service = BM_DBUS_SERVICE_USER_SETTINGS;
 	GError *error = NULL;
 
@@ -415,7 +414,7 @@ constructor (GType type,
 	                        G_TYPE_INVALID,
 	                        G_TYPE_BOOLEAN, &priv->service_running,
 	                        G_TYPE_INVALID)) {
-		g_warning ("%s (NMRemoteSettings) error getting remote settings service status: (%d) %s\n",
+		g_warning ("%s (BMRemoteSettings) error getting remote settings service status: (%d) %s\n",
 		           __func__,
 		           error ? error->code : -1,
 		           error && error->message ? error->message : "(unknown)");
@@ -446,7 +445,7 @@ constructor (GType type,
 static void
 dispose (GObject *object)
 {
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (object);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (object);
 
 	if (priv->disposed)
 		return;
@@ -473,7 +472,7 @@ static void
 set_property (GObject *object, guint prop_id,
               const GValue *value, GParamSpec *pspec)
 {
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (object);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_BUS:
@@ -493,7 +492,7 @@ static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
-	NMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (object);
+	BMRemoteSettingsPrivate *priv = BM_REMOTE_SETTINGS_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_BUS:
@@ -512,11 +511,11 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-bm_remote_settings_class_init (NMRemoteSettingsClass *class)
+bm_remote_settings_class_init (BMRemoteSettingsClass *class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-	g_type_class_add_private (class, sizeof (NMRemoteSettingsPrivate));
+	g_type_class_add_private (class, sizeof (BMRemoteSettingsPrivate));
 
 	/* Virtual methods */
 	object_class->constructor = constructor;
