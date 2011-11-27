@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
- * Dan Williams <dcbw@redhat.com>
+ * Jakob Flierl <jakob.flierl@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2009 - 2010 Red Hat, Inc.
+ * (C) Copyright 2011 Jakob Flierl
  */
 
 #include <stdio.h>
@@ -31,7 +31,6 @@
 
 #include <bm-setting-bluetooth.h>
 #include <bm-setting-connection.h>
-#include <bm-setting-usb.h>
 #include <bm-setting.h>
 #include <bm-setting-serial.h>
 
@@ -42,7 +41,6 @@ typedef BMSetting* (*SettingNewFunc) (void);
 static SettingNewFunc funcs[] = {
 	bm_setting_bluetooth_new,
 	bm_setting_connection_new,
-	bm_setting_usb_new,
 	bm_setting_serial_new,
 	NULL
 };

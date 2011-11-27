@@ -1,5 +1,36 @@
 # generated stuff
 
+docs/libbm-glib/*
+docs/libbm-util/*
+
+docs/libbm-glib/libbm-glib-*.txt
+
+docs/libbm-util/tmpl/
+docs/libbm-util/xml/
+docs/libbm-util/html/
+docs/libbm-glib/xml/
+docs/libbm-glib/tmpl/
+docs/libbm-glib/html/
+
+config.guess.cdbs-orig
+config.sub.cdbs-orig
+
+debian/stamp-*
+docs/generate-settings-spec
+
+debian/tmp/
+
+debian/stamp-patched
+
+*.substvars
+*.debhelper.log
+
+*.html
+
+po/BarcodeManager.pot
+
+*.stamp
+
 cli/src/bmcli
 po/.intltool-merge-cache
 
