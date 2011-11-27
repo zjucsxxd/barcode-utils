@@ -1,5 +1,14 @@
 # generated stuff
 
+test/bm-online
+test/bm-tool
+
+po/*.gmo
+
+debian/barcode-manager-dev
+debian/libbm-glib-dev
+debian/libbm-glib2
+
 docs/libbm-glib/*
 docs/libbm-util/*
 

@@ -1,5 +1,4 @@
 debian/tmp/usr/lib/pkgconfig/libbm-glib.pc
-debian/tmp/usr/lib/pkgconfig/libbm-glib-vpn.pc
 debian/tmp/usr/lib/libbm-glib*.a
 debian/tmp/usr/lib/libbm-glib*.so
 debian/tmp/usr/include/libbm-glib/*.h
