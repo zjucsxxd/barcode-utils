@@ -41,8 +41,27 @@
 
 G_DEFINE_TYPE (BMDeviceHidraw, bm_device_hidraw, BM_TYPE_DEVICE)
 
+#define BM_DEVICE_HIDRAW_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), BM_TYPE_DEVICE_HIDRAW, BMDeviceHidrawPrivate))
+
+typedef struct {
+    char *bdaddr;
+    char *name;
+    guint32 capabilities;
+
+    gboolean connected;
+    gboolean have_iface;
+
+    DBusGProxy *type_proxy;
+    DBusGProxy *dev_proxy;
+
+    guint32 timeout_id;
+
+    guint32 bt_type;  /* BT type of the current connection */
+} BMDeviceHidrawPrivate;
+
 enum {
 	PROPERTIES_CHANGED,
+
 	LAST_SIGNAL
 };
 
@@ -63,14 +82,13 @@ bm_device_hidraw_new (const char *udi,
 	g_return_val_if_fail (bdaddr != NULL, NULL);
 	g_return_val_if_fail (name != NULL, NULL);
 
-	device = (BMDevice *) g_object_new (BM_TYPE_DEVICE_HIDRAW, NULL);
-	/*
+	device = (BMDevice *) g_object_new (BM_TYPE_DEVICE_HIDRAW,
 										BM_DEVICE_INTERFACE_UDI, udi,
 										BM_DEVICE_INTERFACE_IFACE, bdaddr,
 										BM_DEVICE_INTERFACE_DRIVER, "hidraw",
 										BM_DEVICE_INTERFACE_TYPE_DESC, "Hidraw",
 										BM_DEVICE_INTERFACE_DEVICE_TYPE, BM_DEVICE_TYPE_HIDRAW,
-										NULL);*/
+										NULL);
 
 	bm_log_dbg (LOGD_HW, "(%s)", (device == NULL) ? "NULL" : "!= NULL");
 
@@ -86,6 +104,54 @@ bm_device_hidraw_init (BMDeviceHidraw *self)
 }
 
 static void
+set_property (GObject *object, guint prop_id,
+              const GValue *value, GParamSpec *pspec)
+{
+    BMDeviceHidrawPrivate *priv = BM_DEVICE_HIDRAW_GET_PRIVATE (object);
+
+    switch (prop_id) {
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+        break;
+    }
+}
+
+static void
+get_property (GObject *object, guint prop_id,
+              GValue *value, GParamSpec *pspec)
+{
+    BMDeviceHidrawPrivate *priv = BM_DEVICE_HIDRAW_GET_PRIVATE (object);
+
+    switch (prop_id) {
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+        break;
+    }
+}
+
+static void
+finalize (GObject *object)
+{
+    BMDeviceHidrawPrivate *priv = BM_DEVICE_HIDRAW_GET_PRIVATE (object);
+
+    if (priv->timeout_id) {
+        g_source_remove (priv->timeout_id);
+        priv->timeout_id = 0;
+    }
+
+    if (priv->type_proxy)
+        g_object_unref (priv->type_proxy);
+
+    if (priv->dev_proxy)
+        g_object_unref (priv->dev_proxy);
+
+    g_free (priv->bdaddr);
+    g_free (priv->name);
+
+    G_OBJECT_CLASS (bm_device_hidraw_parent_class)->finalize (object);
+}
+
+static void
 bm_device_hidraw_class_init (BMDeviceHidrawClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -93,20 +159,24 @@ bm_device_hidraw_class_init (BMDeviceHidrawClass *klass)
 
 	bm_log_dbg (LOGD_HW, "class init called");
 
-	// g_type_class_add_private (object_class, sizeof (BMDeviceHidrawPrivate));
+	g_type_class_add_private (object_class, sizeof (BMDeviceHidrawPrivate));
 
 	// object_class->constructor = constructor;
 	// object_class->dispose = dispose;
 
-	//object_class->get_property = get_property;
-	//object_class->set_property = set_property;
-	// object_class->finalize = finalize;
+	object_class->get_property = get_property;
+	object_class->set_property = set_property;
+	object_class->finalize = finalize;
 
 	// device_class->get_generic_capabilities = real_get_generic_capabilities;
 
 	/* Properties */
 
 	/* Signals */
+    signals[PROPERTIES_CHANGED] =
+        bm_properties_changed_signal_new (object_class,
+                                          G_STRUCT_OFFSET (BMDeviceHidrawClass, properties_changed));
+
 	dbus_g_object_type_install_info (G_TYPE_FROM_CLASS (klass),
 	                                 &dbus_glib_bm_device_hidraw_object_info);
 

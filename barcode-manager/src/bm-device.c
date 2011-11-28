@@ -46,7 +46,10 @@
 #include "bm-setting-connection.h"
 #include "bm-marshal.h"
 
-G_DEFINE_TYPE_EXTENDED (BMDevice, bm_device, G_TYPE_OBJECT, G_TYPE_FLAG_ABSTRACT, NULL)
+static void device_interface_init (BMDeviceInterface *device_interface_class);
+
+G_DEFINE_TYPE_EXTENDED (BMDevice, bm_device, G_TYPE_OBJECT, G_TYPE_FLAG_ABSTRACT,
+						G_IMPLEMENT_INTERFACE (BM_TYPE_DEVICE_INTERFACE, device_interface_init))
 
 enum {
 	AUTOCONNECT_ALLOWED,
@@ -88,6 +91,21 @@ static gboolean can_assume_connections (BMDeviceInterface *device);
 static gboolean bm_device_bring_up (BMDevice *self, gboolean block, gboolean *no_firmware);
 static gboolean bm_device_is_up (BMDevice *self);
 
+static void
+device_interface_init (BMDeviceInterface *device_interface_class)
+{
+    /* interface implementation */
+
+	/* FIXME
+    device_interface_class->check_connection_compatible = check_connection_compatible;
+    device_interface_class->activate = nm_device_activate;
+    device_interface_class->deactivate = nm_device_deactivate;
+    device_interface_class->disconnect = device_disconnect;
+    device_interface_class->spec_match_list = spec_match_list;
+    device_interface_class->connection_match_config = connection_match_config;
+    device_interface_class->can_assume_connections = can_assume_connections;
+	*/
+}
 
 static void
 bm_device_init (BMDevice *self)
@@ -118,11 +136,22 @@ constructor (GType type,
 	dev = BM_DEVICE (object);
 	priv = BM_DEVICE_GET_PRIVATE (dev);
 
+    if (!priv->udi) {
+        bm_log_err (LOGD_DEVICE, "No device udi provided, ignoring");
+        goto error;
+    }
+
+    if (!priv->iface) {
+        bm_log_err (LOGD_DEVICE, "No device interface provided, ignoring");
+        goto error;
+    }
+
+	/*
 	priv->capabilities |= BM_DEVICE_GET_CLASS (dev)->get_generic_capabilities (dev);
 	if (!(priv->capabilities & BM_DEVICE_CAP_BM_SUPPORTED)) {
 		bm_log_warn (LOGD_DEVICE, "(%s): Device unsupported, ignoring.", priv->iface);
 		goto error;
-	}
+		}*/
 
 	// FIXME update_accept_ra_save (dev);
 
@@ -133,6 +162,39 @@ error:
 	g_object_unref (dev);
 	return NULL;
 }
+
+static void
+dispose (GObject *object)
+{
+    BMDevice *self = BM_DEVICE (object);
+    BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (self);
+    gboolean take_down = TRUE;
+
+    if (priv->disposed || !priv->initialized)
+        goto out;
+
+    priv->disposed = TRUE;
+
+	// FIXME more here
+
+ out:
+    G_OBJECT_CLASS (bm_device_parent_class)->dispose (object);
+}
+
+static void
+finalize (GObject *object)
+{
+    BMDevice *self = BM_DEVICE (object);
+    BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (self);
+
+    g_free (priv->udi);
+    g_free (priv->iface);
+    g_free (priv->driver);
+    g_free (priv->type_desc);
+
+    G_OBJECT_CLASS (bm_device_parent_class)->finalize (object);
+}
+
 
 static gboolean
 bm_device_hw_is_up (BMDevice *self)
@@ -181,6 +243,8 @@ const char *
 bm_device_get_iface (BMDevice *self)
 {
 	g_return_val_if_fail (self != NULL, NULL);
+
+	bm_log_dbg (LOGD_CORE, "bm_device_get_iface %s", BM_DEVICE_GET_PRIVATE (self)->iface);
 
 	return BM_DEVICE_GET_PRIVATE (self)->iface;
 }
@@ -327,6 +391,10 @@ set_property (GObject *object, guint prop_id,
 	BMDevicePrivate *priv = BM_DEVICE_GET_PRIVATE (object);
  
 	switch (prop_id) {
+    case BM_DEVICE_INTERFACE_PROP_UDI:
+		/* construct-only */
+        priv->udi = g_strdup (g_value_get_string (value));
+        break;
 	case BM_DEVICE_INTERFACE_PROP_IFACE:
 		g_free (priv->iface);
 		priv->iface = g_value_dup_string (value);
@@ -337,9 +405,10 @@ set_property (GObject *object, guint prop_id,
 	case BM_DEVICE_INTERFACE_PROP_CAPABILITIES:
 		priv->capabilities = g_value_get_uint (value);
 		break;
-	case BM_DEVICE_INTERFACE_PROP_MANAGED:
-		priv->managed = g_value_get_boolean (value);
-		break;
+    case BM_DEVICE_INTERFACE_PROP_DEVICE_TYPE:
+        g_return_if_fail (priv->type == BM_DEVICE_TYPE_UNKNOWN);
+        priv->type = g_value_get_uint (value);
+        break;
 	case BM_DEVICE_INTERFACE_PROP_TYPE_DESC:
 		g_free (priv->type_desc);
 		priv->type_desc = g_value_dup_string (value);
@@ -394,6 +463,8 @@ bm_device_class_init (BMDeviceClass *klass)
 	g_type_class_add_private (object_class, sizeof (BMDevicePrivate));
 
 	/* Virtual methods */
+    object_class->dispose = dispose;
+    object_class->finalize = finalize;
 	object_class->set_property = set_property;
 	object_class->get_property = get_property;
 	object_class->constructor = constructor;
@@ -402,6 +473,10 @@ bm_device_class_init (BMDeviceClass *klass)
 	klass->get_generic_capabilities = real_get_generic_capabilities;
 
 	/* Properties */
+
+    g_object_class_override_property (object_class,
+                                      BM_DEVICE_INTERFACE_PROP_UDI,
+                                      BM_DEVICE_INTERFACE_UDI);
 
 	g_object_class_override_property (object_class,
 									  BM_DEVICE_INTERFACE_PROP_IFACE,

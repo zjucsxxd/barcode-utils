@@ -12,14 +12,6 @@
         The name of the device's control (and often data) interface.
       </tp:docstring>
     </property>
-    <property name="IpInterface" type="s" access="read">
-      <tp:docstring>
-        The name of the device's data interface when available.  This property
-        may not refer to the actual data interface until the device has
-        successfully established a data connection, indicated by the device's
-        State becoming ACTIVATED.
-      </tp:docstring>
-    </property>
     <property name="Driver" type="s" access="read">
       <tp:docstring>
         The driver handling the device.
@@ -30,36 +22,9 @@
         Flags describing the capabilities of the device.
       </tp:docstring>
     </property>
-    <property name="Ip4Address" type="i" access="read">
-      <tp:docstring>
-        The IPv4 address bound to the device. FIXME: what about devices with >1 IP address?
-      </tp:docstring>
-    </property>
     <property name="State" type="u" access="read" tp:type="BM_DEVICE_STATE">
       <tp:docstring>
         The current state of the device.
-      </tp:docstring>
-    </property>
-    <property name="Ip4Config" type="o" access="read">
-      <tp:docstring>
-        Object path of the Ip4Config object describing the configuration of the device.  Only valid when the device is in the BM_DEVICE_STATE_ACTIVATED state.
-      </tp:docstring>
-    </property>
-    <property name="Dhcp4Config" type="o" access="read">
-      <tp:docstring>
-        Object path of the Dhcp4Config object describing the DHCP options returned by the DHCP server.  Only valid when the device is in the BM_DEVICE_STATE_ACTIVATED state.
-      </tp:docstring>
-    </property>
-    <property name="Ip6Config" type="o" access="read">
-      <tp:docstring>
-        Object path of the Ip6Config object describing the configuration of the device.  Only valid when the device is in the BM_DEVICE_STATE_ACTIVATED state.
-      </tp:docstring>
-    </property>
-    <property name="Dhcp6Config" type="o" access="read">
-      <tp:docstring>
-        Object path of the Dhcp6Config object describing the DHCP options
-        returned by the DHCP server.  Only valid when the device is in the
-        BM_DEVICE_STATE_ACTIVATED state.
       </tp:docstring>
     </property>
     <property name="Managed" type="b" access="read">
@@ -156,24 +121,9 @@
           The device type is unknown.
         </tp:docstring>
       </tp:enumvalue>
-      <tp:enumvalue suffix="ETHERNET" value="1">
+      <tp:enumvalue suffix="HIDRAW" value="1">
         <tp:docstring>
-          The device is wired Ethernet device.
-        </tp:docstring>
-      </tp:enumvalue>
-      <tp:enumvalue suffix="WIFI" value="2">
-        <tp:docstring>
-          The device is an 802.11 WiFi device.
-        </tp:docstring>
-      </tp:enumvalue>
-      <tp:enumvalue suffix="GSM" value="3">
-        <tp:docstring>
-          The device is a GSM-based cellular WAN device.
-        </tp:docstring>
-      </tp:enumvalue>
-      <tp:enumvalue suffix="CDMA" value="4">
-        <tp:docstring>
-          The device is a CDMA/IS-95-based cellular WAN device.
+          The device is wired hidraw device.
         </tp:docstring>
       </tp:enumvalue>
     </tp:enum>

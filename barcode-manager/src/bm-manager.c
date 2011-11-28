@@ -1517,7 +1517,7 @@ add_device (BMManager *self, BMDevice *device)
     gboolean managed = FALSE, enabled = FALSE;
 
     iface = bm_device_get_iface (device);
-    g_assert (iface);
+	// FIXME   g_assert (iface);
 
     bm_log_info (LOGD_HW, "%s new device", iface);
 
@@ -1540,6 +1540,7 @@ add_device (BMManager *self, BMDevice *device)
 
     type_desc = bm_device_get_type_desc (device);
     g_assert (type_desc);
+
     driver = bm_device_get_driver (device);
     if (!driver)
         driver = "unknown";

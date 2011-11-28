@@ -90,14 +90,6 @@ bm_device_interface_init (gpointer g_iface)
 
 	g_object_interface_install_property
 		(g_iface,
-		 g_param_spec_string (BM_DEVICE_INTERFACE_IP_IFACE,
-		                      "IP Interface",
-		                      "IP Interface",
-		                      NULL,
-		                      G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-
-	g_object_interface_install_property
-		(g_iface,
 		 g_param_spec_string (BM_DEVICE_INTERFACE_DRIVER,
 							  "Driver",
 							  "Driver",
@@ -114,46 +106,6 @@ bm_device_interface_init (gpointer g_iface)
 
 	g_object_interface_install_property
 		(g_iface,
-		 g_param_spec_uint (BM_DEVICE_INTERFACE_IP4_ADDRESS,
-							"IP4 address",
-							"IP4 address",
-							0, G_MAXUINT32, 0, /* FIXME */
-							G_PARAM_READWRITE));
-
-	g_object_interface_install_property
-		(g_iface,
-		 g_param_spec_boxed (BM_DEVICE_INTERFACE_IP4_CONFIG,
-							  "IP4 Config",
-							  "IP4 Config",
-							  DBUS_TYPE_G_OBJECT_PATH,
-							  G_PARAM_READWRITE));
-
-	g_object_interface_install_property
-		(g_iface,
-		 g_param_spec_boxed (BM_DEVICE_INTERFACE_DHCP4_CONFIG,
-							  "DHCP4 Config",
-							  "DHCP4 Config",
-							  DBUS_TYPE_G_OBJECT_PATH,
-							  G_PARAM_READWRITE));
-
-	g_object_interface_install_property
-		(g_iface,
-		 g_param_spec_boxed (BM_DEVICE_INTERFACE_IP6_CONFIG,
-							  "IP6 Config",
-							  "IP6 Config",
-							  DBUS_TYPE_G_OBJECT_PATH,
-							  G_PARAM_READWRITE));
-
-	g_object_interface_install_property
-		(g_iface,
-		 g_param_spec_boxed (BM_DEVICE_INTERFACE_DHCP6_CONFIG,
-							  "DHCP6 Config",
-							  "DHCP6 Config",
-							  DBUS_TYPE_G_OBJECT_PATH,
-							  G_PARAM_READWRITE));
-
-	g_object_interface_install_property
-		(g_iface,
 		 g_param_spec_uint (BM_DEVICE_INTERFACE_STATE,
 							"State",
 							"State",
@@ -167,20 +119,6 @@ bm_device_interface_init (gpointer g_iface)
 							"DeviceType",
 							0, G_MAXUINT32, BM_DEVICE_TYPE_UNKNOWN,
 							G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | BM_PROPERTY_PARAM_NO_EXPORT));
-
-	g_object_interface_install_property
-		(g_iface, g_param_spec_boolean (BM_DEVICE_INTERFACE_MANAGED,
-	                                   "Managed",
-	                                   "Managed",
-	                                   FALSE,
-	                                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-
-	g_object_interface_install_property
-		(g_iface, g_param_spec_boolean (BM_DEVICE_INTERFACE_FIRMWARE_MISSING,
-	                                   "FirmwareMissing",
-	                                   "Firmware missing",
-	                                   FALSE,
-	                                   G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
 	g_object_interface_install_property
 		(g_iface,

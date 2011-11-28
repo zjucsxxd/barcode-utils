@@ -1,5 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* BarcodeManager -- Network link manager
+/* BarcodeManager -- Barcode scanner manager
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2007 - 2008 Novell, Inc.
- * Copyright (C) 2007 - 2010 Red Hat, Inc.
+ * Copyright (C) 2011 Jakob Flierl
  */
 
 #ifndef BM_DEVICE_INTERFACE_H
@@ -48,44 +47,23 @@ typedef enum
 
 #define BM_DEVICE_INTERFACE_UDI              "udi"
 #define BM_DEVICE_INTERFACE_IFACE            "interface"
-#define BM_DEVICE_INTERFACE_IP_IFACE         "ip-interface"
 #define BM_DEVICE_INTERFACE_DRIVER           "driver"
 #define BM_DEVICE_INTERFACE_CAPABILITIES     "capabilities"
-#define BM_DEVICE_INTERFACE_IP4_ADDRESS      "ip4-address"
-#define BM_DEVICE_INTERFACE_IP4_CONFIG       "ip4-config"
-#define BM_DEVICE_INTERFACE_DHCP4_CONFIG     "dhcp4-config"
-#define BM_DEVICE_INTERFACE_IP6_CONFIG       "ip6-config"
-#define BM_DEVICE_INTERFACE_DHCP6_CONFIG     "dhcp6-config"
 #define BM_DEVICE_INTERFACE_STATE            "state"
 #define BM_DEVICE_INTERFACE_DEVICE_TYPE      "device-type" /* ugh */
-#define BM_DEVICE_INTERFACE_MANAGED          "managed"
-#define BM_DEVICE_INTERFACE_FIRMWARE_MISSING "firmware-missing"
 #define BM_DEVICE_INTERFACE_TYPE_DESC        "type-desc"    /* Internal only */
-#define BM_DEVICE_INTERFACE_RFKILL_TYPE      "rfkill-type"  /* Internal only */
-#define BM_DEVICE_INTERFACE_IFINDEX          "ifindex"      /* Internal only */
 
 typedef enum {
 	BM_DEVICE_INTERFACE_PROP_FIRST = 0x1000,
 
 	BM_DEVICE_INTERFACE_PROP_UDI = BM_DEVICE_INTERFACE_PROP_FIRST,
 	BM_DEVICE_INTERFACE_PROP_IFACE,
-	BM_DEVICE_INTERFACE_PROP_IP_IFACE,
 	BM_DEVICE_INTERFACE_PROP_DRIVER,
 	BM_DEVICE_INTERFACE_PROP_CAPABILITIES,
-	BM_DEVICE_INTERFACE_PROP_IP4_ADDRESS,
-	BM_DEVICE_INTERFACE_PROP_IP4_CONFIG,
-	BM_DEVICE_INTERFACE_PROP_DHCP4_CONFIG,
-	BM_DEVICE_INTERFACE_PROP_IP6_CONFIG,
-	BM_DEVICE_INTERFACE_PROP_DHCP6_CONFIG,
 	BM_DEVICE_INTERFACE_PROP_STATE,
 	BM_DEVICE_INTERFACE_PROP_DEVICE_TYPE,
-	BM_DEVICE_INTERFACE_PROP_MANAGED,
-	BM_DEVICE_INTERFACE_PROP_FIRMWARE_MISSING,
 	BM_DEVICE_INTERFACE_PROP_TYPE_DESC,
-	BM_DEVICE_INTERFACE_PROP_RFKILL_TYPE,
-	BM_DEVICE_INTERFACE_PROP_IFINDEX,
 } BMDeviceInterfaceProp;
-
 
 typedef struct _BMDeviceInterface BMDeviceInterface;
 

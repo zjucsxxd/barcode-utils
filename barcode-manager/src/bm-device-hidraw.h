@@ -39,6 +39,8 @@ typedef struct {
 
 typedef struct {
 	BMDeviceClass parent;
+
+    void (*properties_changed) (BMDeviceHidraw *device, GHashTable *properties);
 } BMDeviceHidrawClass;
 
 GType bm_device_hidraw_get_type (void);
