@@ -95,7 +95,7 @@ bm_device_hidraw_get_hw_address (BMDeviceHidraw *device)
 	priv = BM_DEVICE_HIDRAW_GET_PRIVATE (device);
 	if (!priv->hw_address) {
 		priv->hw_address = _bm_object_get_string_property (BM_OBJECT (device),
-		                                                   BM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
+		                                                   BM_DBUS_INTERFACE_DEVICE_HIDRAW,
 		                                                   DBUS_PROP_HW_ADDRESS);
 	}
 
@@ -120,7 +120,7 @@ bm_device_hidraw_get_name (BMDeviceHidraw *device)
 	priv = BM_DEVICE_HIDRAW_GET_PRIVATE (device);
 	if (!priv->name) {
 		priv->name = _bm_object_get_string_property (BM_OBJECT (device),
-		                                             BM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
+		                                             BM_DBUS_INTERFACE_DEVICE_HIDRAW,
 		                                             DBUS_PROP_NAME);
 	}
 
@@ -145,7 +145,7 @@ bm_device_hidraw_get_capabilities (BMDeviceHidraw *device)
 	priv = BM_DEVICE_HIDRAW_GET_PRIVATE (device);
 	if (!priv->hidraw_capabilities_valid) {
 		priv->hidraw_capabilities = _bm_object_get_uint_property (BM_OBJECT (device),
-		                                                      BM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
+		                                                      BM_DBUS_INTERFACE_DEVICE_HIDRAW,
 		                                                      DBUS_PROP_HIDRAW_CAPABILITIES);
 		priv->hidraw_capabilities_valid = TRUE;
 	}
@@ -190,7 +190,7 @@ constructor (GType type,
 		priv->proxy = dbus_g_proxy_new_for_name (bm_object_get_connection (BM_OBJECT (object)),
 		                                         BM_DBUS_SERVICE,
 		                                         bm_object_get_path (BM_OBJECT (object)),
-		                                         BM_DBUS_INTERFACE_DEVICE_BLUETOOTH);
+		                                         BM_DBUS_INTERFACE_DEVICE_HIDRAW);
 
 		register_for_property_changed (BM_DEVICE_HIDRAW (object));
 	}

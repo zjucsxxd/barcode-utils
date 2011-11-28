@@ -46,6 +46,8 @@
 #include "bm-setting-connection.h"
 #include "bm-marshal.h"
 
+G_DEFINE_TYPE_EXTENDED (BMDevice, bm_device, G_TYPE_OBJECT, G_TYPE_FLAG_ABSTRACT, NULL)
+
 enum {
 	AUTOCONNECT_ALLOWED,
 	LAST_SIGNAL,
@@ -106,7 +108,8 @@ constructor (GType type,
 	BMDevice *dev;
 	BMDevicePrivate *priv;
 
-	// FIXME object = G_OBJECT_CLASS (bm_device_parent_class)->constructor (type, n_construct_params, construct_params);
+	object = G_OBJECT_CLASS (bm_device_parent_class)->constructor (type, n_construct_params, construct_params);
+
 	if (!object) {
 		 bm_log_warn (LOGD_DEVICE, "Device unsupported, ignoring.");
 		return NULL;
@@ -121,7 +124,7 @@ constructor (GType type,
 		goto error;
 	}
 
-	update_accept_ra_save (dev);
+	// FIXME update_accept_ra_save (dev);
 
 	priv->initialized = TRUE;
 	return object;

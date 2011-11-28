@@ -26,8 +26,9 @@
 #include <gudev/gudev.h>
 
 #include "BarcodeManager.h"
-#include "bm-device-bt.h"
 #include "bm-device.h"
+#include "bm-device-bt.h"
+#include "bm-device-hidraw.h"
 #include "bm-device-private.h"
 #include "bm-object-private.h"
 #include "bm-object-cache.h"
@@ -439,6 +440,9 @@ bm_device_new (DBusGConnection *connection, const char *path)
 	switch (g_value_get_uint (&value)) {
 	case BM_DEVICE_TYPE_BT:
 		dtype = BM_TYPE_DEVICE_BT;
+		break;
+	case BM_DEVICE_TYPE_HIDRAW:
+		dtype = BM_TYPE_DEVICE_HIDRAW;
 		break;
 	default:
 		g_warning ("Unknown device type %d", g_value_get_uint (&value));

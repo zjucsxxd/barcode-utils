@@ -108,7 +108,9 @@ device_creator (BMUdevManager *manager,
 		bm_log_dbg(LOGD_HW, "device driver: %s for %s", driver, path);
 	}
 
+	bm_log_dbg(LOGD_HW, "before bm_device_hidraw_new");
 	device = (GObject *) bm_device_hidraw_new (path, ifname, driver);
+	bm_log_dbg(LOGD_HW, "after bm_device_hidraw_new");
 
 out:
 	if (grandparent)
