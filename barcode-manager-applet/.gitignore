@@ -1,5 +1,14 @@
 # generated stuff
 
+src/marshallers/bma-marshal.c
+src/marshallers/bma-marshal.h
+src/connection-editor/bm-connection-editor
+src/bm-applet
+bm-connection-editor.desktop
+bm-applet.schemas
+bm-applet.desktop
+bm-applet.conf
+
 debian/libbm-glib2.postinst.debhelper
 debian/libbm-glib2.postrm.debhelper
 debian/libbm-util1.postinst.debhelper

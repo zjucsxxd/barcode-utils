@@ -45,7 +45,7 @@ enum {
 	LAST_SIGNAL
 };
 
-static guint signals[LAST_SIGNAL] = { 0 };
+//static guint signals[LAST_SIGNAL] = { 0 };
 
 
 BMAGConfSettings *
@@ -55,31 +55,6 @@ bma_gconf_settings_new (DBusGConnection *bus)
 	                                          BM_SETTINGS_SERVICE_SCOPE, BM_CONNECTION_SCOPE_USER,
 	                                          BM_SETTINGS_SERVICE_BUS, bus,
 	                                          NULL);
-}
-
-static void
-connection_new_secrets_requested_cb (BMAGConfConnection *connection,
-                                     const char *setting_name,
-                                     const char **hints,
-                                     gboolean ask_user,
-                                     BMANewSecretsRequestedFunc callback,
-                                     gpointer callback_data,
-                                     gpointer user_data)
-{
-	BMAGConfSettings *self = BMA_GCONF_SETTINGS (user_data);
-
-	/* Re-emit the signal to listeners so they don't have to know about
-	 * every single connection
-	 */
-	g_signal_emit (self,
-	               signals[NEW_SECRETS_REQUESTED],
-	               0,
-	               connection,
-	               setting_name,
-	               hints,
-	               ask_user,
-	               callback,
-	               callback_data);
 }
 
 static void
@@ -101,9 +76,6 @@ internal_add_connection (BMAGConfSettings *self, BMAGConfConnection *connection)
 	g_return_if_fail (BMA_IS_GCONF_CONNECTION (connection));
 
 	priv->connections = g_slist_prepend (priv->connections, connection);
-	g_signal_connect (connection, "new-secrets-requested",
-	                  G_CALLBACK (connection_new_secrets_requested_cb),
-	                  self);
 
 	g_signal_connect (connection, "removed", G_CALLBACK (connection_removed), self);
 

@@ -1896,123 +1896,6 @@ applet_schedule_update_icon (BMApplet *applet)
 }
 
 
-static BMDevice *
-find_active_device (BMAGConfConnection *connection,
-                    BMApplet *applet,
-                    BMActiveConnection **out_active_connection)
-{
-	const GPtrArray *active_connections;
-	int i;
-
-	g_return_val_if_fail (connection != NULL, NULL);
-	g_return_val_if_fail (applet != NULL, NULL);
-	g_return_val_if_fail (out_active_connection != NULL, NULL);
-	g_return_val_if_fail (*out_active_connection == NULL, NULL);
-
-	/* Look through the active connection list trying to find the D-Bus
-	 * object path of applet_connection.
-	 */
-	active_connections = bm_client_get_active_connections (applet->bm_client);
-	for (i = 0; active_connections && (i < active_connections->len); i++) {
-		BMActiveConnection *active;
-		const char *service_name;
-		const char *connection_path;
-		const GPtrArray *devices;
-
-		active = BM_ACTIVE_CONNECTION (g_ptr_array_index (active_connections, i));
-		service_name = bm_active_connection_get_service_name (active);
-		if (!service_name) {
-			/* Shouldn't happen; but we shouldn't crash either */
-			g_warning ("%s: couldn't get service name for active connection!", __func__);
-			continue;
-		}
-
-		if (strcmp (service_name, BM_DBUS_SERVICE_USER_SETTINGS))
-			continue;
-
-		connection_path = bm_active_connection_get_connection (active);
-		if (!connection_path) {
-			/* Shouldn't happen; but we shouldn't crash either */
-			g_warning ("%s: couldn't get connection path for active connection!", __func__);
-			continue;
-		}
-
-		if (!strcmp (connection_path, bm_connection_get_path (BM_CONNECTION (connection)))) {
-			devices = bm_active_connection_get_devices (active);
-			if (devices)
-				*out_active_connection = active;
-			return devices ? BM_DEVICE (g_ptr_array_index (devices, 0)) : NULL;
-		}
-	}
-
-	return NULL;
-}
-
-static void
-applet_settings_new_secrets_requested_cb (BMAGConfSettings *settings,
-                                          BMAGConfConnection *connection,
-                                          const char *setting_name,
-                                          const char **hints,
-                                          gboolean ask_user,
-                                          BMANewSecretsRequestedFunc callback,
-                                          gpointer callback_data,
-                                          gpointer user_data)
-{
-	BMApplet *applet = BM_APPLET (user_data);
-	BMActiveConnection *active_connection = NULL;
-	BMSettingConnection *s_con;
-	BMDevice *device;
-	BMADeviceClass *dclass;
-	GError *error = NULL;
-
-	s_con = (BMSettingConnection *) bm_connection_get_setting (BM_CONNECTION (connection), BM_TYPE_SETTING_CONNECTION);
-	g_return_if_fail (s_con != NULL);
-
-	/* Find the active device for this connection */
-	device = find_active_device (connection, applet, &active_connection);
-	if (!device || !active_connection) {
-		g_set_error (&error,
-		             BM_SETTINGS_INTERFACE_ERROR,
-		             BM_SETTINGS_INTERFACE_ERROR_INTERNAL_ERROR,
-		             "%s.%d (%s): couldn't find details for connection",
-		             __FILE__, __LINE__, __func__);
-		goto error;
-	}
-
-	dclass = get_device_class (device, applet);
-	if (!dclass) {
-		g_set_error (&error,
-		             BM_SETTINGS_INTERFACE_ERROR,
-		             BM_SETTINGS_INTERFACE_ERROR_INTERNAL_ERROR,
-		             "%s.%d (%s): device type unknown",
-		             __FILE__, __LINE__, __func__);
-		goto error;
-	}
-
-	if (!dclass->get_secrets) {
-		g_set_error (&error,
-		             BM_SETTINGS_INTERFACE_ERROR,
-		             BM_SETTINGS_INTERFACE_ERROR_SECRETS_UNAVAILABLE,
-		             "%s.%d (%s): no secrets found",
-		             __FILE__, __LINE__, __func__);
-		goto error;
-	}
-
-	// FIXME: get secrets locally and populate connection with previous secrets
-	// before asking user for other secrets
-
-	/* Let the device class handle secrets */
-	if (dclass->get_secrets (device, BM_SETTINGS_CONNECTION_INTERFACE (connection),
-	                         active_connection, setting_name, hints, callback,
-	                         callback_data, applet, &error))
-		return;  /* success */
-
-error:
-	g_warning ("%s", error->message);
-	callback (BM_SETTINGS_CONNECTION_INTERFACE (connection), NULL, error, callback_data);
-	g_error_free (error);
-}
-
 static gboolean
 periodic_update_active_connection_timestamps (gpointer user_data)
 {
@@ -2477,9 +2360,6 @@ constructor (GType type,
 	applet->system_settings = bm_remote_settings_system_new (applet_dbus_manager_get_connection (dbus_mgr));
 
 	applet->gconf_settings = bma_gconf_settings_new (applet_dbus_manager_get_connection (dbus_mgr));
-	g_signal_connect (applet->gconf_settings, "new-secrets-requested",
-	                  G_CALLBACK (applet_settings_new_secrets_requested_cb),
-	                  applet);
 
 	bm_settings_service_export (BM_SETTINGS_SERVICE (applet->gconf_settings));
 

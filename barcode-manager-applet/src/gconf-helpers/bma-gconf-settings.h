@@ -42,14 +42,6 @@ typedef struct {
 typedef struct {
 	BMSettingsServiceClass parent;
 
-	/* Signals */
-	void (*new_secrets_requested) (BMAGConfSettings *self,
-	                               BMAGConfConnection *exported,
-	                               const char *setting_name,
-	                               const char **hints,
-	                               gboolean ask_user,
-	                               BMANewSecretsRequestedFunc callback,
-	                               gpointer callback_data);
 } BMAGConfSettingsClass;
 
 GType bma_gconf_settings_get_type (void);

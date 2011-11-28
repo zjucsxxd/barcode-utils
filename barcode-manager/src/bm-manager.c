@@ -95,6 +95,8 @@ typedef struct {
 
 	GHashTable *user_connections;
 	DBusGProxy *user_proxy;
+    BMAuthCallResult user_con_perm;
+    BMAuthCallResult user_net_perm;
 
 	GHashTable *system_connections;
 	BMSysconfigSettings *sys_settings;
@@ -286,6 +288,8 @@ user_proxy_cleanup (BMManager *self, gboolean resync_bt)
 		g_object_unref (priv->user_proxy);
 		priv->user_proxy = NULL;
 	}
+
+	// FIXME Resync BT devices since they are generated from connections
 }
 
 typedef struct GetSettingsInfo {
@@ -310,7 +314,7 @@ free_get_settings_info (gpointer data)
 			g_signal_emit (info->manager, signals[CONNECTIONS_ADDED], 0, BM_CONNECTION_SCOPE_USER);
 
 			/* Update the Bluetooth connections for all the new connections */
-			bluez_manager_resync_devices (info->manager);
+			// FIXME bluez_manager_resync_devices (info->manager);
 		}
 	}
 
@@ -403,7 +407,7 @@ user_connection_get_settings_cb  (DBusGProxy *proxy,
 		if (!info->calls && !existing) {
 			g_signal_emit (manager, signals[CONNECTION_ADDED], 0, connection, BM_CONNECTION_SCOPE_USER);
 			/* Update the Bluetooth connections for that single new connection */
-			bluez_manager_resync_devices (manager);
+			// FIXME bluez_manager_resync_devices (manager);
 		}
 	} else {
 		// FIXME: merge settings? or just replace?
@@ -415,6 +419,25 @@ out:
 		g_hash_table_destroy (settings);
 
 	return;
+}
+
+static void
+remove_connection (BMManager *manager,
+                   BMConnection *connection,
+                   GHashTable *hash)
+{
+    /* Destroys the connection, then associated DBusGProxy due to the
+     * weak reference notify function placed on the connection when it
+     * was created.
+     */
+    g_object_ref (connection);
+    g_hash_table_remove (hash, bm_connection_get_path (connection));
+    g_signal_emit (manager, signals[CONNECTION_REMOVED], 0,
+                   connection,
+                   bm_connection_get_scope (connection));
+    g_object_unref (connection);
+
+    // FIXME bluez_manager_resync_devices (manager);
 }
 
 static void
@@ -470,7 +493,7 @@ user_connection_updated_cb (DBusGProxy *proxy,
 		               old_connection,
 		               bm_connection_get_scope (old_connection));
 
-		bluez_manager_resync_devices (manager);
+		// FIXME bluez_manager_resync_devices (manager);
 	} else {
 		remove_connection (manager, old_connection, priv->user_connections);
 	}
@@ -575,11 +598,99 @@ user_new_connection_cb (DBusGProxy *proxy, const char *path, gpointer user_data)
 	user_internal_new_connection_cb (BM_MANAGER (user_data), path, NULL);
 }
 
+static gboolean
+user_settings_authorized (BMManager *self, BMAuthChain *chain)
+{
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+    BMAuthCallResult old_net_perm = priv->user_net_perm;
+    BMAuthCallResult old_con_perm = priv->user_con_perm;
+
+    /* If the user could potentially get authorization to use networking and/or
+     * to use user connections, the user settings service is authorized.
+     */
+    priv->user_net_perm = GPOINTER_TO_UINT (bm_auth_chain_get_data (chain, BM_AUTH_PERMISSION_NETWORK_CONTROL));
+    priv->user_con_perm = GPOINTER_TO_UINT (bm_auth_chain_get_data (chain, BM_AUTH_PERMISSION_USE_USER_CONNECTIONS));
+
+    bm_log_dbg (LOGD_USER_SET, "User connections permissions: net %d, con %d",
+                priv->user_net_perm, priv->user_con_perm);
+
+    if (old_net_perm != priv->user_net_perm || old_con_perm != priv->user_con_perm)
+        g_signal_emit (self, signals[USER_PERMISSIONS_CHANGED], 0);
+
+    /* If the user can't control the network they certainly aren't allowed
+     * to provide user connections.
+     */
+    if (   priv->user_net_perm == BM_AUTH_CALL_RESULT_UNKNOWN
+		   || priv->user_net_perm == BM_AUTH_CALL_RESULT_NO)
+        return FALSE;
+
+    /* And of course if they aren't allowed to use user connections, they can't
+     * provide them either.
+     */
+    if (   priv->user_con_perm == BM_AUTH_CALL_RESULT_UNKNOWN
+		   || priv->user_con_perm == BM_AUTH_CALL_RESULT_NO)
+        return FALSE;
+
+    return TRUE;
+}
+
+static void
+user_proxy_auth_done (BMAuthChain *chain,
+                      GError *error,
+                      DBusGMethodInvocation *context,
+                      gpointer user_data)
+{
+    BMManager *self = BM_MANAGER (user_data);
+    BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
+    gboolean authorized = FALSE;
+
+    priv->auth_chains = g_slist_remove (priv->auth_chains, chain);
+
+    if (error) {
+        bm_log_warn (LOGD_USER_SET, "User connections unavailable: (%d) %s",
+                     error->code, error->message ? error->message : "(unknown)");
+    } else
+        authorized = user_settings_authorized (self, chain);
+
+    if (authorized) {
+        /* If authorized, finish setting up the user settings service proxy */
+        bm_log_dbg (LOGD_USER_SET, "Requesting user connections...");
+
+        authorized = TRUE;
+
+        dbus_g_proxy_add_signal (priv->user_proxy,
+                                 "NewConnection",
+                                 DBUS_TYPE_G_OBJECT_PATH,
+                                 G_TYPE_INVALID);
+        dbus_g_proxy_connect_signal (priv->user_proxy, "NewConnection",
+                                     G_CALLBACK (user_new_connection_cb),
+                                     self,
+                                     NULL);
+        /* Clean up when the user settings proxy goes away */
+        g_signal_connect (priv->user_proxy, "destroy",
+                          G_CALLBACK (user_proxy_destroyed_cb),
+                          self);
+
+        /* Request user connections */
+        dbus_g_proxy_begin_call (priv->user_proxy, "ListConnections",
+                                 user_list_connections_cb,
+                                 self,
+                                 NULL,
+                                 G_TYPE_INVALID);
+    } else {
+        /* Otherwise, we ignore the user settings service completely */
+        user_proxy_cleanup (self, TRUE);
+    }
+
+    bm_auth_chain_unref (chain);
+}
+
 static void
 user_proxy_init (BMManager *self)
 {
 	BMManagerPrivate *priv = BM_MANAGER_GET_PRIVATE (self);
 	DBusGConnection *bus;
+	BMAuthChain *chain;
 	GError *error = NULL;
 
 	g_return_if_fail (self != NULL);
@@ -604,6 +715,19 @@ user_proxy_init (BMManager *self)
 		g_clear_error (&error);
 		return;
 	}
+
+    /* Kick off some PolicyKit authorization requests to figure out what
+     * permissions this user settings service has.
+     */
+    chain = bm_auth_chain_new (priv->authority,
+                               NULL,
+                               priv->user_proxy,
+                               user_proxy_auth_done,
+                               self);
+    priv->auth_chains = g_slist_prepend (priv->auth_chains, chain);
+
+    bm_auth_chain_add_call (chain, BM_AUTH_PERMISSION_USE_USER_CONNECTIONS, FALSE);
+    bm_auth_chain_add_call (chain, BM_AUTH_PERMISSION_NETWORK_CONTROL, FALSE);
 }
 
 /*******************************************************************/
@@ -657,6 +781,8 @@ bm_manager_name_owner_changed (BMDBusManager *mgr,
 	BMManager *manager = BM_MANAGER (user_data);
 	gboolean old_owner_good = (old && (strlen (old) > 0));
 	gboolean new_owner_good = (new && (strlen (new) > 0));
+
+	bm_log_dbg(LOGD_CORE, "..");
 
 	if (strcmp (name, BM_DBUS_SERVICE_USER_SETTINGS) == 0) {
 		if (!old_owner_good && new_owner_good)
