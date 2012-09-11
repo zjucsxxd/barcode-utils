@@ -33,6 +33,7 @@ Bus 004 Device 003: ID 05e0:1300 Symbol Technologies
 or
 
 ```
+ $ sudo apt-get install git-core
  $ git clone https://github.com/koppi/barcode-utils.git
  $ cd barcode-utils/
 ```
@@ -42,7 +43,7 @@ or
 The following packages are required to build barcode-utils:
 
 ```
- $ sudo apt-get install debhelper libudev-dev libdbus-1-dev
+ $ sudo apt-get install build-essential pbuilder debhelper libudev-dev libdbus-1-dev
 ```
 
 Compile and install barcode-utils as follows:
